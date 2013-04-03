@@ -1,0 +1,32 @@
+/*****************************************************************
+*
+* Copyright (C) 2012-2013 Stony Brook University
+*
+* Author:
+*       Xiangmin Jiao jiao@ams.sunysb.edu
+*       Department of Applied Mathematics and Statistics of
+*       Stony Brook University
+*
+* This software is licensed under the terms of the MIT license with
+* some exceptions: The software may be freely redistributed under
+* the condition that the copyright notices (including this entire
+* header and the copyright notice) are not removed, and no
+* compensation is received. Private, research, and institutional
+* use is free. You may distribute modified versions of this code UNDER
+* THE CONDITION THAT THIS CODE AND ANY MODIFICATIONS MADE TO IT IN THE
+* SAME FILE REMAIN UNDER COPYRIGHT OF THE ORIGINAL AUTHORS, BOTH SOURCE
+* AND OBJECT CODE ARE MADE FREELY AVAILABLE WITHOUT CHARGE, AND CLEAR
+* NOTICE IS GIVEN OF THE MODIFICATIONS. Distribution of this code as
+* part of a commercial system is permissible ONLY BY DIRECT ARRANGEMENT
+* WITH THE AUTHORS.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+* OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+* HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*
+*******************************************************************/
