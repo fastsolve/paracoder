@@ -16,5 +16,7 @@ end
 
 if ~exist('coder.p', 'file')
     addpath([pwd '/No_coder']);
+else
+    addpath('./codegen');
 end
 
