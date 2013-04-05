@@ -1,8 +1,10 @@
 % Startup script for M2C.
 % The script must be run in the current directory.
 
-addpath(pwd);
-addpath([pwd '/util']);
+if ~exist('m2c', 'file')
+    addpath(pwd); %#ok<*MCAP>
+    addpath([pwd '/util']);
+end
 
 if ~isnewer( ['./opaque_ptr.' mexext], './src/opaque_ptr.c')
     mex src/opaque_ptr.c
@@ -16,7 +18,5 @@ end
 
 if ~exist('coder.p', 'file')
     addpath([pwd '/No_coder']);
-else
-    addpath('./codegen');
 end
 
