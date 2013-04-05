@@ -191,16 +191,16 @@ if exist(cpath,'dir')
     rmdir(cpath,'s');
 end
 
+olddir = pwd;
+if ~isempty(mpath); cd(mpath); end
+p = path;
+
 try
-    olddir = pwd;
-    if ~isempty(mpath); cd(mpath); end
     if exist('./codegen', 'dir'); addpath ./codegen; end %#ok<*MCAP>
     eval(command);
-    if exist('./codegen', 'dir'); rmpath ./codegen; end %#ok<*MCAP>
-    cd(olddir);  %#ok<*MCCD>
+    path(p); cd(olddir);  %#ok<*MCCD>
 catch err
-    if exist('./codegen', 'dir'); rmpath ./codegen; end
-    cd(olddir);
+    path(p); cd(olddir);  %#ok<*MCCD>
     fprintf(2, '%s', err.message);
     fprintf(2, 'Skipping compilation for function %s\n', func);
     return;
