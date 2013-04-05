@@ -114,12 +114,14 @@ end
 
 % Determine whether to enable OpenMP
 [enableomp, args] = match_option( args, '-omp');
+ompopt = '';
 if enableomp
-    opts_opt = [opts_opt ' -O enable:OpenMP'];
-    ompopt = '-lgomp';
-else
+    if ~verLessThan('matlab', '8.0.0') && hascodegen
+        opts_opt = [opts_opt ' -O enable:OpenMP'];
+        ompopt = '-lgomp';
+    end
+elseif ~verLessThan('matlab', '8.0.0') && hascodegen
     opts_opt = [opts_opt ' -O disable:OpenMP'];
-    ompopt = '';
 end
 
 % Extract arguments from M-code.
