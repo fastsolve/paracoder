@@ -1,6 +1,6 @@
 function m2c(varargin)
 % Wrapper function for converting Embedded MATLAB into a C library
-%         that can be linked with other code.
+%         that can be linked with other codes.
 % Usage:
 %    m2c [-g|-O|-noinf|-mpi|-omp|-m|-64|-q] matlabfunc <args>
 %

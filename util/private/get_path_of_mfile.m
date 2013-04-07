@@ -2,7 +2,11 @@ function [mpath, func, mfile] = get_path_of_mfile( func)
 %get_path_of_mfile Obtain the path of an M-file
 
 if func(end-1)=='.'; func = func(1:end-2); end
-k = regexp(func, '[/\\]');
+if ispc
+    k = regexp(func, '[/\\]');
+else
+    k = regexp(func, '/');
+end
 if ~isempty(k);
     mpath = func(1:k(end)); func = func(k(end)+1:end);
 else
