@@ -27,7 +27,7 @@ end
 for i=1:length(files)
     file = files(i).name;
     
-    fid = fopen(file, 'rt');
+    fid = fopen([fpath file], 'rt');
     if fid>=0
         str = fread( fid,'*char')';
         fclose( fid);
