@@ -225,6 +225,7 @@ if enable64
 end
 
 %% Also generate a wrapper for building MEX
+if enableopt; dbopt = [dbopt ' -O']; end
 lib2mex([mpath func], dbopt, args);
 
 if ~quiet
