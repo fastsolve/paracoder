@@ -2,7 +2,7 @@ function m2c(varargin)
 % Wrapper function for converting Embedded MATLAB into a C library
 %         that can be linked with other codes.
 % Usage:
-%    m2c [-g|-O|-noinf|-mpi|-omp|-m|-64|-q] matlabfunc <args>
+%    m2c [-g|-O|-noinf|-mpi|-omp|-m|-64|-q|force] matlabfunc <args>
 %
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
@@ -23,6 +23,8 @@ function m2c(varargin)
 %           Quite mode.
 %     -64 
 %           Map int32 to int64.
+%     -force
+%           Force to rebuild the mex function,
 %
 %     You can also use more than one option. E.g.,
 %       m2c -g -O matlabfunc -args {code.typeof(0,[inf,1],[1,0])}
@@ -76,6 +78,14 @@ end
 cpath = [mpath 'codegen/lib/' func '/'];
 [errchk, args] = match_option( args, '-g');
 if errchk; dbopt = '-g'; else dbopt = ''; end
+
+[skipdepck, args] = match_option( args, '-force');
+
+if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
+        ckdep([cpath  '/mex_' func '.m'], mfile)
+    disp(['C code for ' func ' is up to date.']);
+    return;
+end
 
 [enableopt, args] = match_option( args, '-O');
 

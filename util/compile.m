@@ -81,10 +81,8 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     end
     m2mex(args, [dir func]);
 else
-    [force, args] = match_option( args, '-force');
-    
-    if ~exist(command, 'file') || hascodegen &&  ...
-            (force || ~ckdep([cpath  '/' func '_mex.c'], which([dir func '.m'])))
+    [force, args] = match_option( args, '-force');    
+    if ~exist(command, 'file') || hascodegen && force
         m2c([args, ' -q'], [dir func]);
     end
     
