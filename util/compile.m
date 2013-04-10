@@ -1,7 +1,7 @@
 function compile( varargin)
 % Compile MATLAB code using either m2c (if codegen exists) or m2mex.
 %
-%    compile [-g|-O|-noinf|-mpi|-omp|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
+%    compile [-g|-O|-noinf|-omp|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
 %
 % The options can be any of the following:
 %
@@ -11,8 +11,6 @@ function compile( varargin)
 %           Enable optimization (including inlining).
 %     -noinf
 %           Disable support of NonFinite (m2c only).
-%     -mpi
-%           Enable support of MPI (requires MMPI).
 %     -omp
 %           Enable OpenMP support (requires m2c and MOMP for full features).
 %     -m 

@@ -9,11 +9,11 @@
 #if !defined(CONST_PTR) && !defined(HAVE_OCTAVE)
 /* One undocumented MATLAB functions for supporting copy-on-write. */
 extern int mxIsSharedArray(const mxArray *a);
-#define TYPESTR "char *"
+#define TYPESTR "void *"
 #else
 /* extern int mxIsSharedArray(const mxArray *a); */
 #define mxIsSharedArray(a) 0
-#define TYPESTR "const char *"
+#define TYPESTR "const void *"
 #endif
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {

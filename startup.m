@@ -1,7 +1,7 @@
 % Startup script for M2C.
 % The script must be run in the current directory.
 
-if ~exist('m2c', 'file')
+if exist('m2c', 'file')~=2
     addpath(pwd); %#ok<*MCAP>
     addpath([pwd '/util']);
 end

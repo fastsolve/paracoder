@@ -135,7 +135,7 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
  * Copy data in mxArray into a given array.
  *****************************************************************/
 static void copy_mxArray_to_array(const mxArray *a, emxArray__common *emx, 
-                                  int32_T maxlen) {
+                                  mwSize maxlen) {
     mxClassID type=mxGetClassID(a);
 
     switch (type) {
@@ -302,11 +302,12 @@ static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
         mxChar  *d;
         char    *p = (char*)s;
         mwSize  len=1, i;
+        int32_T j;
 
         a = mxCreateCharArray(dim, dims);
         d = (mxChar*)mxGetData(a);
         
-        for (i=0; i<dim; ++i) len*=size[i];
+        for (j=0; j<dim; ++j) len*=size[j];
         for (i=0; i<len; ++i) d[i] = p[i];
         break;
     }
@@ -413,12 +414,14 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
     case mxLOGICAL_CLASS: {
         mxLogical  *d;
         boolean_T  *p = (boolean_T*)emx->data;
-        mwSize  len=1, i;
+        mwSize  len=1;
+        int     i;
 
         a = mxCreateLogicalArray(dim, dims);
         for (i=0; i<dim; ++i) len*=dims[i];
 
         if (p) {
+            mwSize  i;
             d = (mxLogical*)mxGetLogicals(a);
             for (i=0; i<len; ++i) d[i] = p[i];
         }
@@ -430,12 +433,14 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
     case mxCHAR_CLASS: {
         mxChar  *d;
         char    *p = (char*)emx->data;
-        mwSize  len=1, i;
+        mwSize  len=1;
+        int     i;
 
         a = mxCreateCharArray(dim, dims);
         for (i=0; i<dim; ++i) len*=dims[i];
 
         if (p) {
+            mwSize  i;
             d = (mxChar*)mxGetData(a);
             for (i=0; i<len; ++i) d[i] = p[i];
         }

@@ -6,6 +6,7 @@
 *.mat
 *.exe
 *.o
+*.d
 *.so
 *.7z
 *.dmg
