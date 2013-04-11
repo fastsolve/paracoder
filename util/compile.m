@@ -83,6 +83,7 @@ else
     if ~exist(command, 'file') || hascodegen && force
         m2c([args, ' -q'], [dir func]);
     end
-    
     if exist(command, 'file'); run(command); end
 end
+
+clear(func);
