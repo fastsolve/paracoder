@@ -1,7 +1,7 @@
 function compile( varargin)
 % Compile MATLAB code using either m2c (if codegen exists) or m2mex.
 %
-%    compile [-g|-O|-noinf|-omp|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
+%    compile [-g|-O|-c++|-noinf|-omp|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
 %
 % The options can be any of the following:
 %
@@ -9,6 +9,8 @@ function compile( varargin)
 %           Enable error checkings and debegging support.
 %     -O
 %           Enable optimization (including inlining).
+%     -c++
+%           Generates C++ code instead of C code (m2c only).
 %     -noinf
 %           Disable support of NonFinite (m2c only).
 %     -omp
@@ -73,6 +75,7 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     [~, args] = match_option( args, '-noinf');
     [~, args] = match_option( args, '-m');
     [~, args] = match_option( args, '-64');
+    [~, args] = match_option( args, '-c++');
 
     if usem2c
         warning('compile:unsupported', 'M2C is not available. Using m2mex instead.');

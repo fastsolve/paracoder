@@ -1,4 +1,6 @@
 function [matched, args] = match_option( args, opt)
+
+opt = strrep( opt, '+', '\+');
 matched = ~isempty( regexp( args, ['(\s|^)' opt '(\s|$)'], 'once'));
 
 if matched;
