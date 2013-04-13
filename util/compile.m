@@ -1,7 +1,7 @@
 function compile( varargin)
 % Compile MATLAB code using either m2c (if codegen exists) or m2mex.
 %
-%    compile [-g|-O|-c++|-noinf|-omp|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
+%    compile [-g|-O|-c++|-noinf|-acc|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
 %
 % The options can be any of the following:
 %
@@ -13,8 +13,8 @@ function compile( varargin)
 %           Generates C++ code instead of C code (m2c only).
 %     -noinf
 %           Disable support of NonFinite (m2c only).
-%     -omp
-%           Enable OpenMP support (requires m2c and MOMP for full features).
+%     -acc
+%           Enable acceleration support (requires m2c and MACC for full features).
 %     -m 
 %           Map MATLAB files to individual C files (m2c only).
 %     -64 
@@ -82,7 +82,7 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     end
     m2mex(args, [dir func]);
 else
-    [force, args] = match_option( args, '-force');    
+    force = match_option( args, '-force');    
     if ~exist(command, 'file') || hascodegen && force
         m2c([args, ' -q'], [dir func]);
     end
