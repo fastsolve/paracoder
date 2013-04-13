@@ -1,24 +1,26 @@
 % Wrapper function for converting Embedded MATLAB into a C library
 %         that can be linked with other codes.
 % Usage:
-%    m2c [-g|-O|-noinf|-omp|-m|-64|-q|force] matlabfunc <args>
+%    m2c [-g|-O|-c++|-noinf|-acc|-m|-64|-q|force] matlabfunc <args>
 %
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
 %
-%     -g 
+%     -g
 %           Enable error checkings and debegging support.
 %     -O
 %           Enable optimization (including inlining).
+%     -c++
+%           Generates C++ code instead of C code.
 %     -noinf
 %           Disable support of NonFinite (inf and nan. It produces faster codes).
-%     -omp
-%           Enable full-featured support of OpenMP (requires MOMP).
-%     -m 
+%     -acc
+%           Enable acceleration support using multicore and/or GPUs.
+%     -m
 %           Map MATLAB files to individual C files.
 %      -q
 %           Quite mode.
-%     -64 
+%     -64
 %           Map int32 to int64.
 %     -force
 %           Force to rebuild the mex function,
