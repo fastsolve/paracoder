@@ -1,37 +1,34 @@
 function msg_error(varargin) %#codegen
 %msg_fatal Issue a fatal error message.
-%   It takes one or two input arguments.
+%   It takes one or more input arguments.
 
 coder.extrinsic('error');
+coder.inline('never');
 
-if isempty(coder.target)
-    dbstop if error;
+if isempty(coder.target) || isequal( coder.target, 'mex')
     error( varargin{:});
 end
 
-assert( nargin<=2);
-if isequal( coder.target, 'mex')
-    if nargin==1
-        error( varargin{1});
-    else
-        error( varargin{1}, varargin{2});
-    end
-elseif nargin==1
-    msgid = ['runtime:UnknownError', char(0)];
-    errstr = [varargin{1} char(0)];
+assert( nargin>=1);
+if nargin==1 || ~isempty(strfind(varargin{1}, ':'))
     if coder.ismatlabthread
-        coder.ceval( 'mexErrMsgIdAndTxt', coder.rref(msgid), coder.rref(errstr));
+        fmt = coder.opaque( 'const char *', ['"' strrep( varargin{1}, '%s', '%p') '"']);
+
+        coder.ceval( 'mexErrMsgIdAndTxt', ...
+            coder.opaque('const char *', '"runtime:Error"'), ...
+            fmt, varargin{2:end});
     else
-        coder.ceval( 'printf', coder.opaque('const char *', '"%s\n"'), coder.rref(errstr));
-        coder.ceval( 'abort');
+        fmt = coder.opaque( 'const char *', ['"Error\n' strrep( varargin{1}, '%s', '%p') '"']);
+        coder.ceval( 'printf', fmt, varargin{2:end});
     end
 else
-    msgid = [varargin{1} char(0)];
-    errstr = [varargin{2} char(0)];
+    msgid = coder.opaque( 'const char *', ['"' varargin{1} '"']);
+    
     if coder.ismatlabthread
-        coder.ceval( 'mexErrMsgIdAndTxt', coder.rref(msgid), coder.rref(errstr));
+        fmt = coder.opaque( 'const char *', ['"' strrep( varargin{2}, '%s', '%p') '"']);
+        coder.ceval( 'mexErrMsgIdAndTxt', msgid, fmt, varargin{3:end});
     else
-        coder.ceval( 'printf', coder.opaque('const char *', '"%s\n%s\n"'), coder.rref(msgid), coder.rref(errstr));
-        coder.ceval( 'abort');
+        fmt = coder.opaque( 'const char *', ['"Error %s\n' strrep( varargin{2}, '%s', '%p') '"']);
+        coder.ceval( 'printf', fmt, msgid, varargin{3:end});
     end
 end
