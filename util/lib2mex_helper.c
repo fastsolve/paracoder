@@ -32,7 +32,7 @@ typedef struct emxArray__common
 void init_emxArray( emxArray__common *emx, int32_T dim) {
     emx->data = NULL;
     emx->numDimensions = dim;
-    emx->size = mxCalloc(dim, sizeof(int32_T));
+    emx->size = (int32_T*)mxCalloc(dim, sizeof(int32_T));
     emx->allocatedSize = 0;
     emx->canFreeData = TRUE;
 }
@@ -120,7 +120,7 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
         emx->data = mxMalloc( emx->allocatedSize);
         emx->canFreeData = true;
         
-        mxGetString(a, emx->data, emx->allocatedSize);
+        mxGetString(a, (char*)emx->data, emx->allocatedSize);
         break;
     case mxSTRUCT_CLASS:
         mxAssert(0, "mxSTRUCT_CLASS is not supported.");
