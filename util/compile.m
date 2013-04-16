@@ -83,7 +83,7 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     m2mex(args, [dir func]);
 else
     force = match_option( args, '-force');    
-    if ~exist(command, 'file') || hascodegen && force
+    if ~exist(command, 'file') || hascodegen && (usem2c || force)
         m2c([args, ' -q'], [dir func]);
     end
     if exist(command, 'file'); run(command); end
