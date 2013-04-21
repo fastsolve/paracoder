@@ -31,6 +31,8 @@ else
     if isempty(mfile);
         error( 'm2c:FileNotFound', 'Could not locate file %s', mfile);
     end
+    n = length(pwd);
+    if strncmp( mfile, pwd, n); mfile = mfile(n+2:end); end
     k = regexp(mfile, '[/\\]');
     mpath = mfile(1:k(end));
 end

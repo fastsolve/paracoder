@@ -9,8 +9,8 @@ coder.inline('never');
 
 if isempty(coder.target) || isequal( coder.target, 'mex')
     fprintf(1, varargin{:});
+else
+    assert( nargin>=1);
+    fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
+    coder.ceval( 'printf', fmt, varargin{2:end});
 end
-
-assert( nargin>=1);
-fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-coder.ceval( 'printf', fmt, varargin{2:end});

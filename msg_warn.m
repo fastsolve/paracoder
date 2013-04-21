@@ -9,10 +9,7 @@ coder.inline('never');
 
 if isempty(coder.target) || isequal( coder.target, 'mex')
     warning( varargin{:});
-end
-
-assert( nargin>=1);
-if nargin==1 || isempty(strfind(varargin{1}, ':'))
+elseif nargin==1 || ischar( varargin{1}) && ~ischar(varargin{2})
     if coder.ismatlabthread
         fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
         

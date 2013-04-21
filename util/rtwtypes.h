@@ -1,10 +1,6 @@
 /*
  * rtwtypes.h
  *
- * Code generation for function 'MMPI_Abort'
- *
- * C source code generated on: Thu Mar 28 20:40:52 2013
- *
  */
 
 #ifndef __RTWTYPES_H__

@@ -2,20 +2,17 @@ function msg_error(varargin) %#codegen
 %msg_fatal Issue a fatal error message.
 %   It takes one or more input arguments.
 % Note that if you use %s in the format, the character string must be
-% null-terminated. 
+% null-terminated.
 
 coder.extrinsic('error');
 coder.inline('never');
 
 if isempty(coder.target) || isequal( coder.target, 'mex')
     error( varargin{:});
-end
-
-assert( nargin>=1);
-if nargin==1 || isempty(strfind(varargin{1}, ':'))
+elseif nargin==1 || ischar( varargin{1}) && ~ischar(varargin{2})
     if coder.ismatlabthread
         fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-
+        
         coder.ceval( 'mexErrMsgIdAndTxt', ...
             coder.opaque('const char *', '"runtime:Error"'), ...
             fmt, varargin{2:end});
