@@ -1,4 +1,4 @@
-The submodules in the ParaLab directory are propriatory of ParaLab LLC, and 
+The submodules in the ParaLab directory are proprietary to ParaLab LLC, and 
 may be protected by Copyright and/or U.S. and international patents. 
 
 Deverlopers and collaborators of the NumGeom Group can use these submodules
