@@ -34,5 +34,6 @@ switch computer
             'Edit the file "' which('lapacklib') '" to specify their path with the -L option.']);
         libs = '-llapack -lblas';
     otherwise
-        error('Unsupported platform.');
+        libs = '-llapack -lblas';
+        % error('Unsupported platform.');
 end
