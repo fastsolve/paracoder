@@ -276,7 +276,7 @@ static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
         dims = (mwSize*)size;
     else {
         dims = (dim<=CGEN_MAXDIM)? dims_buf: (mwSize *)mxMalloc(sizeof(mwSize)*dim);
-        for (i=dim; i>=0; --i) dims[i] = size[i];
+        for (i=0; i<dim; ++i) dims[i] = size[i];
     }
 
     switch (type) {
@@ -341,7 +341,7 @@ static mxArray *create_struct_mxArray(int32_T dim, int32_T *size,
         dims = (mwSize*)size;
     else {
         dims = (dim<=CGEN_MAXDIM)? dims_buf: (mwSize *)mxMalloc(sizeof(mwSize)*dim);
-        for (i=dim; i>=0; --i) dims[i] = size[i];
+        for (i=0; i<dim; ++i) dims[i] = size[i];
     }
 
     a = mxCreateStructArray(dim, dims, nfields, fields);
@@ -363,13 +363,19 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
     int      i;
 
     /* Always use copy for robustness */
-    /* if ( !emx->canFreeData) { */
-    if ( true) {
-        a = copy_array_to_mxArray( emx->data, type, 
-                                   emx->numDimensions, emx->size);
+#ifdef HAVE_OCTAVE
+    a = copy_array_to_mxArray( emx->data, type,
+            emx->numDimensions, emx->size);
+    free_emxArray( emx);
+    return a;
+#else
+    if ( !emx->canFreeData) {
+        a = copy_array_to_mxArray( emx->data, type,
+                emx->numDimensions, emx->size);
         free_emxArray( emx);
         return a;
     }
+#endif
 
     if  (dim==1 && emx->size[0]==0) {
         dims = dims_buf; dims[0] = 0; dims[1] = 1; dim = 2;
@@ -378,7 +384,7 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
         dims = (mwSize*)emx->size;
     else {
         dims = (dim<=CGEN_MAXDIM)? dims_buf: (mwSize *)mxMalloc(sizeof(mwSize)*dim);
-        for (i=dim; i>=0; --i) dims[i] = emx->size[i];
+        for (i=0; i<dim; ++i) dims[i] = emx->size[i];
     }
 
     switch (type) {
@@ -392,21 +398,15 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
     case mxUINT32_CLASS:
     case mxINT64_CLASS:
     case mxUINT64_CLASS: {
+        /* The allocated size must be equal to the dimension */
         a = mxCreateNumericArray(0, 0, type, mxREAL);
+        if (emx->data) {
+            /* Set pointer */
+            mxSetData( a, emx->data);
+        }
         /* Set size */
         mxSetDimensions(a, dims, dim);
-
-        /* The allocated size must be equal to the dimension */
-        if ( emx->allocatedSize!= mxGetNumberOfElements(a)*mxGetElementSize(a)) {
-            mxFree( a);
-            a = copy_array_to_mxArray( emx->data, type, 
-                                       emx->numDimensions, emx->size);
-        }
-        else {
-            /* Set pointer */
-            if (emx->data) mxSetData( a, emx->data);
-            emx->canFreeData = FALSE;
-        }
+        emx->canFreeData = FALSE;
 
         free_emxArray( emx);
         break;
