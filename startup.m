@@ -6,17 +6,22 @@ if exist('m2c', 'file')~=2
     addpath([pwd '/util']);
 end
 
-if ~isnewer( ['./opaque_ptr.' mexext], './src/opaque_ptr.c')
-    mex src/opaque_ptr.c
-end
-if ~isnewer( ['./opaque_ptr_const.' mexext], './src/opaque_ptr.c')
-    mex -I. src/opaque_ptr_const.c
-end
-if ~isnewer( ['./bytes2num.' mexext], './src/bytes2num.c')
-    mex src/bytes2num.c
-end
-
 if ~exist('coder.p', 'file')
     addpath([pwd '/No_coder']);
 end
 
+if isinmpi
+    if ~exist(['./opaque_ptr.', mexext], 'file')
+        if ~ismpiroot
+            error('You must build M2C before using MPI.');
+        else
+            build_m2c;
+        end
+    end
+else
+    try
+        build_m2c;
+    catch
+        warning('Could not build M2C.');
+    end
+end
