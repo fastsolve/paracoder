@@ -68,6 +68,8 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     int   i, mxdim = mxGetNumberOfDimensions(a);
     
     init_emxArray( emx, dim);
+    
+    if ( mxGetNumberOfElements(a)==0) return;
 
     /* Check the compatibility of the mxArray */
     if ( mxdim>dim) {
