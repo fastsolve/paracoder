@@ -6,15 +6,19 @@
 #include "mex.h"
 #include "string.h"
 
-#if !defined(CONST_PTR) && !defined(HAVE_OCTAVE)
-/* One undocumented MATLAB functions for supporting copy-on-write. */
-extern int mxIsSharedArray(const mxArray *a);
+#if !defined(CONST_PTR)
 #define TYPESTR "void *"
 #else
-/* extern int mxIsSharedArray(const mxArray *a); */
-#define mxIsSharedArray(a) 0
 #define TYPESTR "const void *"
 #endif
+
+#if !defined(HAVE_OCTAVE)
+/* One undocumented MATLAB functions for supporting copy-on-write. */
+extern int mxIsSharedArray(const mxArray *a);
+#else
+#define mxIsSharedArray(a) 0
+#endif
+
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     mxArray *output, *field;
