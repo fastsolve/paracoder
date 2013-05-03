@@ -13,15 +13,16 @@ end
 if isinmpi
     if ~exist(['./opaque_ptr.', mexext], 'file')
         if ~ismpiroot
-            error('You must build M2C before using MPI.');
+            error('You must build M2C before using mpirun/mpiexec.');
         else
             build_m2c;
         end
+        exit;
     end
 else
     try
         build_m2c;
     catch
-        warning('Could not build M2C.');
+        error('Could not build M2C.');
     end
 end

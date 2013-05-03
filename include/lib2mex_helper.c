@@ -114,7 +114,7 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
     case mxINT64_CLASS:
     case mxUINT64_CLASS:
         emx->allocatedSize = mxGetNumberOfElements(a);
-        emx->data = mxGetData( a);
+        if (emx->allocatedSize) emx->data = mxGetData( a);
         emx->canFreeData = false;
         break;
     case mxCHAR_CLASS:
