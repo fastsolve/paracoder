@@ -12,6 +12,8 @@
 #define M2C_BEGIN_REGION()     {
 #define M2C_END_REGION()       }
 
+extern double M2C_wtime();
+
 #ifndef ONCUDA
 # define ONCUDA (255U)
 #endif
