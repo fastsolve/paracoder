@@ -153,7 +153,7 @@ define_emxDestroyArray( emxFree_real64_T, real64_T)
 
 #include <time.h>
 
-#ifdef __GNUC__
+#if defined( __GNUC__) && !defined(__LCC__)
 #include <sys/time.h>
 #else
 
