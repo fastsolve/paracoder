@@ -153,7 +153,7 @@ define_emxDestroyArray( emxFree_real64_T, real64_T)
 
 #include <time.h>
 
-#if defined( __GNUC__) && !defined(__LCC__)
+#if defined( __GNUC__)
 #include <sys/time.h>
 #else
 
@@ -161,7 +161,7 @@ define_emxDestroyArray( emxFree_real64_T, real64_T)
 /* Provides an implementation of gettimeofday for Windows
  */
 #include <windows.h> 
-#else
+#elif !defined(__LCC__)
 #include <math.h>
 #endif
 
@@ -223,7 +223,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
         tz->tz_minuteswest = _timezone / 60;
         tz->tz_dsttime = _daylight;
     }
-#else
+#elif !defined(__LCC__)
     double t = clock(); 
     t /= CLOCKS_PER_SEC;
     tv->tv_sec = (long)(floor(t));
@@ -240,11 +240,13 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
  * --------------------------------------------------------------------------*/
 double M2C_wtime() {
     double y = -1;
-    struct timeval cur_time;
     
+#if !defined(__LCC__)
+    struct timeval cur_time;
     gettimeofday(&cur_time, NULL);
     
     y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
-    
+#end
+
     return (y);
 }
