@@ -246,7 +246,7 @@ double M2C_wtime() {
     gettimeofday(&cur_time, NULL);
     
     y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
-#end
+#endif
 
     return (y);
 }
