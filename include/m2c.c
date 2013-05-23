@@ -153,11 +153,17 @@ define_emxDestroyArray( emxFree_real64_T, real64_T)
 
 #include <time.h>
 
-#ifdef _MSC_VER
+#ifdef __GNUC__
+#include <sys/time.h>
+#else
 
+#ifdef _MSC_VER
 /* Provides an implementation of gettimeofday for Windows
  */
 #include <windows.h> 
+#else
+#include <math.h>
+#endif
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
@@ -175,6 +181,7 @@ struct timezone
 
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
+#ifdef _MSC_VER
     // Define a structure to receive the current Windows filetime
     FILETIME ft;
     
@@ -216,12 +223,16 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
         tz->tz_minuteswest = _timezone / 60;
         tz->tz_dsttime = _daylight;
     }
-    
+#else
+    double t = clock(); 
+    t /= CLOCKS_PER_SEC;
+    tv->tv_sec = (long)(floor(t));
+    tv->tv_usec = (long)(floor((t-tv->tv_sec)*1.e6));
+#endif
+
     return 0;
 }
 
-#else
-#include <sys/time.h>
 #endif
 
 /*-----------------------------------------------------------------------------
