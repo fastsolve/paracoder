@@ -1,3 +1,4 @@
+function m2mex(varargin)
 % Wrapper function for compiling M-files into a MEX function.
 % Usage:
 %       m2mex [-c|-g|-O|-acc|-force] matlabfunc <args>
@@ -14,7 +15,7 @@
 %     -acc
 %           Enable MATLAB Coder's built-in support of OpenMP. This only 
 %           enables converting parfor in MATLAB into OpenMP code in C. 
-%           To use the full features of OpenMP, use M2C and MACC.
+%           To use the full features of OpenMP, use m2c and MACC.
 %     -force
 %           Force to rebuild the mex function,
 %
@@ -84,6 +85,11 @@ if ~exist('codegen.p', 'file') && ~exist('emlmex.p', 'file')
         'Cannot compile the code, since you have neither codegen nor emlmex.');
 end
 
+% Determine whether to include mpi.h
+if ckuse( mfile, 'MMPI_require_header')
+    error( 'm2mex:MPIUnsupported', 'MPI is not supported in the mex mode. Use m2c instead.');
+end
+
 [errchk, args] = match_option( args, '-g');
 [enableopt, args] = match_option( args, '-O');
 
@@ -96,14 +102,6 @@ elseif errchk
 else
     opts_opt = '-O enable:inline';  errchk=false;
     mexopt = '';
-end
-
-% Determine whether to include mpi.h
-% Determine whether to include mpi.h
-if ckuse( mfile, 'MMPI_require_header')
-    mpi_header = '#include "mpi.h"'; 
-else    
-    mpi_header = '';
 end
 
 % Determine whether to enable OpenMP
@@ -124,30 +122,19 @@ if length(func)>2 && func(end-1)=='.'
     func = func(1:end-2);
 end
 
-if ckuse( mfile, 'M2C_offset_ptr')
-    M2C_OFFSET_PTR = '#define M2C_OFFSET_PTR(a,b)    ((char *)a)+(b)';
-else
-    M2C_OFFSET_PTR = '';
-end
-if ckuse( mfile, 'M2C_chk_opaque_ptr')
-    M2C_CHK_OPAQUE_PTR = sprintf('%s\n', ...
-        '#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \', ...
-        '    if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \', ...
-        '        mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \', ...
-        '        "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");');
-else
-    M2C_CHK_OPAQUE_PTR = '';
-end
-
 %% Set compiler option
 if hascodegen
     co_cfg_mex = coder.config('mex'); %#ok<NODEF>
     co_cfg_mex.FilePartitionMethod = 'SingleFile';
     co_cfg_mex.GenerateReport = errchk;
     basecommand = 'codegen -config co_cfg_mex ';
-        
+
     co_cfg_mex.CustomSourceCode = sprintf('%s\n', ...
-        M2C_OFFSET_PTR, M2C_CHK_OPAQUE_PTR, mpi_header);
+        '#define M2C_OFFSET_PTR(a,b)    ((char *)a)+(b)', ...
+        '#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \', ...
+        'if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \', ...
+        'mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \', ...
+        '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.');
     if ~errchk
         try coder.CCompilerOptimization = 'On';
         catch; end
