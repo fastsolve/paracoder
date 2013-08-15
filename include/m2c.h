@@ -8,9 +8,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#define M2C_OFFSET_PTR(a,b)    ((char *)a)+(b)
-#define M2C_BEGIN_REGION()     {
-#define M2C_END_REGION()       }
+#define M2C_OFFSET_PTR(ptr,offset)    ((char *)ptr)+(offset)
+#define M2C_GET_FIELD(s,field)        (s)->field
+#define M2C_BEGIN_REGION()            {
+#define M2C_END_REGION()              }
 
 extern double M2C_wtime();
 
