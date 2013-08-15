@@ -4,7 +4,7 @@ function obj = opaque_obj( type, data, nitems) %#codegen
 %
 % The function creates a struct with the following fields:
 %     type: a character string
-%     data: a column array of uint8
+%     data: a column array of uint8.
 %     nitems: number of items of the objects (default is 1)
 %
 % At input, type is a character string.
@@ -23,7 +23,7 @@ end
 
 if nargin<3; nitems=int32(1); end
 
-coder.varsize( 'obj.data', [inf,inf]);
+coder.varsize( 'obj.data', [inf,1]);
 coder.varsize( 'obj.type', [1,inf]);
 coder.varsize( 'obj.nitems', [1,1]);
 
