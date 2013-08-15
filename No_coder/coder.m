@@ -8,7 +8,6 @@ p.varsize = @nullfunc;
 p.inline = @nullfunc;
 p.allowpcode = @nullfunc;
 p.cstructname = @nullfunc;
-p.ceval = @nullfunc;
 p.ismatlabthread = true;
 p.unroll = @copy;
 p.resize = @copy;
