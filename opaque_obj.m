@@ -15,7 +15,6 @@ function obj = opaque_obj( type, data, nitems) %#codegen
 % with optimal arguments.
 
 coder.inline('always');
-coder.allowpcode('plain');
 
 if nargin==0
     obj = opaque_obj_type; return;
@@ -28,15 +27,14 @@ coder.varsize( 'obj.type', [1,inf]);
 coder.varsize( 'obj.nitems', [1,1]);
 
 if isempty(coder.target)
-    assert(isa(data, 'uint8') && size(data,2)==1);
-    obj = struct( 'data', data, 'type', char(type(:)'), ...
+    obj = struct( 'data', typecast(data, 'uint8'), 'type', char(type(:)'), ...
         'nitems', int32(nitems));
 else
     sizepe = int32(0);
     sizepe = coder.ceval('sizeof', coder.opaque('ctype',type));
     
     % Allocate data
-    obj = struct('data', nullcopy(zeros( sizepe*nitems, 1, 'uint8')), ...
+    obj = struct('data', coder.nullcopy(zeros( sizepe*nitems, 1, 'uint8')), ...
         'type', char(type(:)'), 'nitems', int32(nitems));
     if ~isempty(data)
         ptr = coder.opaque('char *', 'NULL');
