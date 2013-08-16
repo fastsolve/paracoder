@@ -34,8 +34,8 @@ else
     sizepe = coder.ceval('sizeof', coder.opaque('ctype',type));
     
     % Allocate data
-    obj = struct('data', coder.nullcopy(zeros( sizepe*nitems, 1, 'uint8')), ...
-        'type', char(type(:)'), 'nitems', int32(nitems));
+    data0 = coder.nullcopy(zeros(sizepe*nitems, 1, 'uint8'));
+    obj = struct('data', data0, 'type', char(type(:)'), 'nitems', int32(nitems));
     if ~isempty(data)
         ptr = coder.opaque('char *', 'NULL');
         ptr = coder.ceval('(char *)', coder.rref(data));
