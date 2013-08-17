@@ -7,6 +7,3 @@ end
 if ~isnewer( ['./opaque_ptr_const.' mexext], './src/opaque_ptr.c')
     mex -I. src/opaque_ptr_const.c
 end
-if ~isnewer( ['./bytes2num.' mexext], './src/bytes2num.c')
-    mex src/bytes2num.c
-end
