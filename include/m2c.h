@@ -14,6 +14,9 @@
 #define M2C_BEGIN_REGION()            {
 #define M2C_END_REGION()              }
 
+typedef int int32_triple[3];
+typedef int int32_double[2];
+
 extern double M2C_wtime();
 
 #ifndef ONCUDA
