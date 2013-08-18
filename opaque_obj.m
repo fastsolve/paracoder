@@ -27,7 +27,9 @@ coder.varsize( 'obj.type', [1,inf]);
 coder.varsize( 'obj.nitems', [1,1]);
 
 if isempty(coder.target)
-    obj = struct( 'data', typecast(data, 'uint8'), 'type', char(type(:)'), ...
+    data = typecast(data, 'uint8');
+    if isrow(data); data = data'; end
+    obj = struct( 'data', data, 'type', char(type(:)'), ...
         'nitems', int32(nitems));
 else
     sizepe = int32(0);
