@@ -7,7 +7,7 @@ function ptr = opaque_ptr( var, type, offset) %#codegen
 %         type:   pointer type stored as a character string
 %         nbytes: number of bytes of the parent object
 %         parent: a reference back to the parent mxArray
-%         offset: offset of data pointer from data pointer in parent object
+%         offset: offset (in bytes) of pointer from data pointer in parent object
 % There are two cases:
 %    ptrobj = opaque_ptr( var, [type], [offset]) creates a pointer object
 %    to the data in a numeric array. It also stores a reference back
