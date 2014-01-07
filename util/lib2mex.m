@@ -590,7 +590,7 @@ for j=1:nlhs
         str = marshallout_struct(str, sprintf('plhs[%d]', j-1), var);
     elseif ~isempty(var.iindex) && var.isemx
         str = sprintf( '%s\n    if (%s.canFreeData) plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
-            str, var.name, var.iindex-1, var.name, getMxClassID( var.basetype));
+            str, var.name, j-1, var.name, getMxClassID( var.basetype));
     elseif var.isemx
         str = sprintf( '%s\n    plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
             str, j-1, var.name, getMxClassID( var.basetype));
