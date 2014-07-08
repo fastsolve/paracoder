@@ -12,7 +12,7 @@
 #define TYPESTR "const void *"
 #endif
 
-#if !defined(HAVE_OCTAVE)
+#if 0
 /* One undocumented MATLAB functions for supporting copy-on-write. */
 extern int mxIsSharedArray(const mxArray *a);
 #else
