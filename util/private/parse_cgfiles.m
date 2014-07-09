@@ -69,10 +69,10 @@ hfile = regexprep( hfile, '\r\n', '\n');
 fclose(fid);
 
 % Extract function definition from the header file
-toks = regexp( hfile, ['\sextern\s+(\w+)\s+' altfunc '\s*\(([^)]*)\)'], 'tokens');
+toks = regexp( hfile, ['\sextern\s+(unsigned\s+)?(\w+)\s+' altfunc '\s*\(([^)]*)\)'], 'tokens');
 clear hfile;
-cdecl.rettype = toks{1}{1};
-cdecl.args = toks{1}{2};
+cdecl.rettype = map_basetype(toks{1}{1}, toks{1}{2});
+cdecl.args = toks{1}{3};
 
 %% Read in type declarations
 [fid, msg] = fopen(tyfile , 'r', 'n', 'US-ASCII');
@@ -122,11 +122,11 @@ vars = repmat(struct('name', '', 'type', '', 'basetype', '', 'structname', '', '
     'isconst', false, 'subfields', [], 'isemx', false, 'size', [], 'iindex', [], 'oindex', []), ncarg,1);
 
 for i=1:ncarg
-    toks = regexp( carglist{i}, '^(const\s+)?(\w+)\s*(\*\s*)*(\w+)(\[\d+\])*$', 'tokens');
+    toks = regexp( carglist{i}, '^(const\s+)?(unsigned\s+)?(\w+)\s*(\*\s*)*(\w+)(\[\d+\])*$', 'tokens');
     
     % Set variable name
-    assert( ~isempty(toks{1}{4}));
-    vars(i).name = toks{1}{4};
+    assert( ~isempty(toks{1}{5}));
+    vars(i).name = toks{1}{5};
     
     % Set isconst
     if ~isempty(toks{1}{1})
@@ -135,8 +135,9 @@ for i=1:ncarg
     end
     
     % Set type and base type
-    assert( ~isempty(toks{1}{2}));
-    vars(i).type = toks{1}{2};
+    assert( ~isempty(toks{1}{3}));
+    vars(i).type = map_basetype(toks{1}{2}, toks{1}{3});
+    
     if strncmp( vars(i).type, 'emxArray_', 9) && ...
             ~isempty(strfind( basetypes, [' ' vars(i).type(10:end) ' ']))
         vars(i).basetype = vars(i).type(10:end);
@@ -190,12 +191,12 @@ for i=1:ncarg
             vars(i).basetype = vars(i).type;
         end
         
-        vars(i).modifier = toks{1}{3};
+        vars(i).modifier = toks{1}{4};
     end
     
     % Set modifier and size
-    if ~isempty(toks{1}{5})
-        toks = regexp( toks{1}{5}, '\[\s*(\d+)\s*\]\s*', 'tokens');
+    if ~isempty(toks{1}{6})
+        toks = regexp( toks{1}{6}, '\[\s*(\d+)\s*\]\s*', 'tokens');
         totallen = str2double(toks{1}{1});
         
         vars(i).size = determine_size(htmlfile, [prefix vars(i).name], totallen);
@@ -301,7 +302,7 @@ end
 
 end
 
-function sz = determine_size(htmlfile, varname, totalize)
+function sz = determine_size(htmlfile, varname, totalsize)
 % Parse the HTML file to determine the size of a variable
 
 % Determine the size of the variable
@@ -320,7 +321,7 @@ if isempty(toks)
     elseif ~isempty( regexp(varname, '[a-z]_', 'once'))
         toks = regexp( htmlfile, ['\s+' varname(3:end) '\s+(?:&gt;\s+\d+)?\s+(?:' type ')\s+ ([\dx\s:?]+)(\w+|-)'], 'tokens');
     else
-        error('m2c:UnknonwVar', 'M2C could not determine data type of variable %s.\n', varname);
+        sz = [totalsize; 1]; return;
     end
 end
 
@@ -341,7 +342,7 @@ for j=length(sz):-1:1
     end
 end
 
-assert( totalize == prod(sz), 'Size handling error.');
+assert( totalsize == prod(sz), 'Size handling error.');
 end
 
 function str = basetypes
@@ -350,6 +351,38 @@ str = [' boolean_T char_T real_T real64_T real32_T ' ...
     'int32_T uint32_T int8_T uint8_T int16_T uint16_T int64_T uint64_T '];
 end
 
+function str = map_basetype(unsigned, type)
+if ~isempty(unsigned)
+    switch type
+        case 'char'
+            str = 'uint8_T';
+        case 'short'
+            str = 'uint16_T';
+        case 'int'
+            str = 'uint32_T';
+        case 'long'
+            str = 'uint64_T';
+    end
+else
+    switch type
+        case 'char'
+            str = 'int8_T';
+        case 'short'
+            str = 'int16_T';
+        case 'int'
+            str = 'int32_T';
+        case 'long'
+            str = 'int64_T';
+        case 'float'
+            str = 'real32_T';
+        case 'double'
+            str = 'real64_T';
+        otherwise
+            str = type;
+    end
+end
+end
+    
 function htmlfile = get_htmlfile(mpath, funcname, altfunc)
 % Locate HTML file for the given function name and alternative name.
 htmlfile = [mpath 'codegen/lib/' funcname '/html/' altfunc '1_watch.html']; 

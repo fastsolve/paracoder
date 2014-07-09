@@ -60,7 +60,7 @@ while true;
             if ~isempty(p); path(p); end
             use = true; return;
         end
-        newdep = filter_files(depfun(files{i},'-quiet', '-toponly'), files, myprojroot);
+        newdep = filter_files(matlab.codetools.requiredFilesAndProducts(files{i}, 'toponly'), files, myprojroot);
         files = [files; newdep]; %#ok<AGROW>
     end
     if n==length(files); break;
