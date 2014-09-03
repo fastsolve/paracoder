@@ -66,6 +66,7 @@ if fid<0; error('lib2mex:OpenFileFiled', '%s', msg); end
 
 hfile = fread(fid, inf, '*char')';
 hfile = regexprep( hfile, '\r\n', '\n');
+hfile = regexprep( hfile, '\n', ' ');
 fclose(fid);
 
 % Extract function definition from the header file

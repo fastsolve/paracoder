@@ -57,10 +57,12 @@ while true;
 
         if verLessThan('matlab', '8.3')
             newdep = filter_files(depfun(files{i},'-quiet', '-toponly'), files, myprojroot);
+            files = [files; newdep]; %#ok<AGROW>
         else
             newdep = filter_files(matlab.codetools.requiredFilesAndProducts(files{i}, 'toponly'), files, myprojroot);
+            files = [files; newdep']; %#ok<AGROW>
         end
-        files = [files; newdep]; %#ok<AGROW>
+
     end
     if n==length(files); break; 
     else start=n+1; n=length(files); end
