@@ -94,13 +94,13 @@ end
 [enableopt, args] = match_option( args, '-O');
 
 if enableopt
-    opts_opt = '';  errchk=false;
+    opts_opt = '-O enable:inline';  errchk=false;
     mexopt = '';
 elseif errchk
     opts_opt = '-O disable:inline'; errchk=true;
     mexopt = '-g';
 else
-    opts_opt = '-O enable:inline';  errchk=false;
+    opts_opt = '';  errchk=false;
     mexopt = '';
 end
 
@@ -134,7 +134,7 @@ if hascodegen
         '#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \', ...
         'if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \', ...
         'mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \', ...
-        '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.');
+        '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr."');
     if ~errchk
         try coder.CCompilerOptimization = 'On';
         catch; end
