@@ -217,7 +217,7 @@ if enable64
 end
 
 %% Also generate a wrapper for building MEX
-if enableopt; dbopt = [dbopt ' -O3 -DNDEBUG']; end
+if enableopt; dbopt = [dbopt ' -O2 -DNDEBUG']; end
 if enableomp; args = [args ' -acc']; end
 lib2mex([mpath func], dbopt, args);
 
