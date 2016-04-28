@@ -10,7 +10,7 @@ function m2c(varargin)
 %     -g
 %           Enable error checkings and debegging support.
 %     -O
-%           Enable optimization (including inlining).
+%           Enable optimization (including inlining and noinf).
 %     -c++
 %           Generates C++ code instead of C code.
 %     -noinf
@@ -108,6 +108,9 @@ end
 % Determine whether to support infinity
 [noinf, args] = match_option( args, '-noinf');
 
+% Enable noinf if optimization is enabled
+if enableopt; noinf = true; end
+
 % Determine quiet mode
 [quiet, args] = match_option( args, '-q');
 
@@ -132,6 +135,11 @@ if strcmp( func(end-1:end), '.m'); func = func(1:end-2); end
 basecommand = 'codegen -config co_cfg_lib ';
 
 co_cfg_lib = coder.config('lib');
+
+if enableopt
+    try co_cfg_lib.BuildConfiguration = 'Faster Runs';
+    catch; end %#ok<CTCH>
+end
 
 co_cfg_lib.SaturateOnIntegerOverflow = false;
 co_cfg_lib.EnableVariableSizing = true;
@@ -209,7 +217,7 @@ if enable64
 end
 
 %% Also generate a wrapper for building MEX
-if enableopt; dbopt = [dbopt ' -O']; end
+if enableopt; dbopt = [dbopt ' -O3 -DNDEBUG']; end
 if enableomp; args = [args ' -acc']; end
 lib2mex([mpath func], dbopt, args);
 
