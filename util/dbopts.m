@@ -1,7 +1,7 @@
 function str=dbopts
 
 if exist('octave_config_info', 'builtin')
-    str = '-Wno-unused-function -Wno-strict-aliasing -g';
+    str = '-Wno-unused-function -Wno-strict-aliasing';
 else
-    str = '-O2 -DNDEBUG -g';
+    str = '-O';
 end
