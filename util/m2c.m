@@ -2,27 +2,39 @@ function m2c(varargin)
 % Wrapper function for converting Embedded MATLAB into a C library
 %         that can be linked with other codes.
 % Usage:
-%    m2c [-g|-O|-c++|-noinf|-acc|-m|-64|-q|force] matlabfunc <args>
+%    m2c [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-q|force] matlabfunc <args>
 %
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
 %
 %     -g
 %           Enable error checkings and debegging support.
+%     -O1
+%           Enable optimization for MATLAB Coder and and passes the -O1 
+%           compiler option to the C compiler to enable basis optimization.
 %     -O
-%           Enable optimization (including inlining and noinf).
+%     -O2
+%           Enable optimization for MATLAB Coder and also passes the -O2
+%           compiler option to the C compiler to enable nearly all supported
+%           optimizations for C that do not involve a space-speed tradeoff. 
+%     -O3
+%           Enable optimization for MATLAB Coder and also passes the -O3
+%           compiler option to the C compiler to enabe all supported 
+%           optimizations for C, including loop unrolling and function inlining.
+%     -noinf (Default)
+%           Disable support of NonFinite (inf and nan. It produces faster codes).
+%     -inf
+%           Enable support of NonFinite (inf and nan. It produces slower codes).
 %     -c++
 %           Generates C++ code instead of C code.
-%     -noinf
-%           Disable support of NonFinite (inf and nan. It produces faster codes).
 %     -acc
 %           Enable acceleration support using multicore and/or GPUs.
 %     -m
 %           Map MATLAB files to individual C files.
-%      -q
-%           Quite mode.
 %     -64
 %           Map int32 to int64.
+%      -q
+%           Quite mode.
 %     -force
 %           Force to rebuild the mex function,
 %
@@ -33,11 +45,6 @@ function m2c(varargin)
 %     Unrecognized options will be passed to codegen.
 %
 % See also compile, m2mex, codegen.
-
-if nargin<1
-    help m2c; %#ok<MCHLP>
-    return;
-end
 
 % Determine whether you have codegen.
 if ~exist('codegen.p', 'file')
@@ -69,18 +76,21 @@ if isempty(func)
         end
     end
 end
+
+if nargin<1 || match_option( args, '-h')
+    help m2c; %#ok<MCHLP>
+    return;
+end
+
 if isempty(func);
     error('m2mex:NoFileName', 'No function name was specified.');
 end
 
+[skipdepck, args] = match_option( args, '-force');
+
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile( func);
 cpath = [mpath 'codegen/lib/' func '/'];
-[errchk, args] = match_option( args, '-g');
-if errchk; dbopt = '-g'; else dbopt = ''; end
-
-[skipdepck, args] = match_option( args, '-force');
-[usecpp, args] = match_option( args, '-c++');
 
 if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
         ckdep([cpath  '/mex_' func '.m'], mfile)
@@ -88,7 +98,19 @@ if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
     return;
 end
 
+% Parse all options
+[errchk, args] = match_option( args, '-g');
 [enableopt, args] = match_option( args, '-O');
+[enableopt1, args] = match_option( args, '-O1');
+[enableopt2, args] = match_option( args, '-O2');
+[enableopt3, args] = match_option( args, '-O3');
+[~, args] = match_option( args, '-noinf'); 
+[enable_inf, args] = match_option( args, '-inf'); noinf = ~enable_inf;
+[usecpp, args] = match_option( args, '-c++');
+[enableomp, args] = match_option( args, '-acc');
+[match, args] = match_option( args, '-m'); genSingleFile = ~match;
+[enable64, args] = match_option( args, '-64');
+[quiet, args] = match_option( args, '-q');
 
 % Determine whether to include mpi.h
 if ckuse( mfile, 'MMPI_require_header')
@@ -103,22 +125,6 @@ if ckuse( mfile, 'MACC_require_header')
 else
     omp_header = '';
 end
-[enableomp, args] = match_option( args, '-acc');
-
-% Determine whether to support infinity
-[noinf, args] = match_option( args, '-noinf');
-
-% Enable noinf if optimization is enabled
-if enableopt; noinf = true; end
-
-% Determine quiet mode
-[quiet, args] = match_option( args, '-q');
-
-% Determine to generate single file or multiple files
-[match, args] = match_option( args, '-m');
-genSingleFile = ~match;
-
-[enable64, args] = match_option( args, '-64');
 
 if isempty( regexp(args,'(^|\s)-args(\s|$)', 'once'))
     % Extract arguments from source code.
@@ -136,7 +142,7 @@ basecommand = 'codegen -config co_cfg_lib ';
 
 co_cfg_lib = coder.config('lib');
 
-if enableopt
+if enableopt || enableopt2 || enableopt3
     try co_cfg_lib.BuildConfiguration = 'Faster Runs';
     catch; end %#ok<CTCH>
 end
@@ -180,14 +186,24 @@ catch; end %#ok<CTCH>
 try co_cfg_lib.PassStructByReference = true;
 catch; end %#ok<CTCH>
     
-if enableopt
+if enableopt || enableopt1 || enableopt2 || enableopt3
     opts = '-O enable:inline';
 else
     opts = '';
 end
 
+%% Specify compiler options
+if errchk; dbflags = ' -g'; else dbflags = ''; end
+if enableopt3
+    coptimizeflags = ['-O3 -DNDEBUG' dbflags];
+elseif enableopt2 || enableopt
+    coptimizeflags = ['-O2 -DNDEBUG' dbflags];
+elseif enableopt1
+    coptimizeflags = ['-O1 -DNDEBUG' dbflags];
+end
+
 %% Run command
-command = strtrim([basecommand ' ' dbopt ' ' opts ' ' func ' ' args]);
+command = strtrim([basecommand ' ' dbflags ' ' opts ' ' func ' ' args]);
 disp(command);
 if exist(cpath,'dir')
     rmdir(cpath,'s');
@@ -217,9 +233,8 @@ if enable64
 end
 
 %% Also generate a wrapper for building MEX
-if enableopt; dbopt = [dbopt ' -O2 -DNDEBUG']; end
 if enableomp; args = [args ' -acc']; end
-lib2mex([mpath func], dbopt, args);
+lib2mex([mpath func], coptimizeflags, args);
 
 if ~quiet
     fprintf('To build the MEX file, use command (without quotes): "run %scodegen/lib/%s/mex_%s.m".\n', ...
