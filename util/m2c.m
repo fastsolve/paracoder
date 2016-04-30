@@ -7,8 +7,6 @@ function m2c(varargin)
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
 %
-%     -g
-%           Enable error checkings and debegging support.
 %     -O1
 %           Enable optimization for MATLAB Coder and and passes the -O1 
 %           compiler option to the C compiler to enable basis optimization.
@@ -21,6 +19,9 @@ function m2c(varargin)
 %           Enable optimization for MATLAB Coder and also passes the -O3
 %           compiler option to the C compiler to enabe all supported 
 %           optimizations for C, including loop unrolling and function inlining.
+%     -g
+%           Preserve MATLAB code info in C code and compile C functions 
+%           in debug mode. It can be used in conjunction with -O, -O1, etc.
 %     -noinf (Default)
 %           Disable support of NonFinite (inf and nan. It produces faster codes).
 %     -inf
@@ -37,12 +38,33 @@ function m2c(varargin)
 %           Quite mode.
 %     -force
 %           Force to rebuild the mex function,
+%     -args {...}
+%           Argument specification for function. If present, it must
+%           appear right after the M file. If not present, it will be
+%           extracted from the MA file.
 %
-%     You can also use more than one option. E.g.,
-%       m2c -g -O matlabfunc -args {code.typeof(0,[inf,1],[1,0])}
+%     Note: Any unrecognized option will be passed to codegen.
 %
-%     Note that if -args is present, it must follow matlabfunc.
-%     Unrecognized options will be passed to codegen.
+%     Example usage: 
+%       To generate code without MATLAB function inlining and with 
+%       default C compiler optimization:
+%            m2c matlabfunc
+%
+%       To generate code with MATLAB function inlining and with 
+%       default C compiler optimization of level 1, 2, or 3:
+%            m2c -O1 matlabfunc
+%            m2c -O matlabfunc
+%            m2c -O3 matlabfunc
+%
+%       To generate code without MATLAB function inlining, without C 
+%       compiler optimization, and with MATLAB code preserved in C code:
+%            m2c -g matlabfunc
+%
+%       To generate code with MATLAB function inlining, with C compiler
+%       optimization of level 1, 2 or 3, and with MATLAB code preserved in C code:
+%            m2c -O1 -g matlabfunc
+%            m2c -O -g matlabfunc
+%            m2c -O3 -g matlabfunc
 %
 % See also compile, m2mex, codegen.
 
@@ -99,7 +121,7 @@ if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
 end
 
 % Parse all options
-[errchk, args] = match_option( args, '-g');
+[debuginfo, args] = match_option( args, '-g');
 [enableopt, args] = match_option( args, '-O');
 [enableopt1, args] = match_option( args, '-O1');
 [enableopt2, args] = match_option( args, '-O2');
@@ -177,11 +199,11 @@ try co_cfg_lib.CustomSymbolStrTmpVar = '$M$N';
 catch; end %#ok<CTCH>
 try co_cfg_lib.MultiInstanceCode = true;
 catch; end %#ok<CTCH>
-try co_cfg_lib.GenerateComments = errchk;
+try co_cfg_lib.GenerateComments = debuginfo;
 catch; end %#ok<CTCH>
-try co_cfg_lib.MATLABFcnDesc = errchk;
+try co_cfg_lib.MATLABFcnDesc = debuginfo;
 catch; end %#ok<CTCH>
-try co_cfg_lib.MATLABSourceComments = errchk;
+try co_cfg_lib.MATLABSourceComments = debuginfo;
 catch; end %#ok<CTCH>
 try co_cfg_lib.PassStructByReference = true;
 catch; end %#ok<CTCH>
@@ -193,7 +215,7 @@ else
 end
 
 %% Specify compiler options
-if errchk; dbflags = ' -g'; else dbflags = ''; end
+if debuginfo; dbflags = ' -g'; else dbflags = ''; end
 if enableopt3
     coptimizeflags = ['-O3 -DNDEBUG' dbflags];
 elseif enableopt2 || enableopt

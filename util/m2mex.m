@@ -8,29 +8,43 @@ function m2mex(varargin)
 %     -c
 %           Generate C/C++ code and perform post-processing, without
 %           building the mex file.
-%     -g
-%           Compiles MEX functions in debug mode, with optimization turned off.
 %     -O
-%           Enable optimization (including inlining).
+%           Enable optimization (including inlining) and disable
+%           memory integrity checking.
+%     -g
+%           Preserve MATLAB code info in C code and compile MEX functions 
+%           in debug mode.
 %     -acc
 %           Enable MATLAB Coder's built-in support of OpenMP. This only 
 %           enables converting parfor in MATLAB into OpenMP code in C. 
 %           To use the full features of OpenMP, use m2c and MACC.
 %     -force
-%           Force to rebuild the mex function,
+%           Force to rebuild the mex function.
+%     -args {...}
+%           Argument specification for function. If present, it must
+%           appear right after the M file. If not present, it will be
+%           extracted from the MA file.
 %
-%     You can also use more than one option. For example,
-%       m2mex -O -g matlabfunc -args {code.typeof(0,[inf,1],[1,0])}
+%     Note: Any unrecognized option will be passed to codegen.
+%     
+%     Example usage: 
+%       To generate code with memory integrity checking, without MATLAB 
+%       function inlining, and with default C compiler optimization:
+%            m2mex matlabfunc
 %
-%     Note that if -args is present, it must follow matlabfunc.
-%     Unrecognized options will be passed to codegen.
+%       To generate code without memory integrity checking and with default 
+%       C compiler optimization:
+%            m2mex -O matlabfunc
+%
+%       To generate code with memory integrity checking, without C compiler
+%       optimization, and with MATLAB code preserved in C code:
+%            m2mex -g matlabfunc
+%
+%       To generate code without memory integrity checking, without C compiler
+%       optimization, and with MATLAB code preserved in C code:
+%            m2mex -O -g matlabfunc
 %
 % See also compile, m2c, codegen.
-
-if nargin<1
-    help m2mex; %#ok<MCHLP>
-    return;
-end
 
 %% Process arguments
 func = '';
@@ -58,6 +72,12 @@ if isempty(func)
         end
     end
 end
+
+if nargin<1 || match_option( args, '-h')
+    help m2mex; %#ok<MCHLP>
+    return;
+end
+
 if isempty(func); 
     error('m2mex:NoFileName', 'No function name was specified.');
 end
@@ -90,17 +110,17 @@ if ckuse( mfile, 'MMPI_require_header')
     error( 'm2mex:MPIUnsupported', 'MPI is not supported in the mex mode. Use m2c instead.');
 end
 
-[errchk, args] = match_option( args, '-g');
 [enableopt, args] = match_option( args, '-O');
-
 if enableopt
-    opts_opt = '-O enable:inline';  errchk=false;
-    mexopt = '';
-elseif errchk
-    opts_opt = '-O disable:inline'; errchk=true;
+    opts_opt = '-O enable:inline';
+else
+    opts_opt = '-O disable:inline';
+end
+
+[debuginfo, args] = match_option( args, '-g');
+if debuginfo
     mexopt = '-g';
 else
-    opts_opt = '';  errchk=false;
     mexopt = '';
 end
 
@@ -124,9 +144,9 @@ end
 
 %% Set compiler option
 if hascodegen
-    co_cfg_mex = coder.config('mex'); %#ok<NODEF>
+    co_cfg_mex = coder.config('mex');
     co_cfg_mex.FilePartitionMethod = 'SingleFile';
-    co_cfg_mex.GenerateReport = errchk;
+    co_cfg_mex.GenerateReport = true;
     basecommand = 'codegen -config co_cfg_mex ';
 
     co_cfg_mex.CustomSourceCode = sprintf('%s\n', ...
@@ -135,10 +155,6 @@ if hascodegen
         'if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \', ...
         'mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \', ...
         '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr."');
-    if ~errchk
-        try coder.CCompilerOptimization = 'On';
-        catch; end
-    end
 elseif exist('emlmex.p', 'file') && ~cgonly
     args = codegen2eml_args( args);
     co_cfg_mex = emlcoder.CompilerOptions;
@@ -154,13 +170,13 @@ co_cfg_mex.SaturateOnIntegerOverflow = false;
 co_cfg_mex.EnableVariableSizing = true;
 co_cfg_mex.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 
-co_cfg_mex.IntegrityChecks = errchk;
-co_cfg_mex.ResponsivenessChecks = errchk;
-try co_cfg_mex.GenerateComments = errchk;
+co_cfg_mex.IntegrityChecks = ~enableopt;
+co_cfg_mex.ResponsivenessChecks = ~enableopt;
+try co_cfg_mex.GenerateComments = debuginfo;
 catch; end %#ok<*CTCH>
-try co_cfg_mex.MATLABFcnDesc = errchk;
+try co_cfg_mex.MATLABFcnDesc = debuginfo;
 catch; end
-try co_cfg_mex.MATLABSourceComments = errchk;
+try co_cfg_mex.MATLABSourceComments = debuginfo;
 catch; end
 
 %% Run command
