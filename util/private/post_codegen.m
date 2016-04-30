@@ -10,16 +10,9 @@ str0 = str;
 str = regexprep(str, 'static\s+void\s+emxEnsureCapacity\s*\([^,\)]+,[^,\)]+,[^,\)]+\);\n', '');
 str = regexprep(str, ['(static\s+)?void\s+emxEnsureCapacity\s*\([^,\)]+,[^,\)]+,[^,\)]+\)\s*' funcbody ], '');
 
-% Remove declaration of emxEnsureCapacity for structs
-str = regexprep(str, 'void\s+emxEnsureCapacity_(\w+)\s*\([^,\)]+,[^,\)]+\);', ...
-    'declare_emxEnsureCapacityStruct($1);');
-str = regexprep(str, ['void\s+emxEnsureCapacity_(\w+)\s*\([^,\)]+,[^,\)]+\)\s*' funcbody], ...
-    'define_emxEnsureCapacityStruct($1)');
-
 basictype = '(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)';
 
-% Remove declaration of emxInit_basictype and emxFree_basictype for 
-% types declared in ctypefile
+% Remove declaration of emxInit_basictype and emxFree_basictype for basic types
 ks = strfind( filename, '.');
 ctype_filename = [filename(1:ks(end)-1), '_types.h' filename(ks(end)+2:end)];
 ctypes = read_file( ctype_filename);
@@ -35,30 +28,6 @@ for i=1:length(tokens)
         tokens{i}{1} '\([^,\)]+\);\n'], '');
     str = regexprep(str, ['static\s+void\s+emxFree_' ...
         tokens{i}{1} '\([^,\)]+\)\s*' funcbody], '');   
-end
-
-% Remove declaration of emxInit_ for local basic types and structs
-str = regexprep(str, ['void\s+(\w*)emxInit_(\w+)' ...
-    '\(emxArray_(\w+)[^,\)]+,[^,\)]+\);'], 'define_emxInit($1emxInit_$2, $3)');
-str = regexprep(str, ['(static\s+)?void\s+\w*emxInit_\w+' ...
-    '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
-
-% Remove declaration of emxFree_struct for local basic types and structs
-tokens = regexp(str, 'void\s+\w*emxFree_\w+\(emxArray_(\w+)\s+[^,\)]+\);', 'tokens');
-for i=1:length(tokens)
-    if ~isempty(regexp(str, ['void\s+emxFreeStruct_' tokens{i}{1} '\s*('], 'once'))
-        str = regexprep(str, ['void\s+(\w*)emxFree_(\w+)\s*\(emxArray_(' ...
-            tokens{i}{1} ')\s+[^,\)]+\);'], ...
-            'declare_emxFreeStruct($1emxFree_$2,$3);');
-        str = regexprep(str, ['void\s+(\w*)emxFree_(\w+)\s*\(emxArray_(' ...
-            tokens{i}{1} ')\s+[^,\)]+\)\s*' funcbody], ...
-            'define_emxFreeStruct($1emxFree_$2, $3)');
-    else
-        str = regexprep(str, ['void\s+(\w*)emxFree_(\w+)\s*\(emxArray_(' ...
-            tokens{i}{1} ')\s+[^,\)]+\);'], 'define_emxFree($1emxFree_$2, $3)');
-        str = regexprep(str, ['(static\s+)?void\s+\w*emxFree_\w+\s*\(emxArray_' ...
-            tokens{i}{1} '\s+[^,\)]+\)\s*' funcbody], '');
-    end
 end
 
 % Remove declaration of emxCreate_basictype, emxCreateND_basictype, 
