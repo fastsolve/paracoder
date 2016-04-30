@@ -8,15 +8,15 @@ function m2c(varargin)
 %    The options can be any of the following:
 %
 %     -O1
-%           Enable optimization for MATLAB Coder and and passes the -O1 
+%           Enable optimization for MATLAB Coder and and pass the -O1 
 %           compiler option to the C compiler to enable basis optimization.
 %     -O
 %     -O2
-%           Enable optimization for MATLAB Coder and also passes the -O2
+%           Enable optimization for MATLAB Coder and also pass the -O2
 %           compiler option to the C compiler to enable nearly all supported
 %           optimizations for C that do not involve a space-speed tradeoff. 
 %     -O3
-%           Enable optimization for MATLAB Coder and also passes the -O3
+%           Enable optimization for MATLAB Coder and also pass the -O3
 %           compiler option to the C compiler to enabe all supported 
 %           optimizations for C, including loop unrolling and function inlining.
 %     -g
@@ -222,6 +222,8 @@ elseif enableopt2 || enableopt
     coptimizeflags = ['-O2 -DNDEBUG' dbflags];
 elseif enableopt1
     coptimizeflags = ['-O1 -DNDEBUG' dbflags];
+else
+    coptimizeflags = dbflags;
 end
 
 %% Run command

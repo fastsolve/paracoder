@@ -1,14 +1,28 @@
 function compile( varargin)
 % Compile MATLAB code using either m2c (if codegen exists) or m2mex.
 %
-%    compile [-g|-O|-c++|-noinf|-acc|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
+%    compile [-g|-O|-O1|-O2|-O3|-c++|-noinf|-acc|-m|-64|-force|-m2c|-m2mex] matlabfunc <args>
 %
 % The options can be any of the following:
 %
-%     -g
-%           Enable error checkings and debegging support.
+%     -O1
+%           Enable optimization for MATLAB Coder, disable memory integrity
+%           checking (for m2mex only), and pass the -O1 compiler option 
+%           to the C compiler to enable basis optimization (for m2c only).
 %     -O
-%           Enable optimization (including inlining).
+%     -O2
+%           Enable optimization for MATLAB Coder, disable memory integrity
+%           checking (for m2mex only), and pass the -O2 compiler option 
+%           to the C compiler to enable nearly all supported optimizations
+%           for C that do not involve a space-speed tradeoff (for m2c only).
+%     -O3
+%           Enable optimization for MATLAB Coder, disable memory integrity
+%           checking (for m2mex only), and pass the -O3 compiler option 
+%           to the C compiler to enable nearly all supported optimizations
+%           for C, including loop unrolling and function inlining (for m2c only).
+%     -g
+%           Preserve MATLAB code info in C code and compile C functions 
+%           in debug mode. It can be used in conjunction with -O, -O1, etc.
 %     -c++
 %           Generates C++ code instead of C code (m2c only).
 %     -noinf
@@ -76,6 +90,13 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     [~, args] = match_option( args, '-m');
     [~, args] = match_option( args, '-64');
     [~, args] = match_option( args, '-c++');
+    [opt1, args] = match_option( args, '-O1');
+    [opt2, args] = match_option( args, '-O2');
+    [opt3, args] = match_option( args, '-O3');
+    opt = match_option( args, '-O');
+    if ~opt && (opt1 || opt2 || opt3)
+        args = strtrim(['-O ' args]);
+    end
 
     if usem2c
         warning('compile:unsupported', 'M2C is not available. Using m2mex instead.');
