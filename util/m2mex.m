@@ -168,6 +168,8 @@ end
 co_cfg_mex.ExtrinsicCalls = true;
 co_cfg_mex.SaturateOnIntegerOverflow = false;
 co_cfg_mex.EnableVariableSizing = true;
+co_cfg_lib.EnableMemcpy = true;
+
 co_cfg_mex.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 
 co_cfg_mex.IntegrityChecks = ~enableopt;

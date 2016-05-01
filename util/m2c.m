@@ -171,6 +171,9 @@ end
 
 co_cfg_lib.SaturateOnIntegerOverflow = false;
 co_cfg_lib.EnableVariableSizing = true;
+cfg.PassStructByReference = true;
+co_cfg_lib.EnableMemcpy = true;
+
 co_cfg_lib.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 if genSingleFile
     co_cfg_lib.FilePartitionMethod = 'SingleFile';
