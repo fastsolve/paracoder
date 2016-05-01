@@ -10,9 +10,8 @@ function m2c_kernel %#codegen
 %  - It can pass arrays only to other kernel functions.
 %  - It must be a local function and be declared with coder.inline('never').
 
-coder.inline('always')
-coder.allowpcode('plain');
-
 if ~strcmp(coder.target,'rtw'); return; end
+
+coder.inline('always')
 
 coder.ceval('#pragma kernel');
