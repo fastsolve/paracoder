@@ -278,7 +278,7 @@ end
 function str = read_file( filename)
 fid = fopen(filename, 'rt');
 if fid>=0
-    str = fread( fid,'*char')';
+    str = fread( fid,inf,'*char')';
     fclose( fid);
 else
     warning('POST_CODEGEN:CannotOpenFile', 'Could not open file %s\n', filename);

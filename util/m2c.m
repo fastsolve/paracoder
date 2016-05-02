@@ -28,6 +28,8 @@ function m2c(varargin)
 %           Enable support of NonFinite (inf and nan. It produces slower codes).
 %     -c++
 %           Generates C++ code instead of C code.
+%     -lapack
+%           Enable LAPACKE and link with MATLAB's builtin LAPACK library.
 %     -acc
 %           Enable acceleration support using multicore and/or GPUs.
 %     -m
@@ -126,6 +128,7 @@ end
 [enableopt1, args] = match_option( args, '-O1');
 [enableopt2, args] = match_option( args, '-O2');
 [enableopt3, args] = match_option( args, '-O3');
+[uselapack, args] = match_option( args, '-lapack');
 [~, args] = match_option( args, '-noinf'); 
 [enable_inf, args] = match_option( args, '-inf'); noinf = ~enable_inf;
 [usecpp, args] = match_option( args, '-c++');
@@ -133,6 +136,9 @@ end
 [match, args] = match_option( args, '-m'); genSingleFile = ~match;
 [enable64, args] = match_option( args, '-64');
 [quiet, args] = match_option( args, '-q');
+
+if enableopt; enableopt2=true; end
+enableopt = enableopt1 || enableopt2 || enableopt2;
 
 % Determine whether to include mpi.h
 if ckuse( mfile, 'MMPI_require_header')
@@ -164,7 +170,7 @@ basecommand = 'codegen -config co_cfg_lib ';
 
 co_cfg_lib = coder.config('lib');
 
-if enableopt || enableopt2 || enableopt3
+if enableopt
     try co_cfg_lib.BuildConfiguration = 'Faster Runs';
     catch; end %#ok<CTCH>
 end
@@ -210,18 +216,23 @@ try co_cfg_lib.MATLABSourceComments = debuginfo;
 catch; end %#ok<CTCH>
 try co_cfg_lib.PassStructByReference = true;
 catch; end %#ok<CTCH>
-    
-if enableopt || enableopt1 || enableopt2 || enableopt3
+
+if enableopt
     opts = '-O enable:inline';
 else
     opts = '';
+end
+
+if uselapack
+    try co_cfg_lib.CustomLAPACKCallback = 'useBuiltinLAPACK';
+    catch; end %#ok<CTCH>
 end
 
 %% Specify compiler options
 if debuginfo; dbflags = ' -g'; else dbflags = ''; end
 if enableopt3
     coptimizeflags = ['-O3 -DNDEBUG' dbflags];
-elseif enableopt2 || enableopt
+elseif enableopt2
     coptimizeflags = ['-O2 -DNDEBUG' dbflags];
 elseif enableopt1
     coptimizeflags = ['-O1 -DNDEBUG' dbflags];
