@@ -2,7 +2,7 @@ function m2c(varargin)
 % Wrapper function for converting Embedded MATLAB into a C library
 %         that can be linked with other codes.
 % Usage:
-%    m2c [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-q|force] matlabfunc <args>
+%    m2c [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-v|force] matlabfunc <args>
 %
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
@@ -36,8 +36,10 @@ function m2c(varargin)
 %           Map MATLAB files to individual C files.
 %     -64
 %           Map int32 to int64.
-%      -q
-%           Quite mode.
+%     -mex
+%           Run the mex command in addition to generating the C files.
+%     -v
+%           Verbose mode.
 %     -force
 %           Force to rebuild the mex function,
 %     -args {...}
@@ -111,6 +113,7 @@ if isempty(func);
 end
 
 [skipdepck, args] = match_option( args, '-force');
+[genmex, args] = match_option( args, '-mex');
 
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile( func);
@@ -119,6 +122,9 @@ cpath = [mpath 'codegen/lib/' func '/'];
 if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
         ckdep([cpath  '/mex_' func '.m'], mfile)
     disp(['C code for ' func ' is up to date.']);
+    if genmex
+        run_mexcommand(genmex, cpath, func);
+    end
     return;
 end
 
@@ -135,7 +141,7 @@ end
 [enableomp, args] = match_option( args, '-acc');
 [match, args] = match_option( args, '-m'); genSingleFile = ~match;
 [enable64, args] = match_option( args, '-64');
-[quiet, args] = match_option( args, '-q');
+[verbose, args] = match_option( args, '-v');
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
@@ -231,18 +237,29 @@ end
 %% Specify compiler options
 if debuginfo; dbflags = ' -g'; else dbflags = ''; end
 if enableopt3
-    coptimizeflags = ['-O3 -DNDEBUG' dbflags];
+    coptionflags = ['-O3 -DNDEBUG' dbflags];
 elseif enableopt2
-    coptimizeflags = ['-O2 -DNDEBUG' dbflags];
+    coptionflags = ['-O2 -DNDEBUG' dbflags];
 elseif enableopt1
-    coptimizeflags = ['-O1 -DNDEBUG' dbflags];
+    coptionflags = ['-O1 -DNDEBUG' dbflags];
 else
-    coptimizeflags = dbflags;
+    coptionflags = dbflags;
+end
+if verbose
+    mexflags = ' -v';
+    basecommand = [basecommand ' -v'];
+else
+    mexflags = '';
 end
 
 %% Run command
 command = strtrim([basecommand ' ' dbflags ' ' opts ' ' func ' ' args]);
-disp(command);
+
+if verbose
+    disp('Running codegen with options:');
+    disp(co_cfg_lib);
+end
+disp(command); 
 if exist(cpath,'dir')
     rmdir(cpath,'s');
 end
@@ -272,11 +289,18 @@ end
 
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
-lib2mex([mpath func], coptimizeflags, args);
+lib2mex([mpath func], mexflags, coptionflags, args);
 
-if ~quiet
-    fprintf('To build the MEX file, use command (without quotes): "run %scodegen/lib/%s/mex_%s.m".\n', ...
-        mpath, func, func);
+run_mexcommand(genmex, cpath, func);
+
 end
 
+function run_mexcommand(genmex, cpath, func)
+command = [cpath '/mex_' func '.m'];
+if genmex
+    if exist(command, 'file'); run(command); end
+else
+    fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
+        command);
+end
 end

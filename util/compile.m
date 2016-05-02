@@ -105,11 +105,13 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
 else
     force = match_option( args, '-force');    
     if ~exist(command, 'file') || hascodegen && (usem2c || force)
-        m2c([args, ' -q'], [dir func]);
-    elseif force && exist([dir func '.' mexext], 'file')
-        delete([dir func '.' mexext]);
+        m2c([args, ' -mex'], [dir func]);
+    else
+        if force && exist([dir func '.' mexext], 'file')
+            delete([dir func '.' mexext]);
+        end
+        if exist(command, 'file'); run(command); end
     end
-    if exist(command, 'file'); run(command); end
 end
 
 clear(func);

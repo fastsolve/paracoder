@@ -14,6 +14,8 @@ function m2mex(varargin)
 %     -g
 %           Preserve MATLAB code info in C code and compile MEX functions 
 %           in debug mode.
+%     -v
+%           Verbose mode.
 %     -acc
 %           Enable MATLAB Coder's built-in support of OpenMP. This only 
 %           enables converting parfor in MATLAB into OpenMP code in C. 
@@ -123,6 +125,7 @@ if debuginfo
 else
     mexopt = '';
 end
+[verbose, args] = match_option( args, '-v');
 
 % Determine whether to enable OpenMP
 [enableomp, args] = match_option( args, '-acc');
@@ -165,10 +168,14 @@ else
     error('Could not compiel file %s', func);
 end
 
+if verbose
+    basecommand = [basecommand ' -v'];
+end
+
 co_cfg_mex.ExtrinsicCalls = true;
 co_cfg_mex.SaturateOnIntegerOverflow = false;
 co_cfg_mex.EnableVariableSizing = true;
-co_cfg_lib.EnableMemcpy = true;
+co_cfg_mex.EnableMemcpy = true;
 
 co_cfg_mex.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 
@@ -184,6 +191,10 @@ catch; end
 %% Run command
 command = strtrim([basecommand ' ' mexopt ' ' opts_opt ...
     ' -o ' func ' ' func ' ' args]);
+if verbose
+    disp('Running codegen with options:');
+    disp(co_cfg_mex);
+end
 disp(command);
 olddir = pwd;
 if ~isempty(mpath); cd(mpath); end
