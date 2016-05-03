@@ -139,12 +139,8 @@ cpath = [mpath 'codegen/lib/' func '/'];
 if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
         ckdep([cpath  '/mex_' func '.m'], mfile)
     disp(['C code for ' func ' is up to date.']);
-    if genmex
-        run_mexcommand(genmex, cpath, func);
-    end
-    if genexe
-        run_execommand(genexe, cpath, func);
-    end
+    if genmex; run_mexcommand(cpath, func); end
+    if genexe; run_execommand(cpath, func); end
     return;
 end
 
@@ -321,29 +317,29 @@ end
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
 lib2mex([mpath func], mexflags, coptionflags, args);
-run_mexcommand(genmex, cpath, func);
-
 lib2exe([mpath func], mexflags, coptionflags, args);
-run_execommand(genexe, cpath, func);
 
-end
-
-function run_mexcommand(genmex, cpath, func)
-command = [cpath 'mex_' func '.m'];
-if genmex
-    if exist(command, 'file'); run(command); end
-else
+if ~genmex && ~genexe
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
-        command);
-end
+        [cpath 'mex_' func '.m']);
+    fprintf('To build the EXE file, use command (without quotes): "run %s".\n', ...
+        [cpath 'ld_' func '.m']);
+elseif genmex
+    run_mexcommand(cpath, func);
+elseif genexe
+    run_execommand(cpath, func);
 end
 
-function run_execommand(genexe, cpath, func)
-command = [cpath 'ld_' func '.m'];
-if genexe
-    if exist(command, 'file'); run(command); end
-else
-    fprintf('To build the EXE file, use command (without quotes): "run %s".\n', ...
-        command);
 end
+
+function run_mexcommand(cpath, func)
+command = [cpath 'mex_' func '.m'];
+
+if exist(command, 'file'); run(command); end
+end
+
+function run_execommand(cpath, func)
+command = [cpath 'ld_' func '.m'];
+
+if exist(command, 'file'); run(command); end
 end
