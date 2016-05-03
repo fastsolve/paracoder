@@ -1,11 +1,10 @@
 function m2c(varargin)
-% Wrapper function for converting MATLAB code into a C library
-%         that can be linked with other codes.
-% Usage:
-%    m2c [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-v|force] matlabfunc <args>
+% Wrapper for converting MATLAB code into a C library using MATLAB Coder. 
 %
-%    NOTE: This function requires MATLAB Coder.
-%    The options can be any of the following:
+% Usage:
+%    m2c <options> matlabfunc <args>
+%
+%    The following options can be used:
 %
 %     -O1
 %           Enable optimization for MATLAB Coder and and pass the -O1 
@@ -28,16 +27,22 @@ function m2c(varargin)
 %           Enable support of NonFinite (inf and nan. It produces slower codes).
 %     -c++
 %           Generates C++ code instead of C code.
+%     -acc
+%           Enable acceleration support using multicore (OpenMP) and/or GPUs (OpenACC).
 %     -lapack
 %           Enable LAPACKE and link with MATLAB's builtin LAPACK library.
-%     -acc
-%           Enable acceleration support using multicore and/or GPUs.
 %     -m
-%           Map MATLAB files to individual C files.
-%     -64
-%           Map int32 to int64.
+%           Map different MATLAB functions into separate C files.
 %     -mex
 %           Run the mex command in addition to generating the C files.
+%     -exe
+%           Build a standalone executable in addition to generating the C code.
+%           Only Linux and Mac are supported.
+%     -efence
+%           Link the executable with electric-fence for debugging memory.
+%           Only Linux and Mac are supported.
+%     -64
+%           Map int32 to int64.
 %     -v
 %           Verbose mode.
 %     -force
@@ -46,22 +51,6 @@ function m2c(varargin)
 %           Argument specification for function. If present, it must
 %           appear right after the M file. If not present, it will be
 %           extracted from the MA file.
-%
-%Debugging and Profiling Using Standalone Executable
-%     -exe
-%           Generate standalone executable. It is invoked automatically 
-%           by any of the debugging and profiling options.
-%     -ddd
-%           Start executable in ddd with gdb in the backend (Linux or Mac).
-%     -efence
-%           Link the executable with electric-fence for debugging out-of-bound
-%           access. Most useful when used in conjunction with ddd (Linux or Mac).
-%     -gprof
-%           Use gprof to perform profiling (Linux only).
-%     -coverage
-%           Perform coverage checking (Linux and Mac).
-%     -valgrind
-%           Check memory leak and cache misses (Linux and Mac).
 %
 %     Note: Any unrecognized option will be passed to codegen.
 %
@@ -132,6 +121,11 @@ end
 [genmex, args] = match_option( args, '-mex');
 [genexe, args] = match_option( args, '-exe');
 
+if genexe && ~isunix()
+    fprintf('Warning: Building executable is not supported on PCs\n');
+    genexe = false;
+end
+
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile( func);
 cpath = [mpath 'codegen/lib/' func '/'];
@@ -159,12 +153,7 @@ end
 [enable64, args] = match_option( args, '-64');
 [verbose, args] = match_option( args, '-v');
 
-
-[coverage, args] = match_option( args, '-coverage');
-[gprof, args] = match_option( args, '-gprof');
-[ddd, args] = match_option( args, '-ddd');
 [efence, args] = match_option( args, '-efence');
-[valgrind, args] = match_option( args, '-valgrid');
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
@@ -269,10 +258,10 @@ else
     coptionflags = dbflags;
 end
 if verbose
-    mexflags = ' -v';
+    ldflags = ' -v';
     basecommand = [basecommand ' -v'];
 else
-    mexflags = '';
+    ldflags = '';
 end
 
 %% Run command
@@ -316,18 +305,34 @@ end
 
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
-lib2mex([mpath func], mexflags, coptionflags, args);
-lib2exe([mpath func], mexflags, coptionflags, args);
+lib2mex([mpath func], ldflags, coptionflags, args);
+
+if genexe && efence
+    if exist('/usr/lib/libefence.a', 'file')
+        libs = '-lefence';
+    elseif exist('/usr/local/lib/libefence.a', 'file')
+        libs = '-L/usr/local/lib -lefence'; 
+    elseif exist('/opt/local/lib/libefence.a', 'file')
+        libs = '-L/opt/local/lib -lefence'; 
+    elseif exist('/sw/lib/libefence.a', 'file')
+        libs = '-L/sw/lib -lefence'; 
+    else
+        fprintf('Warning: Could not locate libefence.a.\n');
+        libs = ''; 
+    end
+else
+    libs = '';
+end
+lib2exe([mpath func], ldflags, coptionflags, args, libs);
 
 if ~genmex && ~genexe
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
         [cpath 'mex_' func '.m']);
     fprintf('To build the EXE file, use command (without quotes): "run %s".\n', ...
         [cpath 'ld_' func '.m']);
-elseif genmex
-    run_mexcommand(cpath, func);
-elseif genexe
-    run_execommand(cpath, func);
+else
+    if genmex; run_mexcommand(cpath, func); end
+    if genexe; run_execommand(cpath, func); end
 end
 
 end

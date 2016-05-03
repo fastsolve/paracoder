@@ -1,4 +1,4 @@
-function lib2exe(funcname, ldflags, opflags, args)
+function lib2exe(funcname, ldflags, opflags, args, libs)
 % Generate a main function for a C library created by m2c.
 % It also generates a MATLAB script 'ld_fname.m for building
 % the generated file. Before calling this script, m2c should
@@ -10,4 +10,4 @@ function lib2exe(funcname, ldflags, opflags, args)
 %
 % See also m2c, lib2mex.
 
-lib2mex_exe(funcname, ldflags, opflags, args, true);
+lib2mex_exe(funcname, ldflags, opflags, args, true, libs);
