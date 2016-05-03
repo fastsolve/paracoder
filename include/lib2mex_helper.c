@@ -4,6 +4,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 
 /* Type Definitions */
 #ifndef struct_emxArray__common
@@ -74,9 +75,15 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     /* Check the compatibility of the mxArray */
     if ( mxdim>dim) {
         for (i=dim; i<mxdim; ++i) {
-            if (dims[i]!=1)
+            if (dims[i]!=1) {
+#ifdef BUILD_MEX
                 mexErrMsgIdAndTxt("lib2mex:WrongDimension",
                         "Varialble %s has incorrect dimension.", name);
+#else
+                fprintf(stdout, "Varialble %s has incorrect dimension.", name);
+                abort();
+#endif
+            }
         }
         mxdim = dim;
     }

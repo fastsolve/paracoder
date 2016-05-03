@@ -1,8 +1,8 @@
-function m2c(varargin)
-% Wrapper function for converting MATLAB code into a C library
-%         that can be linked with other codes.
+function m2exe(varargin)
+% Wrapper function for converting MATLAB code into C code
+%         that can be built into a standalone executable.
 % Usage:
-%    m2c [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-v|force] matlabfunc <args>
+%    m2exe [-g|-O|-O1|-O2|-O3|-noinf|inf|-c++|-acc|-m|-64|-v|force] matlabfunc <args>
 %
 %    NOTE: This function requires MATLAB Coder.
 %    The options can be any of the following:
@@ -46,22 +46,6 @@ function m2c(varargin)
 %           Argument specification for function. If present, it must
 %           appear right after the M file. If not present, it will be
 %           extracted from the MA file.
-%
-%Debugging and Profiling Using Standalone Executable
-%     -exe
-%           Generate standalone executable. It is invoked automatically 
-%           by any of the debugging and profiling options.
-%     -ddd
-%           Start executable in ddd with gdb in the backend (Linux or Mac).
-%     -efence
-%           Link the executable with electric-fence for debugging out-of-bound
-%           access. Most useful when used in conjunction with ddd (Linux or Mac).
-%     -gprof
-%           Use gprof to perform profiling (Linux only).
-%     -coverage
-%           Perform coverage checking (Linux and Mac).
-%     -valgrind
-%           Check memory leak and cache misses (Linux and Mac).
 %
 %     Note: Any unrecognized option will be passed to codegen.
 %
@@ -130,20 +114,16 @@ end
 
 [skipdepck, args] = match_option( args, '-force');
 [genmex, args] = match_option( args, '-mex');
-[genexe, args] = match_option( args, '-exe');
 
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile( func);
-cpath = [mpath 'codegen/lib/' func '/'];
+cpath = [mpath 'codegen/exe/' func '/'];
 
 if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
         ckdep([cpath  '/mex_' func '.m'], mfile)
     disp(['C code for ' func ' is up to date.']);
     if genmex
         run_mexcommand(genmex, cpath, func);
-    end
-    if genexe
-        run_execommand(genexe, cpath, func);
     end
     return;
 end
@@ -162,13 +142,6 @@ end
 [match, args] = match_option( args, '-m'); genSingleFile = ~match;
 [enable64, args] = match_option( args, '-64');
 [verbose, args] = match_option( args, '-v');
-
-
-[coverage, args] = match_option( args, '-coverage');
-[gprof, args] = match_option( args, '-gprof');
-[ddd, args] = match_option( args, '-ddd');
-[efence, args] = match_option( args, '-efence');
-[valgrind, args] = match_option( args, '-valgrid');
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
@@ -201,7 +174,7 @@ if strcmp( func(end-1:end), '.m'); func = func(1:end-2); end
 %% Set compiler option
 basecommand = 'codegen -config co_cfg ';
 
-co_cfg = coder.config('lib');
+co_cfg = coder.config('exe');
 
 if enableopt
     try co_cfg.BuildConfiguration = 'Faster Runs';
@@ -309,10 +282,6 @@ end
 post_codegen([cpath func '.' suf], 'm2c', enableopt);
 
 fix_rtwtypes( [cpath 'rtwtypes.h']);
-if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
-if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
-if exist([cpath 'buildInfo.mat'], 'file'); delete([cpath 'buildInfo.mat']); end
-if exist([cpath 'codeInfo.mat'], 'file'); delete([cpath 'codeInfo.mat']); end
 
 if enable64
     convert64(cpath);
@@ -320,30 +289,18 @@ end
 
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
-lib2mex([mpath func], mexflags, coptionflags, args);
-run_mexcommand(genmex, cpath, func);
-
 lib2exe([mpath func], mexflags, coptionflags, args);
-run_execommand(genexe, cpath, func);
+
+run_mexcommand(genmex, cpath, func);
 
 end
 
 function run_mexcommand(genmex, cpath, func)
-command = [cpath 'mex_' func '.m'];
+command = [cpath '/mex_' func '.m'];
 if genmex
     if exist(command, 'file'); run(command); end
 else
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
-        command);
-end
-end
-
-function run_execommand(genexe, cpath, func)
-command = [cpath 'ld_' func '.m'];
-if genexe
-    if exist(command, 'file'); run(command); end
-else
-    fprintf('To build the EXE file, use command (without quotes): "run %s".\n', ...
         command);
 end
 end

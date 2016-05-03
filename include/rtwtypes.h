@@ -112,16 +112,6 @@ typedef char_T byte_T;
      uint32_T im;  
    } cuint32_T;  
 
-   typedef struct {  
-     int64_T re;  
-     int64_T im;  
-   } cint64_T;  
-
-   typedef struct {  
-     uint64_T re;  
-     uint64_T im;  
-   } cuint64_T;  
-
 
 /*=======================================================================* 
  * Min and Max:                                                          * 

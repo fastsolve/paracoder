@@ -147,12 +147,12 @@ end
 
 %% Set compiler option
 if hascodegen
-    co_cfg_mex = coder.config('mex');
-    co_cfg_mex.FilePartitionMethod = 'SingleFile';
-    co_cfg_mex.GenerateReport = true;
-    basecommand = 'codegen -config co_cfg_mex ';
+    co_cfg = coder.config('mex');
+    co_cfg.FilePartitionMethod = 'SingleFile';
+    co_cfg.GenerateReport = true;
+    basecommand = 'codegen -config co_cfg ';
 
-    co_cfg_mex.CustomSourceCode = sprintf('%s\n', ...
+    co_cfg.CustomSourceCode = sprintf('%s\n', ...
         '#define M2C_OFFSET_PTR(a,b)    ((char *)a)+(b)', ...
         '#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \', ...
         'if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \', ...
@@ -160,8 +160,8 @@ if hascodegen
         '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr."');
 elseif exist('emlmex.p', 'file') && ~cgonly
     args = codegen2eml_args( args);
-    co_cfg_mex = emlcoder.CompilerOptions;
-    basecommand = 'emlmex -s co_cfg_mex ';
+    co_cfg = emlcoder.CompilerOptions;
+    basecommand = 'emlmex -s co_cfg ';
     warning('off','Coder:common:EMLMEXDeprecation');
     warning('off','Coder:common:EMLMEXDeprecationFIACCEL');
 else
@@ -172,20 +172,20 @@ if verbose
     basecommand = [basecommand ' -v'];
 end
 
-co_cfg_mex.ExtrinsicCalls = true;
-co_cfg_mex.SaturateOnIntegerOverflow = false;
-co_cfg_mex.EnableVariableSizing = true;
-co_cfg_mex.EnableMemcpy = true;
+co_cfg.ExtrinsicCalls = true;
+co_cfg.SaturateOnIntegerOverflow = false;
+co_cfg.EnableVariableSizing = true;
+co_cfg.EnableMemcpy = true;
 
-co_cfg_mex.DynamicMemoryAllocation = 'AllVariableSizeArrays';
+co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 
-co_cfg_mex.IntegrityChecks = ~enableopt;
-co_cfg_mex.ResponsivenessChecks = ~enableopt;
-try co_cfg_mex.GenerateComments = debuginfo;
+co_cfg.IntegrityChecks = ~enableopt;
+co_cfg.ResponsivenessChecks = ~enableopt;
+try co_cfg.GenerateComments = debuginfo;
 catch; end %#ok<*CTCH>
-try co_cfg_mex.MATLABFcnDesc = debuginfo;
+try co_cfg.MATLABFcnDesc = debuginfo;
 catch; end
-try co_cfg_mex.MATLABSourceComments = debuginfo;
+try co_cfg.MATLABSourceComments = debuginfo;
 catch; end
 
 %% Run command
@@ -193,7 +193,7 @@ command = strtrim([basecommand ' ' mexopt ' ' opts_opt ...
     ' -o ' func ' ' func ' ' args]);
 if verbose
     disp('Running codegen with options:');
-    disp(co_cfg_mex);
+    disp(co_cfg);
 end
 disp(command);
 olddir = pwd;
