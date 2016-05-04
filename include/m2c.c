@@ -250,3 +250,11 @@ double M2C_wtime() {
 
     return (y);
 }
+
+#ifndef MATLAB_MEX_FILE
+/* Issue formatted error message with corresponding error identifier */
+void m2cErrMsgIdAndTxt(const char * id, const char * msg, ...) {
+    printf("Error %s: %s\n", id, msg);
+    abort();
+}
+#endif

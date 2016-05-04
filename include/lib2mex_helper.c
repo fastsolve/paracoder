@@ -30,7 +30,7 @@ typedef struct emxArray__common
 /*****************************************************************
  * Initialize an emxArray.
  *****************************************************************/
-void init_emxArray( emxArray__common *emx, int32_T dim) {
+void init_emxArray(emxArray__common *emx, int32_T dim) {
     emx->data = NULL;
     emx->numDimensions = dim;
     emx->size = (int32_T*)mxCalloc(dim, sizeof(int32_T));
@@ -41,9 +41,9 @@ void init_emxArray( emxArray__common *emx, int32_T dim) {
 /*****************************************************************
  * Free up space allocated for emx.
  *****************************************************************/
-void free_emxArray( emxArray__common *emx) {
-    if ( emx->canFreeData && emx->data) mxFree(emx->data);
-    if ( emx->size) mxFree(emx->size);
+void free_emxArray(emxArray__common *emx) {
+    if (emx->canFreeData && emx->data) mxFree(emx->data);
+    if (emx->size) mxFree(emx->size);
     emx->data = NULL; emx->size=NULL;
     emx->allocatedSize=0; emx->canFreeData=FALSE;
 }
@@ -51,7 +51,7 @@ void free_emxArray( emxArray__common *emx) {
 /*****************************************************************
  * Obtain number of items of an emxArray.
  *****************************************************************/
-int32_T nelems_emxArray( const emxArray__common *emx) {
+int32_T nelems_emxArray(const emxArray__common *emx) {
     int32_T i, dim=emx->numDimensions;
     int32_T nitems = emx->size[0];
     
@@ -68,21 +68,16 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     const mwSize *dims = mxGetDimensions(a);
     int   i, mxdim = mxGetNumberOfDimensions(a);
     
-    init_emxArray( emx, dim);
+    init_emxArray(emx, dim);
     
-    if ( mxGetNumberOfElements(a)==0) return;
+    if (mxGetNumberOfElements(a)==0) return;
 
     /* Check the compatibility of the mxArray */
-    if ( mxdim>dim) {
+    if (mxdim>dim) {
         for (i=dim; i<mxdim; ++i) {
             if (dims[i]!=1) {
-#ifdef BUILD_MEX
-                mexErrMsgIdAndTxt("lib2mex:WrongDimension",
-                        "Varialble %s has incorrect dimension.", name);
-#else
-                fprintf(stdout, "Varialble %s has incorrect dimension.", name);
-                abort();
-#endif
+                m2cErrMsgIdAndTxt("lib2mex:WrongDimension",
+                                  "Varialble %s has incorrect dimension.", name);
             }
         }
         mxdim = dim;
@@ -93,8 +88,8 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     for (i=mxdim; i<dim; ++i) emx->size[i] = 1;
     
     if (sizeof_type>0) {
-        emx->allocatedSize = nelems_emxArray( emx);
-        emx->data = mxCalloc( emx->allocatedSize, sizeof_type);
+        emx->allocatedSize = nelems_emxArray(emx);
+        emx->data = mxCalloc(emx->allocatedSize, sizeof_type);
     }
 }
 
@@ -106,7 +101,7 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
                                       const char *name, int32_T dim) {
     mxClassID type=mxGetClassID(a);
 
-    init_emxArray_from_mxArray( a, emx, name, dim, 0);
+    init_emxArray_from_mxArray(a, emx, name, dim, 0);
 
     switch (type) {
     case mxLOGICAL_CLASS:
@@ -121,12 +116,12 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
     case mxINT64_CLASS:
     case mxUINT64_CLASS:
         emx->allocatedSize = mxGetNumberOfElements(a);
-        if (emx->allocatedSize) emx->data = mxGetData( a);
+        if (emx->allocatedSize) emx->data = mxGetData(a);
         emx->canFreeData = false;
         break;
     case mxCHAR_CLASS:
         emx->allocatedSize = mxGetNumberOfElements(a)+1;
-        emx->data = mxMalloc( emx->allocatedSize);
+        emx->data = mxMalloc(emx->allocatedSize);
         emx->canFreeData = true;
         
         mxGetString(a, (char*)emx->data, emx->allocatedSize);
@@ -162,7 +157,7 @@ static void copy_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
         mwSize n = mxGetNumberOfElements(a);
         if (n>maxlen) n=maxlen;
 
-        memcpy( emx->data, mxGetData(a), n*mxGetElementSize(a));
+        memcpy(emx->data, mxGetData(a), n*mxGetElementSize(a));
         break;
     }
     case mxCHAR_CLASS:           
@@ -199,7 +194,7 @@ static void copy_mxArray_to_array(const mxArray *a, void *data,
         mwSize n = mxGetNumberOfElements(a);
         if (n>maxlen) n=maxlen;
 
-        memcpy( data, mxGetData(a), n*mxGetElementSize(a));
+        memcpy(data, mxGetData(a), n*mxGetElementSize(a));
         break;
     }
     case mxCHAR_CLASS:           
@@ -217,7 +212,7 @@ static void copy_mxArray_to_array(const mxArray *a, void *data,
 /*****************************************************************
  * Preallocate storage for mxArray.
  *****************************************************************/
-static void *prealloc_mxArray( mxArray **pa, mxClassID type, 
+static void *prealloc_mxArray(mxArray **pa, mxClassID type, 
                                int32_T dim, mwSize *size) {
     mxArray *a=NULL;
 
@@ -247,7 +242,7 @@ static void *prealloc_mxArray( mxArray **pa, mxClassID type,
     }
 
     *pa = a;    
-    return mxGetData( a);
+    return mxGetData(a);
 }
 
 /*****************************************************************
@@ -410,15 +405,15 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
 
     /* Always use copy for robustness */
 #ifdef HAVE_OCTAVE
-    a = copy_array_to_mxArray( emx->data, type,
+    a = copy_array_to_mxArray(emx->data, type,
             emx->numDimensions, emx->size);
-    free_emxArray( emx);
+    free_emxArray(emx);
     return a;
 #else
-    if ( !emx->canFreeData) {
-        a = copy_array_to_mxArray( emx->data, type,
+    if (!emx->canFreeData) {
+        a = copy_array_to_mxArray(emx->data, type,
                 emx->numDimensions, emx->size);
-        free_emxArray( emx);
+        free_emxArray(emx);
         return a;
     }
 #endif
@@ -448,13 +443,13 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
         a = mxCreateNumericArray(0, 0, type, mxREAL);
         if (emx->data) {
             /* Set pointer */
-            mxSetData( a, emx->data);
+            mxSetData(a, emx->data);
         }
         /* Set size */
         mxSetDimensions(a, dims, dim);
         emx->canFreeData = FALSE;
 
-        free_emxArray( emx);
+        free_emxArray(emx);
         break;
     }
     case mxLOGICAL_CLASS: {

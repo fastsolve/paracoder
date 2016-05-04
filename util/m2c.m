@@ -305,7 +305,6 @@ end
 
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
-lib2mex([mpath func], ldflags, coptionflags, args);
 
 if genexe && efence
     if exist('/usr/lib/libefence.a', 'file')
@@ -323,7 +322,7 @@ if genexe && efence
 else
     libs = '';
 end
-lib2exe([mpath func], ldflags, coptionflags, args, libs);
+lib2mex([mpath func], ldflags, coptionflags, args, libs);
 
 if ~genmex && ~genexe
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...

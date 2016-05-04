@@ -7,11 +7,7 @@
 #include <stdio.h>
 #include "mat.h"
 
-/* Error message */
-void m2cErrMsgIdAndTxt(const char *id, const char *msg) {
-    fprintf(stderr, "%s - %s\n", id, msg);
-    abort();
-}
+extern void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 
 /* Read input file. Returns 0 if successful. */
 int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
@@ -21,7 +17,7 @@ int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
     MATFile *pmat = matOpen(filename, "r");
     
     if (!pmat) {
-        fprintf(stderr, "Error in opening input file %s\n", filename);
+        printf("Error in opening input file %s\n", filename);
         return(-1);
     }
     
@@ -29,19 +25,19 @@ int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
         prhs[i] = matGetNextVariable(pmat, &varname);
         
         if (!prhs[i]) {
-            fprintf(stderr, "There are only %d variables in input file %s. %d expected.\n", i, filename, nrhs);
+            printf("There are only %d variables in input file %s. %d expected.\n", i, filename, nrhs);
             return(-1);
         }
     }
     
     /* Read in remaining varilables in the file */
     while (matGetNextVariable(pmat, &varname)) {
-        fprintf(stderr, "Warning: Ignoring extra varilable %s in file %s\n",
+        printf("Warning: Ignoring extra varilable %s in file %s\n",
                 varname, filename);
     }
     
     if (matClose(pmat)) {
-        fprintf(stderr, "Error closing file %s\n", filename);
+        printf("Error closing file %s\n", filename);
         return(-1);
     }
     
@@ -56,7 +52,7 @@ int writeOuputArgs(const char *filename, const int nOut, mxArray *plhs[]) {
     MATFile *pmat = matOpen(filename, "w");
     
     if (!pmat) {
-        fprintf(stderr, "Error in opening output file %s\n", filename);
+        printf("Error in opening output file %s\n", filename);
         return(-1);
     }
     
@@ -66,13 +62,13 @@ int writeOuputArgs(const char *filename, const int nOut, mxArray *plhs[]) {
         
         sprintf(varname, "output_%d", i+1);
         if (matPutVariable(pmat, varname, plhs[i])) {
-            fprintf(stderr, "Error in when writing output %d into file %s\n", i, filename);
+            printf("Error writing output %d into file %s\n", i, filename);
             abort();
         }
     }
     
     if (matClose(pmat)) {
-        fprintf(stderr, "Error closing file %s\n", filename);
+        printf("Error closing file %s\n", filename);
         return(-1);
     }
     

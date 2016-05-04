@@ -23,24 +23,27 @@ extern double M2C_wtime();
 # define ONCUDA (255U)
 #endif
 
-#ifdef BUILD_MEX
+#if defined(MATLAB_MEX_FILE) || defined(BUILD_MAT) 
 /* Define macros to support building function into MATLAB executable. */
-#include "mex.h"
 #define malloc  mxMalloc
 #define calloc  mxCalloc
 #define realloc mxRealloc
 #define free    mxFree
-#define emlrtIsMATLABThread(s)  1
+#endif
 
-#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \
+#ifdef MATLAB_MEX_FILE
+#define m2cErrMsgIdAndTxt   mexErrMsgIdAndTxt
+#define emlrtIsMATLABThread(s)  1
+#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset)                         \
         if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \
         mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \
         "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
 #else
+extern void m2cErrMsgIdAndTxt(const char * id, const char * msg, ...);
+/* Issue formatted error message with corresponding error identifier */
 #define emlrtIsMATLABThread(s)  0
-#define mexErrMsgIdAndTxt(a,b)
-
 #define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) 
+
 #endif
 
 #ifndef struct_emxArray__common
