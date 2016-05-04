@@ -5,8 +5,6 @@ function lib2mex(funcname, opflags, args, dbg_opts)
 % or codegen should be present. The generated C file and build script
 % are located in codegen/lib/funcname.
 %
-% The -g option will enable debugging for the mex command.
-%
 % See also m2c
 
 if nargin<1
@@ -166,11 +164,9 @@ write_README(outdir, funcname);
         if mpiopts; fprintf(fid, '%s\n', mpiopts); end
         if ompopts; fprintf(fid, '%s\n', ompopts); end
         
-        if dbg_opts.verbose
-            ldflags = '-v';
-        else
-            ldflags = '';
-        end
+        ldflags = '';
+        if dbg_opts.verbose; ldflags = '-v'; end
+        if dbg_opts.debuginfo; ldflags = [ldflag ' -g']; end
 
         fprintf(fid, '%s\n', ...
             '    if exist(''octave_config_info'', ''builtin''); output = ''-DMATLAB_MEX_FILE -o''; else output = ''-largeArrayDims -output''; end', ...
@@ -249,8 +245,9 @@ write_README(outdir, funcname);
         if mpiopts; fprintf(fid, '%s\n', mpiopts); end
         if ompopts; fprintf(fid, '%s\n', ompopts); end
 
-        ldflags = '';
-        if dbg_opts.verbose; ldflags = '-v'; end
+        ldflags = '-g';
+        if dbg_opts.verbose; ldflags = '-g -v'; end
+        
         if dbg_opts.profile
             if ismac
                 ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping ']; 
@@ -263,9 +260,9 @@ write_README(outdir, funcname);
             '    incdir = [matlabroot ''/extern/include''];', ...
             '    bindir = [matlabroot ''/bin/'' lower(computer)];', ...
             '    if isequal(computer, ''MACI64'')', ...
-            '        matlibs = [''-L'' bindir '' -Wl,-rpath -Wl,'' bindir '' -lmat -lmx''];', ...
+            '        matlibs = [''-L'' bindir '' -Wl,-rpath -Wl,'' bindir '' -lmat -lmx -lm''];', ...
             '    elseif isequal(computer, ''GLNXA64'')', ...
-            '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx''];', ...
+            '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
             '    else', ...
             '        error(''Building executable is not supported on %s\n'', computer);', ...
             '    end', ...

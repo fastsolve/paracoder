@@ -48,7 +48,7 @@ function m2c(varargin)
 % PROFILING AND INSTRUMENTATION
 %     -time
 %           Insert timing statements into C code.
-%     -pg
+%     -profile
 %           Compile standalone code with profiling enabled (Mac or Linux).
 % OUTPUT C/C++ CODE
 %     -c++
@@ -145,7 +145,6 @@ if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
         ckdep([cpath  '/mex_' func '.m'], mfile)
     disp(['C code for ' func ' is up to date.']);
     if genmex; run_mexcommand(cpath, func); end
-    if genexe; run_execommand(cpath, func); end
     return;
 end
 
@@ -168,9 +167,8 @@ end
 [valgrind, args] = match_option( args, '-valgrind');
 [ddd, args] = match_option( args, '-ddd');
 [timing, args] = match_option( args, '-time');
-[profile, args] = match_option( args, '-pg');
+[profile, args] = match_option( args, '-profile');
 
-debuginfo = debuginfo || efence || valgrind || ddd || profile;
 genexe = genexe || efence || valgrind || ddd || profile;
 
 if genexe && ~isunix()
@@ -178,8 +176,9 @@ if genexe && ~isunix()
     genexe = false;
 end
 
-dbg_opts = struct('genexe', genexe, 'valgrind', valgrind, 'efence', efence, ...
-    'ddd', ddd, 'profile', profile, 'timing', timing, 'verbose', verbose);
+dbg_opts = struct('debuginfo', debuginfo, 'genexe', genexe, ...
+    'valgrind', valgrind, 'efence', efence, 'ddd', ddd, ...
+    'profile', profile, 'timing', timing, 'verbose', verbose);
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
@@ -275,13 +274,13 @@ end
 %% Specify compiler options
 if debuginfo; dbflags = ' -g'; else dbflags = ''; end
 if enableopt3
-    COptimFlags = ['-O3 -DNDEBUG' dbflags];
+    COptimFlags = '-O3 -DNDEBUG';
 elseif enableopt2
-    COptimFlags = ['-O2 -DNDEBUG' dbflags];
+    COptimFlags = '-O2 -DNDEBUG';
 elseif enableopt1
-    COptimFlags = ['-O1 -DNDEBUG' dbflags];
+    COptimFlags = '-O1 -DNDEBUG';
 else
-    COptimFlags = dbflags;
+    COptimFlags = '';
 end
 if verbose
     basecommand = [basecommand ' -v'];
@@ -335,19 +334,13 @@ end
 if genmex; run_mexcommand(cpath, func); end
 
 if genexe
-    fprintf(['To use the EXE file withinin MATLAB, ', ...
-        'replace calls to ' func ' by run_ ' func '_exe.\n']);
+    fprintf(['To use the EXE file in MATLAB, ', ...
+        'replace calls to ' func ' by run_' func '_exe.\n']);
 end
 end
 
 function run_mexcommand(cpath, func)
 command = [cpath 'mex_' func '.m'];
-
-if exist(command, 'file'); run(command); end
-end
-
-function run_execommand(cpath, func)
-command = [cpath 'ld_' func '.m'];
 
 if exist(command, 'file'); run(command); end
 end
