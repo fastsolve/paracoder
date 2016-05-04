@@ -44,7 +44,7 @@ writeMexScript(['mex_' funcname '.m'], opts);
 % Write out a build script
 writeExeScript(['ld_' funcname '.m'], opts, dbg_opts);
 % Write M-file wrapper function
-writeExeMWrapper(outdir, funcname, dbg_opts)
+writeExeMWrapper(altapis, outdir, funcname, dbg_opts)
 
 % Write README file
 write_README(outdir, funcname);
@@ -438,13 +438,64 @@ end
 
 end
 
-function writeExeMWrapper(srcdir, funcname, dbg_opts)
+function writeExeMWrapper(altapis, srcdir, funcname, dbg_opts)
 % Generate M-file for reading and writing output through MAT files.
 
 outfile = ['run_' funcname '_exe.m'];
 fid = fopen(outfile, 'w');
 
-if dbg_opts.valgrind
+if dbg_opts.ddd
+    % Find ddd
+    ddd = 'ddd';
+    
+    [status, ~] = system('which ddd');
+    if status
+        paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+        i = 1;
+        while status && i<=length(paths)
+            [status, result] = system(['ls ' paths{i} '/ddd']);
+            i = i + 1;
+        end
+        
+        if status
+            warning('m2c:lib2mex', ['Could not locate ddd in system directories.\n' ...
+                'Please install ddd and add it to your path.']);
+            ddd = '';
+        else
+            commands = strsplit(result);
+            ddd = commands{1};
+        end
+    end
+
+    % Find gdb
+    gdb = 'gdb';
+    [status, ~] = system('which gdb');
+    if status
+        files = {'/opt/local/bin/ggdb', '/opt/local/bin/gdb', ...
+            '/usr/local/bin/gdb', '/sw/bin/gdb'};
+        i = 1;
+        while status && i<=length(files)
+            [status, result] = system(['ls ' files{i}]);
+            i = i + 1;
+        end
+        
+        if status
+            warning('m2c:lib2mex', ['Could not locate gdb in system directories.\n' ...
+                'Please install gdb and add it to your path.']);
+            gdb = '';
+        else
+            commands = strsplit(result);
+            gdb = commands{1};
+        end
+    end
+    
+    if ~isempty(gdb) && ~isempty(ddd) 
+        % Add breakpoints
+        breakponts = sprintf(' -ex ''''break %s''''', altapis{:});
+        
+        cmdpre = [ddd ' --debugger "' gdb breakponts ' -ex run" --args '];
+    end
+elseif dbg_opts.valgrind
     % Find valgrind
     valgrind = 'valgrind';
     
