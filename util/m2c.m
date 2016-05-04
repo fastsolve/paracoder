@@ -30,20 +30,20 @@ function m2c(varargin)
 %
 % DEBUGGING
 %     -g
-%           Preserve MATLAB code info in C code and compile C functions 
-%           in debug mode. It can be used in conjunction with -O, -O1, etc.
+%           Preserve MATLAB code info in C code and generate source-level debug
+%           information when compiling C.
+%     -v
+%           Verbose mode.
 %     -exe
-%           Build a standalone executable in addition to generating the C code.
-%           Only Linux and Mac are supported.
+%           Generate a MATLAB script for calling the exe file from within 
+%           MATLAB  for debugging. Only Linux and Mac are supported.
 %     -ddd
-%           Generate script for running the standalone executable in ddd.
+%           Generate a script for running the standalone executable in ddd.
 %     -valgrind
-%           Generate script for running the standalone executable in valgrind.
+%           Generate a script for running the standalone executable in valgrind.
 %     -efence
 %           Link the executable with electric-fence for debugging memory.
 %           Only Linux and Mac are supported.
-%     -v
-%           Verbose mode.
 %
 % PROFILING AND INSTRUMENTATION
 %     -time
@@ -137,11 +137,6 @@ end
 [genmex, args] = match_option( args, '-mex');
 [genexe, args] = match_option( args, '-exe');
 
-if genexe && ~isunix()
-    fprintf('Warning: Building executable is not supported on PCs\n');
-    genexe = false;
-end
-
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile( func);
 cpath = [mpath 'codegen/lib/' func '/'];
@@ -175,8 +170,15 @@ end
 [timing, args] = match_option( args, '-time');
 [profile, args] = match_option( args, '-pg');
 
-debuginfo = debuginfo || efence || valgrind || ddd;
-dbg_opts = struct('valgrind', valgrind, 'efence', efence, ...
+debuginfo = debuginfo || efence || valgrind || ddd || profile;
+genexe = genexe || efence || valgrind || ddd || profile;
+
+if genexe && ~isunix()
+    fprintf('Warning: Building executable is not supported on Windows PCs\n');
+    genexe = false;
+end
+
+dbg_opts = struct('genexe', genexe, 'valgrind', valgrind, 'efence', efence, ...
     'ddd', ddd, 'profile', profile, 'timing', timing, 'verbose', verbose);
 
 if enableopt; enableopt2=true; end
@@ -292,10 +294,6 @@ if verbose
     disp('Running codegen with options:');
     disp(co_cfg);
 end
-disp(command); 
-if exist(cpath,'dir')
-    rmdir(cpath,'s');
-end
 
 olddir = pwd;
 if ~isempty(mpath); cd(mpath); end
@@ -329,16 +327,17 @@ if enableomp; args = [args ' -acc']; end
 
 lib2mex([mpath func], COptimFlags, args, dbg_opts);
 
-if ~genmex && ~genexe
+if ~genmex
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
         [cpath 'mex_' func '.m']);
-    fprintf('To build the EXE file, use command (without quotes): "run %s".\n', ...
-        [cpath 'ld_' func '.m']);
-else
-    if genmex; run_mexcommand(cpath, func); end
-    if genexe; run_execommand(cpath, func); end
 end
 
+if genmex; run_mexcommand(cpath, func); end
+
+if genexe
+    fprintf(['To use the EXE file withinin MATLAB, ', ...
+        'replace calls to ' func ' by run_ ' func '_exe.\n']);
+end
 end
 
 function run_mexcommand(cpath, func)

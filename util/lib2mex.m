@@ -38,13 +38,16 @@ end
 % Write out C code
 opts = writeCFile([funcname '_mex.' suf], [funcname '_exe.' suf]);
 
-% Write out a build script
+% Write out a build script for MEX
 writeMexScript(['mex_' funcname '.m'], opts);
 
-% Write out a build script
+% Write out a build script for EXE
 writeExeScript(['ld_' funcname '.m'], opts, dbg_opts);
-% Write M-file wrapper function
-writeExeMWrapper(altapis, outdir, funcname, dbg_opts)
+
+if dbg_opts.genexe
+    % Write M-file wrapper function for calling EXE within MATLAB
+    writeExeMWrapper(altapis, outdir, funcname, dbg_opts);
+end
 
 % Write README file
 write_README(outdir, funcname);
@@ -442,6 +445,10 @@ function writeExeMWrapper(altapis, srcdir, funcname, dbg_opts)
 % Generate M-file for reading and writing output through MAT files.
 
 outfile = ['run_' funcname '_exe.m'];
+% Backup file
+if (exist(outfile, 'file'))
+    copyfile(outfile, [outfile '.bak']);
+end
 fid = fopen(outfile, 'w');
 
 if dbg_opts.ddd
@@ -611,7 +618,9 @@ elseif dbg_opts.profile
         ['fprintf(''See ./' funcname '.prof for detailed profile and ./' funcname '.cov for code coverage.\n'');']);
 end
 
+fprintf(fid, 'end\n');
 fclose(fid);
+
 end
 
 function write_README(outdir, funcname)
@@ -636,7 +645,6 @@ fprintf(fid, '%s\n', ...
     'Main Function (for building a standalone executable for debugging/profiling):', ...
     ['    ' funcname '_exe.c: Definition of main function that read/write MAT files.'], ...
     ['    ld_' funcname '.m: MATLAB script for compiling executible.'], ...
-    ['    ../../../run_' funcname 'exe.m: Replacement of ' funcname '.m for debugging.'], ...
     '    Additional dependent file lib2exe_helper.c is in <M2CROOT>/include.' ...
     );
 
