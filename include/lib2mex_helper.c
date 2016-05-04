@@ -27,6 +27,14 @@ typedef struct emxArray__common
 #endif
 #define CGEN_MAXDIM 10
 
+#ifndef MATLAB_MEX_FILE
+/* Issue formatted error message with corresponding error identifier */
+void mexErrMsgIdAndTxt(const char * id, const char * msg, ...) {
+    fprintf(stderr, "Error %s: %s\n", id, msg);
+    abort();
+}
+#endif
+
 /*****************************************************************
  * Initialize an emxArray.
  *****************************************************************/
@@ -76,7 +84,7 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     if (mxdim>dim) {
         for (i=dim; i<mxdim; ++i) {
             if (dims[i]!=1) {
-                m2cErrMsgIdAndTxt("lib2mex:WrongDimension",
+                mexErrMsgIdAndTxt("lib2mex:WrongDimension",
                                   "Varialble %s has incorrect dimension.", name);
             }
         }

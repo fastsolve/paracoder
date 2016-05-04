@@ -6,6 +6,7 @@ function m2c(varargin)
 %
 %    The following options can be used:
 %
+% OPTIMIZATION
 %     -O1
 %           Enable optimization for MATLAB Coder and and pass the -O1 
 %           compiler option to the C compiler to enable basis optimization.
@@ -18,33 +19,48 @@ function m2c(varargin)
 %           Enable optimization for MATLAB Coder and also pass the -O3
 %           compiler option to the C compiler to enabe all supported 
 %           optimizations for C, including loop unrolling and function inlining.
-%     -g
-%           Preserve MATLAB code info in C code and compile C functions 
-%           in debug mode. It can be used in conjunction with -O, -O1, etc.
 %     -noinf (Default)
 %           Disable support of NonFinite (inf and nan. It produces faster codes).
 %     -inf
 %           Enable support of NonFinite (inf and nan. It produces slower codes).
-%     -c++
-%           Generates C++ code instead of C code.
 %     -acc
 %           Enable acceleration support using multicore (OpenMP) and/or GPUs (OpenACC).
 %     -lapack
 %           Enable LAPACKE and link with MATLAB's builtin LAPACK library.
-%     -m
-%           Map different MATLAB functions into separate C files.
-%     -mex
-%           Run the mex command in addition to generating the C files.
+%
+% DEBUGGING
+%     -g
+%           Preserve MATLAB code info in C code and compile C functions 
+%           in debug mode. It can be used in conjunction with -O, -O1, etc.
 %     -exe
 %           Build a standalone executable in addition to generating the C code.
 %           Only Linux and Mac are supported.
+%     -ddd
+%           Generate script for running the standalone executable in ddd.
+%     -valgrind
+%           Generate script for running the standalone executable in valgrind.
 %     -efence
 %           Link the executable with electric-fence for debugging memory.
 %           Only Linux and Mac are supported.
-%     -64
-%           Map int32 to int64.
 %     -v
 %           Verbose mode.
+%
+% PROFILING AND INSTRUMENTATION
+%     -time
+%           Insert timing statements into C code.
+%     -pg
+%           Compile standalone code with profiling enabled (Mac or Linux).
+% OUTPUT C/C++ CODE
+%     -c++
+%           Generates C++ code instead of C code.
+%     -m
+%           Map different MATLAB functions into separate C files.
+%     -64
+%           Map int32 to int64.
+%
+% MISCELLANEOUS
+%     -mex
+%           Run the mex command in addition to generating the C files.
 %     -force
 %           Force to rebuild the mex function,
 %     -args {...}
@@ -154,6 +170,14 @@ end
 [verbose, args] = match_option( args, '-v');
 
 [efence, args] = match_option( args, '-efence');
+[valgrind, args] = match_option( args, '-valgrind');
+[ddd, args] = match_option( args, '-ddd');
+[timing, args] = match_option( args, '-time');
+[profile, args] = match_option( args, '-pg');
+
+debuginfo = debuginfo || efence || valgrind || ddd;
+dbg_opts = struct('valgrind', valgrind, 'efence', efence, ...
+    'ddd', ddd, 'profile', profile, 'timing', timing, 'verbose', verbose);
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
@@ -249,19 +273,16 @@ end
 %% Specify compiler options
 if debuginfo; dbflags = ' -g'; else dbflags = ''; end
 if enableopt3
-    coptionflags = ['-O3 -DNDEBUG' dbflags];
+    COptimFlags = ['-O3 -DNDEBUG' dbflags];
 elseif enableopt2
-    coptionflags = ['-O2 -DNDEBUG' dbflags];
+    COptimFlags = ['-O2 -DNDEBUG' dbflags];
 elseif enableopt1
-    coptionflags = ['-O1 -DNDEBUG' dbflags];
+    COptimFlags = ['-O1 -DNDEBUG' dbflags];
 else
-    coptionflags = dbflags;
+    COptimFlags = dbflags;
 end
 if verbose
-    ldflags = ' -v';
     basecommand = [basecommand ' -v'];
-else
-    ldflags = '';
 end
 
 %% Run command
@@ -306,23 +327,7 @@ end
 %% Also generate a wrapper for building MEX
 if enableomp; args = [args ' -acc']; end
 
-if genexe && efence
-    if exist('/usr/lib/libefence.a', 'file')
-        libs = '-lefence';
-    elseif exist('/usr/local/lib/libefence.a', 'file')
-        libs = '-L/usr/local/lib -lefence'; 
-    elseif exist('/opt/local/lib/libefence.a', 'file')
-        libs = '-L/opt/local/lib -lefence'; 
-    elseif exist('/sw/lib/libefence.a', 'file')
-        libs = '-L/sw/lib -lefence'; 
-    else
-        fprintf('Warning: Could not locate libefence.a.\n');
-        libs = ''; 
-    end
-else
-    libs = '';
-end
-lib2mex([mpath func], ldflags, coptionflags, args, libs);
+lib2mex([mpath func], COptimFlags, args, dbg_opts);
 
 if ~genmex && ~genexe
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
