@@ -1,7 +1,7 @@
 function compile( varargin)
 % Compile MATLAB code using either m2c (if MATLAB Coder exists) or m2mex.
 %
-%    compile [-m2c|-m2mex|-exe] <other_options> matlabfunc <args>
+%    compile [-m2c|-m2mex] <other_options> matlabfunc <args>
 %
 %    The following options can be used:
 
@@ -9,8 +9,6 @@ function compile( varargin)
 %           Force to use m2c. This is the default.
 %     -m2mex 
 %           Force to use m2mex.
-%     -exe
-%           Force to use m2c to build executable.
 %
 %    The other options are the same as those of m2c and m2mex.
 
@@ -53,16 +51,14 @@ cpath = [dir 'codegen/lib/' func];
 
 [usem2mex, args] = match_option( args, '-m2mex');
 [usem2c, args] = match_option( args, '-m2c');
-[m2exe, args] = match_option( args, '-exe');
 
-if usem2c || m2exe; usem2mex=false; end
-if ~usem2mex && ~m2exe; usem2c=true; end
+if ~usem2mex; usem2c=true; end
 
 hascodegen = exist('codegen.p', 'file');
 command = [cpath '/mex_' func '.m'];
 
 if usem2mex || ~hascodegen && ~exist(command, 'file')
-    if usem2c || m2exe
+    if usem2c
         warning('compile:unsupported', 'Forced to use m2mex.');
     end
     
@@ -82,13 +78,9 @@ if usem2mex || ~hascodegen && ~exist(command, 'file')
     m2mex(args, [dir func]);
 else
     force = match_option( args, '-force');    
-    if ~exist(command, 'file') || hascodegen && (usem2c || m2exe || force)
-        if usem2c && ~m2exe; 
+    if ~exist(command, 'file') || hascodegen && (usem2c || force)
+        if usem2c
             addflag = ' -mex';
-        elseif ~usem2c && m2exe; 
-            addflag = ' -exe';
-        else
-            addflag = ' -mex -exe';
         end
         m2c([args, addflag], [dir func]);
     else
