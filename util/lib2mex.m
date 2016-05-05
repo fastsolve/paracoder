@@ -434,7 +434,9 @@ for i=1:nOut
         ['    if (plhs[' int2str(i-1) ']) mxDestroyArray(plhs[' int2str(i-1) ']);']);
 end
 
-str = sprintf('\n%s', str, '}');
+str = sprintf('\n%s', str, '', ...
+    '    return(EXIT_SUCCESS);', ...
+    '}');
 
 % Remove two consecutive empty lines
 while ~isempty(regexp(str, '^\n\n', 'once'))
