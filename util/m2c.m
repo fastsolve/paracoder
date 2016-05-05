@@ -102,7 +102,7 @@ end
 func = '';
 args = '';
 for i=length(varargin)-1:-1:2
-    if strcmp( varargin{i}, '-args')
+    if strcmp(varargin{i}, '-args')
         func = varargin{i-1};
         args = strtrim(sprintf(' %s', varargin{i:end}));
         args = [strtrim(sprintf(' %s', varargin{1:i-2})) ' ' args]; %#ok<AGROW>
@@ -114,7 +114,7 @@ if isempty(func)
     for i=1:length(varargin)
         if isempty(varargin{i})
             continue;
-        elseif ~strncmp( strtrim(varargin{i}), '-', 1)
+        elseif ~strncmp(strtrim(varargin{i}), '-', 1)
             func = varargin{i};
         elseif isempty(args)
             args = varargin{i};
@@ -124,7 +124,7 @@ if isempty(func)
     end
 end
 
-if nargin<1 || match_option( args, '-h')
+if nargin<1 || match_option(args, '-h')
     help m2c; %#ok<MCHLP>
     return;
 end
@@ -133,43 +133,45 @@ if isempty(func);
     error('m2mex:NoFileName', 'No function name was specified.');
 end
 
-[skipdepck, args] = match_option( args, '-force');
-[genmex, args] = match_option( args, '-mex');
-[genexe, args] = match_option( args, '-exe');
+[skipdepck, args] = match_option(args, '-force');
+[genmex, args] = match_option(args, '-mex');
+[genexe, args] = match_option(args, '-exe');
+[efence, args] = match_option(args, '-efence');
+[valgrind, args] = match_option(args, '-valgrind');
+[ddd, args] = match_option(args, '-ddd');
+[timing, args] = match_option(args, '-time');
+[profile, args] = match_option(args, '-profile');
+
+genexe = genexe || efence || valgrind || ddd || profile;
 
 % Split filename into the path and filename
-[mpath, func, mfile] = get_path_of_mfile( func);
+[mpath, func, mfile] = get_path_of_mfile(func);
 cpath = [mpath 'codegen/lib/' func '/'];
 
 if ~skipdepck && exist([cpath  '/mex_' func '.m'], 'file') && ...
-        ckdep([cpath  '/mex_' func '.m'], mfile)
+        ckdep([cpath  '/mex_' func '.m'], mfile) && ...
+        (~genexe || exist([cpath  '/build_' func '_exe.m'], 'file') && ...
+        ckdep([cpath  '/build_' func '_exe.m'], mfile))
     disp(['C code for ' func ' is up to date.']);
     if genmex; run_mexcommand(cpath, func); end
+    if genexe; build_exe(cpath, func); end
     return;
 end
 
 % Parse all options
-[debuginfo, args] = match_option( args, '-g');
-[enableopt, args] = match_option( args, '-O');
-[enableopt1, args] = match_option( args, '-O1');
-[enableopt2, args] = match_option( args, '-O2');
-[enableopt3, args] = match_option( args, '-O3');
-[uselapack, args] = match_option( args, '-lapack');
-[~, args] = match_option( args, '-noinf'); 
-[enable_inf, args] = match_option( args, '-inf'); noinf = ~enable_inf;
-[usecpp, args] = match_option( args, '-c++');
-[enableomp, args] = match_option( args, '-acc');
-[match, args] = match_option( args, '-m'); genSingleFile = ~match;
-[enable64, args] = match_option( args, '-64');
-[verbose, args] = match_option( args, '-v');
-
-[efence, args] = match_option( args, '-efence');
-[valgrind, args] = match_option( args, '-valgrind');
-[ddd, args] = match_option( args, '-ddd');
-[timing, args] = match_option( args, '-time');
-[profile, args] = match_option( args, '-profile');
-
-genexe = genexe || efence || valgrind || ddd || profile;
+[debuginfo, args] = match_option(args, '-g');
+[enableopt, args] = match_option(args, '-O');
+[enableopt1, args] = match_option(args, '-O1');
+[enableopt2, args] = match_option(args, '-O2');
+[enableopt3, args] = match_option(args, '-O3');
+[uselapack, args] = match_option(args, '-lapack');
+[~, args] = match_option(args, '-noinf'); 
+[enable_inf, args] = match_option(args, '-inf'); noinf = ~enable_inf;
+[usecpp, args] = match_option(args, '-c++');
+[enableomp, args] = match_option(args, '-acc');
+[match, args] = match_option(args, '-m'); genSingleFile = ~match;
+[enable64, args] = match_option(args, '-64');
+[verbose, args] = match_option(args, '-v');
 
 if genexe && ~isunix()
     fprintf('Warning: Building executable is not supported on Windows PCs\n');
@@ -184,29 +186,29 @@ if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
 
 % Determine whether to include mpi.h
-if ckuse( mfile, 'MMPI_require_header')
+if ckuse(mfile, 'MMPI_require_header')
     mpi_header = '#include "mpi.h"';
 else
     mpi_header = '';
 end
 
 % Determine whether to include omp.h
-if ckuse( mfile, 'MACC_require_header')
+if ckuse(mfile, 'MACC_require_header')
     omp_header = '#include "omp.h"';
 else
     omp_header = '';
 end
 
-if isempty( regexp(args,'(^|\s)-args(\s|$)', 'once'))
+if isempty(regexp(args,'(^|\s)-args(\s|$)', 'once'))
     % Extract arguments from source code.
-    args = [extract_codegen_args( mfile) ' ' args];
+    args = [extract_codegen_args(mfile) ' ' args];
 end
 
 len = length(func);
 if len>2 && strcmp(func(len - [1, 0]), '.m')
     func(len - [1, 0]) = [];
 end
-if strcmp( func(end-1:end), '.m'); func = func(1:end-2); end
+if strcmp(func(end-1:end), '.m'); func = func(1:end-2); end
 
 %% Set compiler option
 basecommand = 'codegen -config co_cfg ';
@@ -311,7 +313,7 @@ end
 
 post_codegen([cpath func '.' suf], 'm2c', enableopt);
 
-fix_rtwtypes( [cpath 'rtwtypes.h']);
+fix_rtwtypes([cpath 'rtwtypes.h']);
 if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
 if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
 if exist([cpath 'buildInfo.mat'], 'file'); delete([cpath 'buildInfo.mat']); end
@@ -334,6 +336,7 @@ end
 if genmex; run_mexcommand(cpath, func); end
 
 if genexe
+    build_exe(cpath, func);
     fprintf(['To use the EXE file in MATLAB, ', ...
         'replace calls to ' func ' by run_' func '_exe.\n']);
 end
@@ -341,6 +344,12 @@ end
 
 function run_mexcommand(cpath, func)
 command = [cpath 'mex_' func '.m'];
+
+if exist(command, 'file'); run(command); end
+end
+
+function build_exe(cpath, func)
+command = [cpath 'build_' func '_exe.m'];
 
 if exist(command, 'file'); run(command); end
 end

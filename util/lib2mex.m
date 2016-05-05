@@ -39,10 +39,10 @@ opts = writeCFile([funcname '_mex.' suf], [funcname '_exe.' suf]);
 % Write out a build script for MEX
 writeMexScript(['mex_' funcname '.m'], opts);
 
-% Write out a build script for EXE
-writeExeScript(['ld_' funcname '.m'], opts, dbg_opts);
-
 if dbg_opts.genexe
+    % Write out a build script for EXE
+    dbg_opts = writeExeScript(['build_' funcname '_exe.m'], opts, dbg_opts);
+    
     % Write M-file wrapper function for calling EXE within MATLAB
     writeExeMWrapper(altapis, outdir, funcname, dbg_opts);
 end
@@ -165,8 +165,8 @@ write_README(outdir, funcname);
         if ompopts; fprintf(fid, '%s\n', ompopts); end
         
         ldflags = '';
-        if dbg_opts.verbose; ldflags = '-v'; end
-        if dbg_opts.debuginfo; ldflags = [ldflag ' -g']; end
+        if dbg_opts.verbose; ldflags = '-v '; end
+        if dbg_opts.debuginfo; ldflags = [ldflag ' -g ']; end
 
         fprintf(fid, '%s\n', ...
             '    if exist(''octave_config_info'', ''builtin''); output = ''-DMATLAB_MEX_FILE -o''; else output = ''-largeArrayDims -output''; end', ...
@@ -181,7 +181,7 @@ write_README(outdir, funcname);
         fclose(fid);
     end
 
-    function writeExeScript(outMfile, opts, dbg_opts)        
+    function dbg_opts = writeExeScript(outMfile, opts, dbg_opts)        
         if ~isequal(outdir, '.')
             outMfile = [outdir '/' outMfile];
         end
@@ -191,38 +191,8 @@ write_README(outdir, funcname);
         fid = fopen(outMfile, 'w');
         if (fid<0); error('lib2mex:OpenOutputFile', msg); end
         
-        if hasmpi([outdir '/' funcname '.' suf])
-            mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
-            mpicflag = ' '' '' mpicflag ';
-            mpildflag = ' '' '' mpildflag ';
-        else
-            mpiopts = '';
-            mpicflag = ''; mpildflag = '';
-        end
-        
-        enableomp = match_option(args, '-acc');
-        if enableomp
-            ompopts = '    [ompcflag, ompldflag] = ompflags;';
-            ompcflag = ' '' '' ompcflag';
-            ompldflag = ' '' '' ompldflag ';
-        else
-            ompopts = '';
-            ompcflag = ''; ompldflag = '';
-        end
-        
         if dbg_opts.efence
-            if exist('/usr/lib/libefence.a', 'file')
-                libs = '-lefence';
-            elseif exist('/usr/local/lib/libefence.a', 'file')
-                libs = '-L/usr/local/lib -lefence';
-            elseif exist('/opt/local/lib/libefence.a', 'file')
-                libs = '-L/opt/local/lib -lefence';
-            elseif exist('/sw/lib/libefence.a', 'file')
-                libs = '-L/sw/lib -lefence';
-            else
-                fprintf('Warning: Could not locate libefence.a.\n');
-                libs = '';
-            end
+            libs = locate_efence();
         else
             libs = '';
         end
@@ -233,10 +203,58 @@ write_README(outdir, funcname);
             libs = [''' ' libs ' '''];
         end
         
+        ldflags = '-g ';
+        if dbg_opts.verbose; ldflags = '-g -v '; end
+        
+        enableomp = match_option(args, '-acc');
+
+        if ismac
+            % locate gcc-mp, with support for OpenMP
+            if enableomp
+                [CC, gcc_mp] = locate_gcc_mp();
+                % Profiling not supported for OpenMP on Mac
+                if ~gcc_mp
+                    warning('m2c:lib2mex', 'OpenMP is disabled.');
+                    enableomp = false;
+                elseif dbg_opts.profile
+                    warning('m2c:lib2mex', 'Profiling is disabled when using OpenMP on Mac.');
+                    dbg_opts.profile = false;
+                end
+            else
+                CC = 'cc';
+            end
+            
+            if dbg_opts.profile
+                ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping '];
+                dbg_opts.use_gprof = false;
+            end
+        else
+            dbg_opts.use_gprof = dbg_opts.profile;
+            CC = 'cc';
+            ldflags = [ldflags ' -pg '];
+        end
+        
+        if enableomp
+            ompopts = '    [ompcflag, ompldflag] = ompflags;';
+            ompcflag = ' '' '' ompcflag';
+            ompldflag = ' '' '' ompldflag ';
+        else
+            ompopts = '';
+            ompcflag = ''; ompldflag = '';
+        end
+        
+        if hasmpi([outdir '/' funcname '.' suf])
+            mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
+            mpicflag = ' '' '' mpicflag ';
+            mpildflag = ' '' '' mpildflag ';
+        else
+            mpiopts = '';
+            mpicflag = ''; mpildflag = '';
+        end
+        
         % Place exe file in the same directory as the M file.
         exedir = '../../../';
                 
-        % Place exe file in the same directory as the M file.
         fprintf(fid, '%s\n', ...
             ['% Build script for ' funcname ' on ' computer], ...
             ['if ~isnewer(''' exedir funcname '.exe'', ''' funcname '_exe.' suf ''', ''' funcname '.' suf ''')'], ...
@@ -245,17 +263,7 @@ write_README(outdir, funcname);
         if mpiopts; fprintf(fid, '%s\n', mpiopts); end
         if ompopts; fprintf(fid, '%s\n', ompopts); end
 
-        ldflags = '-g';
-        if dbg_opts.verbose; ldflags = '-g -v'; end
-        
-        if dbg_opts.profile
-            if ismac
-                ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping ']; 
-            else
-                ldflags = [ldflags ' -pg ']; 
-            end
-        end
-        
+       
         fprintf(fid, '%s\n', ...
             '    incdir = [matlabroot ''/extern/include''];', ...
             '    bindir = [matlabroot ''/bin/'' lower(computer)];', ...
@@ -266,7 +274,7 @@ write_README(outdir, funcname);
             '    else', ...
             '        error(''Building executable is not supported on %s\n'', computer);', ...
             '    end', ...
-            ['    cmd = [''cc ' ldflags '' '' opflags mpicflag ompcflag ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
+            ['    cmd = [''' CC ' ' ldflags '' '' opflags mpicflag ompcflag ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
              funcname '.' suf ' ' funcname '_mex.' suf ' ' funcname '_exe.' suf ' -o ' ...
              exedir funcname '.exe '' '  opts libs mpildflag ompldflag ' matlibs];'], ...
             '    fprintf(''Entering %s\n'', pwd);', ...
@@ -450,48 +458,10 @@ fid = fopen(outfile, 'w');
 
 if dbg_opts.ddd
     % Find ddd
-    ddd = 'ddd';
-    
-    [status, ~] = system('which ddd');
-    if status
-        paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-        i = 1;
-        while status && i<=length(paths)
-            [status, result] = system(['ls ' paths{i} '/ddd']);
-            i = i + 1;
-        end
-        
-        if status
-            warning('m2c:lib2mex', ['Could not locate ddd in system directories.\n' ...
-                'Please install ddd and add it to your path.']);
-            ddd = '';
-        else
-            commands = strsplit(result);
-            ddd = commands{1};
-        end
-    end
+    ddd = locate_ddd();
 
     % Find gdb
-    gdb = 'gdb';
-    [status, ~] = system('which gdb');
-    if status
-        files = {'/opt/local/bin/ggdb', '/opt/local/bin/gdb', ...
-            '/usr/local/bin/gdb', '/sw/bin/gdb'};
-        i = 1;
-        while status && i<=length(files)
-            [status, result] = system(['ls ' files{i}]);
-            i = i + 1;
-        end
-        
-        if status
-            warning('m2c:lib2mex', ['Could not locate gdb in system directories.\n' ...
-                'Please install gdb and add it to your path.']);
-            gdb = '';
-        else
-            commands = strsplit(result);
-            gdb = commands{1};
-        end
-    end
+    gdb = locate_gdb();
     
     if ~isempty(gdb) && ~isempty(ddd) 
         % Add breakpoints
@@ -500,39 +470,19 @@ if dbg_opts.ddd
         cmdpre = [ddd ' --debugger "' gdb breakponts ' -ex run" --args '];
     end
 elseif dbg_opts.valgrind
-    % Find valgrind
-    valgrind = 'valgrind';
-    
-    [status, ~] = system('which valgrind');
-    if status
-        paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-        i = 1;
-        while status && i<=length(paths)
-            [status, result] = system(['ls ' paths{i} '/valgrid-*']);
-            i = i + 1;
-        end
-        
-        if status
-            warning('m2c:lib2mex', ['Could not locate valgrind in system directories.\n' ...
-                'Please install valgrind and add it to your path.']);
-            valgrind = '';
-        else
-            commands = strsplit(result);
-            valgrind = commands{1};
-        end
-    end
+    valgrind = locate_valgrind();
     cmdpre = [valgrind ' --leak-check=summary '];
 else
     cmdpre = '';
 end
 
+build_cmd = ['build_' funcname '_exe.m'];
+
 fprintf(fid, '%s\n', ...
     ['function varargout = run_' funcname '_exe(varargin)'], ...
     '% Invoke EXE file by passing variables through MAT files.', '',...
     '% Build the executable if needed', ...
-    ['if ~exist(''./' funcname '.exe'', ''file'')'], ...
-    ['    run(''codegen/lib/' funcname '/ld_' funcname '.m'');'], ...
-    'end', '', ...
+    ['run(''codegen/lib/' funcname '/' build_cmd ''');'], '', ...
     '% Export input arguments into MAT file', ...
     ['m = matfile(''' funcname '_in.mat'', ''Writable'', true);'], '', ...
     'for i=1:nargin', ...
@@ -557,62 +507,32 @@ fprintf(fid, '%s\n', ...
     ['delete(''' funcname '_out.mat'');'] ...
     );
 
-if dbg_opts.profile && ismac
+if dbg_opts.profile && ~dbg_opts.use_gprof
     % Find command for llvm-profdata and llvm-cov
-    profdata = 'llvm-profdata';
-    cov = 'llvm-cov';    
-
-    [status, ~] = system('which llvm-profdata');
-    if status
-        paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-        i = 1;
-        while status && i<=length(paths)
-            [status, result] = system(['ls ' paths{i} '/llvm-profdata*']);
-            i = i + 1;
-        end
-    
-        if status
-            warning('m2c:profiling', ['Could not locate llvm-profdata in system directories.\n' ...
-                'To process profiling data, please install llvm using MacPorts or Fink or add llvm installation to your path.']);
-        else
-            commands = strsplit(result);
-            profdata = commands{1};
-            cov = strrep(profdata, 'profdata', 'cov');
-        end
-    end
+    [profdata, cov] = locate_llvm();
     
     fprintf(fid, '%s\n', '', ...
         '% Process profiling results', ...
-        ['system(''' profdata ' merge -o ' funcname '.profdata ' funcname '.profraw'');'], ...
-        ['system(''' cov ' show ' funcname '.exe -instr-profile=' funcname '.profdata ' srcdir '/' funcname '.c > ' funcname '.cov'');'], ...
-        ['fprintf(''See ./' funcname '.cov for detailed coverage information of C code for ' funcname '.\n'');']);
+        ['if exist(''' funcname '.profraw'', ''file'')'], ...
+        ['    system(''' profdata ' merge -o ' funcname '.profdata ' funcname '.profraw'');'], ...
+        ['    system(''' cov ' show ' funcname '.exe -instr-profile=' funcname '.profdata ' srcdir '/' funcname '.c > ' funcname '.cov'');'], ...
+        ['    fprintf(''See ./' funcname '.cov for detailed coverage information of C code for ' funcname '.\n'');'], ...
+        'else', ...
+        ['    fprintf(''Did not find valid profiling file ' funcname '.profraw.\n'');'], ...
+        'end');
 elseif dbg_opts.profile
     % Find command for gprof
-    gprof = 'gprof';
-
-    [status, ~] = system('which gprof');
-    if status
-        paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-        i = 1;
-        while status && i<=length(paths)
-            [status, result] = system(['ls ' paths{i} '/gprof*']);
-            i = i + 1;
-        end
-    
-        if status
-            warning('m2c:profiling', ['Could not locate gprof in system directories.\n' ...
-                'To process profiling data, please install gprof and add it to your path.']);
-        else
-            commands = strsplit(result);
-            gprof = commands{1};
-        end
-    end
+    gprof = locate_gprof();
     
     fprintf(fid, '%s\n', '', ...
         '% Process profiling results', ...
-        ['system(''' gprof ' --brief ' funcname '.exe gmon.out > ' funcname '.prof'');'], ...
-        ['system(''' gprof ' --annotated-source ' funcname '.exe gmon.out > ' funcname '.cov'');'], ...
-        ['fprintf(''See ./' funcname '.prof for detailed profile and ./' funcname '.cov for code coverage.\n'');']);
+        'if exist(''gmon.out'', ''file'')', ...
+        ['    system(''' gprof ' --brief ' funcname '.exe gmon.out > ' funcname '.prof'');'], ...
+        ['    system(''' gprof ' --annotated-source ' funcname '.exe gmon.out > ' funcname '.cov'');'], ...
+        ['    fprintf(''See ./' funcname '.prof for detailed profile and ./' funcname '.cov for code coverage.\n'');'], ...
+        'else', ...
+        '    fprintf(''Did not find valid profiling file gmon.out.\n'');', ...
+        'end');
 end
 
 fprintf(fid, 'end\n');
@@ -641,7 +561,7 @@ fprintf(fid, '%s\n', ...
     '    Additional dependent file lib2mex_helper.c is in <M2CROOT>/include.', '', ...
     'Main Function (for building a standalone executable for debugging/profiling):', ...
     ['    ' funcname '_exe.c: Definition of main function that read/write MAT files.'], ...
-    ['    ld_' funcname '.m: MATLAB script for compiling executible.'], ...
+    ['    build_' funcname '_exe.m: MATLAB script for compiling executible.'], ...
     '    Additional dependent file lib2exe_helper.c is in <M2CROOT>/include.' ...
     );
 
@@ -1172,4 +1092,185 @@ end
 function s = nullptrs(n) 
   s = sprintf('%d, ', zeros(n,1));
   s = s(1:end-2);
+end
+
+function [libs, found] = locate_efence
+% Find efence
+libs = '-lefence';
+
+if ~exist('/usr/lib/libefence.a', 'file')
+    status = -1;
+    
+    files = {'/usr/local/lib/libefence.a', ...
+        '/opt/local/lib/libefence.a', '/sw/lib/libefence.a'};
+    i = 1;
+    while status && i<=length(files)
+        status = ~exist(files{i}, 'file');
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:lib2mex', ['Could not locate libefence.a in system directories.\n' ...
+            'Please install efence.']);
+        libs = '';
+        found = false;
+    else
+        libs = ['-L' fileparts(files{i}) ' -lefence'];
+        found = true;
+    end
+end
+end
+
+function [valgrind, found] = locate_valgrind
+% Find valgrind
+valgrind = 'valgrind';
+
+[status, ~] = system('which valgrind');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/valgrid-*']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:lib2mex', ['Could not locate valgrind in system directories.\n' ...
+            'Please install valgrind and add it to your path.']);
+        valgrind = '';
+        found = false;
+    else
+        commands = strsplit(result);
+        valgrind = commands{1};
+        found = true;
+    end
+end
+end
+
+function [ddd, found] = locate_ddd
+ddd = 'ddd';
+
+[status, ~] = system('which ddd');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/ddd']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:lib2mex', ['Could not locate ddd in system directories.\n' ...
+            'Please install ddd and add it to your path.']);
+        ddd = '';
+        found = false;
+    else
+        commands = strsplit(result);
+        ddd = commands{1};
+        found = true;
+    end
+end
+end
+
+function [gdb, found] = locate_gdb
+% Locate gdb in system directory
+gdb = 'gdb';
+[status, ~] = system('which gdb');
+if status
+    files = {'/opt/local/bin/ggdb', '/opt/local/bin/gdb', ...
+        '/usr/local/bin/gdb', '/sw/bin/gdb'};
+    i = 1;
+    while status && i<=length(files)
+        [status, result] = system(['ls ' files{i}]);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:lib2mex', ['Could not locate gdb in system directories.\n' ...
+            'Please install gdb and add it to your path.']);
+        gdb = '';
+        found = false;
+    else
+        commands = strsplit(result);
+        gdb = commands{1};
+        found = true;
+    end
+end
+end
+
+function [profdata, cov, found] = locate_llvm
+profdata = 'llvm-profdata';
+cov = 'llvm-cov';
+
+[status, ~] = system('which llvm-profdata');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/llvm-profdata*']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:profiling', ['Could not locate llvm-profdata in system directories.\n' ...
+            'To process profiling data, please install llvm using MacPorts or Fink or add llvm installation to your path.']);
+        found = false;
+    else
+        commands = strsplit(result);
+        profdata = commands{1};
+        cov = strrep(profdata, 'profdata', 'cov');
+        found = true;
+    end
+end
+end
+
+function [gprof, found] = locate_gprof
+% Try to locate gprof in system directory
+gprof = 'gprof';
+
+[status, ~] = system('which gprof');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/gprof*']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:profiling', ['Could not locate gprof in system directories.\n' ...
+            'To process profiling data, please install gprof and add it to your path.']);
+        found = false;
+    else
+        commands = strsplit(result);
+        gprof = commands{1};
+        found = true;
+    end
+end
+end
+
+function [CC, found] = locate_gcc_mp
+% Find gcc_mp
+CC = 'gcc-mp';
+
+[status, ~] = system('which gcc-mp');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/gcc-mp-*']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:lib2mex', ['Could not locate gcc-mp in system directories.\n' ...
+            'Please install gcc-mp and add it to your path.']);
+        CC = 'cc';
+        found = false;
+    else
+        commands = strsplit(result);
+        CC = commands{1};
+        found = true;
+    end
+end
 end
