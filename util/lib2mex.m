@@ -166,7 +166,7 @@ write_README(outdir, funcname);
         
         ldflags = '';
         if dbg_opts.verbose; ldflags = '-v '; end
-        if dbg_opts.debuginfo; ldflags = [ldflag ' -g ']; end
+        if dbg_opts.debuginfo; ldflags = [ldflags ' -g ']; end
 
         fprintf(fid, '%s\n', ...
             '    if exist(''octave_config_info'', ''builtin''); output = ''-DMATLAB_MEX_FILE -o''; else output = ''-largeArrayDims -output''; end', ...
@@ -209,29 +209,18 @@ write_README(outdir, funcname);
         enableomp = match_option(args, '-acc');
 
         if ismac
-            % locate gcc-mp, with support for OpenMP
             if enableomp
-                [CC, gcc_mp] = locate_gcc_mp();
-                % Profiling not supported for OpenMP on Mac
-                if ~gcc_mp
+                % locate gcc-mp, with support for OpenMP
+                [CC, found] = locate_gcc_mp();
+                if ~found
                     warning('m2c:lib2mex', 'OpenMP is disabled.');
                     enableomp = false;
-                elseif dbg_opts.profile
-                    warning('m2c:lib2mex', 'Profiling is disabled when using OpenMP on Mac.');
-                    dbg_opts.profile = false;
                 end
             else
                 CC = 'cc';
             end
-            
-            if dbg_opts.profile
-                ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping '];
-                dbg_opts.use_gprof = false;
-            end
         else
-            dbg_opts.use_gprof = dbg_opts.profile;
-            CC = 'cc';
-            ldflags = [ldflags ' -pg '];
+            CC = 'gcc';
         end
         
         if enableomp
@@ -250,6 +239,16 @@ write_README(outdir, funcname);
         else
             mpiopts = '';
             mpicflag = ''; mpildflag = '';
+        end
+
+        if dbg_opts.gprof
+            ldflags = [ldflags ' -pg '];
+%         elseif dbg_opts.gcov && ismac()
+%             ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping '];
+        elseif dbg_opts.gcov
+            ldflags = [ldflags ' -fprofile-arcs -ftest-coverage -fPIC '];
+            try delete([outdir '/*.gcda']); catch; end
+            try delete([outdir '/*.gcno']); catch; end
         end
         
         % Place exe file in the same directory as the M file.
@@ -493,9 +492,11 @@ if dbg_opts.ddd
     echo = '';
 elseif dbg_opts.valgrind
     valgrind = locate_valgrind();    
-
+    % See http://valgrind.org/docs/manual/manual-core.html for documentation
+    % Other useful options include --gen-suppressions
+    % --partial-loads-ok=yes --track-origins=yes
     cmdpre = [valgrind ' --leak-check=summary --show-possibly-lost=no ' ...
-        '--track-origins=yes --partial-loads-ok=yes --suppressions=' fileparts(which('m2c.m')) '/' 'valgrind.supp '];
+        '--suppressions=' fileparts(which('m2c.m')) '/' 'valgrind.supp '];
     echo = ', ''-echo''';
 end
 
@@ -533,36 +534,54 @@ fprintf(fid, '%s\n', '', ...
     ['if exist(''' funcname '_out.mat'', ''file''); delete(''' funcname '_out.mat''); end'] ...
     );
 
-if dbg_opts.profile && ~dbg_opts.use_gprof
-    % Find command for llvm-profdata and llvm-cov
-    [profdata, cov] = locate_llvm();
-
-    fprintf(fid, '%s\n', '', ...
-        '% Process profiling results', ...
-        ['if exist(''' funcname '.profraw'', ''file'')'], ...
-        ['    system(''' profdata ' merge -o ' funcname '.profdata ' funcname '.profraw'');'], ...
-        ['    system(''' cov ' show ' funcname '.exe -instr-profile=' funcname '.profdata ' srcdir '/' funcname '.c > ' funcname '.cov'');'], ...
-        ['    fprintf(''See ./' funcname '.cov for detailed coverage information of C code for ' funcname '.\n'');'], ...
-        'else', ...
-        ['    fprintf(''Did not find valid profiling file ' funcname '.profraw.\n'');'], ...
-        'end');
-elseif dbg_opts.profile
+if dbg_opts.gprof
     % Find command for gprof
     gprof = locate_gprof();
 
+    if ~isempty(gprof)
+        fprintf(fid, '%s\n', '', ...
+            '% Process gprof results', ...
+            'if exist(''gmon.out'', ''file'')', ...
+            ['    [~, result] = system(''' gprof ' --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
+            '    cells = strsplit(result, ''\n'');', ...
+            '    fprintf(''            Function Flat Profile (top 10):\n'');', ...
+            '    fprintf(''%s\n'', cells{3:min(length(cells),14)});', ...
+            ['    [~, result] = system(''' gprof ' -l --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
+            '    cells = strsplit(result, ''\n'');', ...
+            '    fprintf(''            Line-by-Line Flat Profile (top 30):\n'');', ...
+            '    fprintf(''%s\n'', cells{3:min(length(cells),34)});', ...
+            'else', ...
+            '    fprintf(''Did not find valid profiling file gmon.out.\n'');', ...
+            'end');
+    end
+end
+
+% if dbg_opts.gcov && ismac
+%     % Find command for llvm-profdata and llvm-cov
+%     [profdata, cov] = locate_llvm();
+% 
+%     fprintf(fid, '%s\n', '', ...
+%         '% Process code coverage results', ...
+%         ['if exist(''' funcname '.profraw'', ''file'')'], ...
+%         ['    system(''' profdata ' merge -o ' funcname '.profdata ' funcname '.profraw'');'], ...
+%         ['    system(''' cov ' show ' funcname '.exe -instr-profile=' funcname '.profdata ' srcdir '/' funcname '.c > ' funcname '.cov'');'], ...
+%         ['    fprintf(''See ./' funcname '.cov for detailed coverage information of C code for ' funcname '.\n'');'], ...
+%         'else', ...
+%         ['    fprintf(''Did not find valid profiling file ' funcname '.profraw.\n'');'], ...
+%         'end');
+% else
+if dbg_opts.gcov
+    % Find command for gcov
+    gcov = locate_gcov();
+
     fprintf(fid, '%s\n', '', ...
-        '% Process profiling results', ...
-        'if exist(''gmon.out'', ''file'')', ...
-        ['    [~, result] = system(''' gprof ' --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
-        '    cells = strsplit(result, ''\n'');', ...
-        '    fprintf(''            Function Flat Profile (top 10):\n'');', ...
-        '    fprintf(''%s\n'', cells{3:min(length(cells),14)});', ...
-        ['    [~, result] = system(''' gprof ' -l --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
-        '    cells = strsplit(result, ''\n'');', ...
-        '    fprintf(''            Line-by-Line Flat Profile (top 30):\n'');', ...
-        '    fprintf(''%s\n'', cells{3:min(length(cells),34)});', ...
+        '% Process code coverage results', ...
+        ['if exist(''' srcdir '/' funcname '.gcda'', ''file'')'], ...
+        ['    system('' cd ' srcdir '; ' gcov ' -b -c ' funcname '.c'');'], ...
+        ['    fprintf(''Openning up code coverage ' srcdir '/' funcname '.c.gcov for ' funcname 'in editor.\n'');'], ...
+        ['    edit(''' srcdir '/' funcname '.c.gcov'');'], ...
         'else', ...
-        '    fprintf(''Did not find valid profiling file gmon.out.\n'');', ...
+        ['    fprintf(''Did not find valid profiling file ' srcdir '/' funcname '.gcda.\n'');'], ...
         'end');
 end
 
@@ -1239,34 +1258,41 @@ if status
 end
 end
 
-function [profdata, cov, found] = locate_llvm
-profdata = 'llvm-profdata';
-cov = 'llvm-cov';
-
-[status, ~] = system('which llvm-profdata');
-if status
-    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-    i = 1;
-    while status && i<=length(paths)
-        [status, result] = system(['ls ' paths{i} '/llvm-profdata*']);
-        i = i + 1;
-    end
-    
-    if status
-        warning('m2c:profiling', ['Could not locate llvm-profdata in system directories.\n' ...
-            'To process profiling data, please install llvm using MacPorts or Fink or add llvm installation to your path.']);
-        found = false;
-    else
-        commands = strsplit(result);
-        profdata = commands{1};
-        cov = strrep(profdata, 'profdata', 'cov');
-        found = true;
-    end
-end
-end
+% function [profdata, cov, found] = locate_llvm
+% profdata = 'llvm-profdata';
+% cov = 'llvm-cov';
+% 
+% [status, ~] = system('which llvm-profdata');
+% if status
+%     paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+%     i = 1;
+%     while status && i<=length(paths)
+%         [status, result] = system(['ls ' paths{i} '/llvm-profdata*']);
+%         i = i + 1;
+%     end
+%     
+%     if status
+%         warning('m2c:profiling', ['Could not locate llvm-profdata in system directories.\n' ...
+%             'To process profiling data, please install llvm using MacPorts or Fink or add llvm installation to your path.']);
+%         found = false;
+%     else
+%         commands = strsplit(result);
+%         profdata = commands{1};
+%         cov = strrep(profdata, 'profdata', 'cov');
+%         found = true;
+%     end
+% end
+% end
 
 function [gprof, found] = locate_gprof
 % Try to locate gprof in system directory
+
+if ismac
+    warning('m2c:lib2mex', 'gprof is not supported on Mac.\n');
+    gprof = ''; found = false;
+    return;
+end
+
 gprof = 'gprof';
 
 [status, ~] = system('which gprof');
@@ -1285,6 +1311,31 @@ if status
     else
         commands = strsplit(result);
         gprof = commands{1};
+        found = true;
+    end
+end
+end
+
+function [gcov, found] = locate_gcov()
+% Try to locate gcov in system directory
+gcov = 'gcov';
+
+[status, ~] = system('which gcov');
+if status
+    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
+    i = 1;
+    while status && i<=length(paths)
+        [status, result] = system(['ls ' paths{i} '/gcov*']);
+        i = i + 1;
+    end
+    
+    if status
+        warning('m2c:profiling', ['Could not locate gcov in system directories.\n' ...
+            'To process profiling data, please install gcov and add it to your path.']);
+        found = false;
+    else
+        commands = strsplit(result);
+        gcov = commands{1};
         found = true;
     end
 end

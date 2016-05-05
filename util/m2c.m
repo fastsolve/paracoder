@@ -48,8 +48,12 @@ function m2c(varargin)
 % PROFILING AND INSTRUMENTATION
 %     -time
 %           Insert timing statements into C code.
-%     -profile
-%           Compile standalone code with profiling enabled (Mac or Linux).
+%     -gprof
+%           Compile standalone code with profiling support and generate 
+%           a script to process results from gprof (Linux only).
+%     -gcov
+%           Compile standalone code with profiling support and generate 
+%           a script to process results from gcov (Linux and Mac).
 % OUTPUT C/C++ CODE
 %     -c++
 %           Generates C++ code instead of C code.
@@ -140,9 +144,10 @@ end
 [valgrind, args] = match_option(args, '-valgrind');
 [ddd, args] = match_option(args, '-ddd');
 [timing, args] = match_option(args, '-time');
-[profile, args] = match_option(args, '-profile');
+[gprof, args] = match_option(args, '-gprof');
+[gcov, args] = match_option(args, '-gcov');
 
-genexe = genexe || efence || valgrind || ddd || profile;
+genexe = genexe || efence || valgrind || ddd || gprof || gcov;
 
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile(func);
@@ -180,7 +185,7 @@ end
 
 dbg_opts = struct('debuginfo', debuginfo, 'genexe', genexe, ...
     'valgrind', valgrind, 'efence', efence, 'ddd', ddd, ...
-    'profile', profile, 'timing', timing, 'verbose', verbose);
+    'gprof', gprof, 'gcov', gcov, 'timing', timing, 'verbose', verbose);
 
 if enableopt; enableopt2=true; end
 enableopt = enableopt1 || enableopt2 || enableopt2;
