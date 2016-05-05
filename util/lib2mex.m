@@ -209,15 +209,16 @@ write_README(outdir, funcname);
         enableomp = match_option(args, '-acc');
 
         if ismac
-            if enableomp
-                % locate gcc-mp, with support for OpenMP
-                [CC, found] = locate_gcc_mp();
-                if ~found
+            % Try to locate gcc-mp, with support of OpenMP
+            [CC, found] = locate_gcc_mp();
+            if ~found
+                if enableomp 
                     warning('m2c:lib2mex', 'OpenMP is disabled.');
                     enableomp = false;
                 end
-            else
                 CC = 'cc';
+            else
+                dbg_opts.CC = CC;
             end
         else
             CC = 'gcc';
@@ -243,8 +244,6 @@ write_README(outdir, funcname);
 
         if dbg_opts.gprof
             ldflags = [ldflags ' -pg '];
-%         elseif dbg_opts.gcov && ismac()
-%             ldflags = [ldflags ' -fprofile-instr-generate=' funcname '.profraw -fcoverage-mapping '];
         elseif dbg_opts.gcov
             ldflags = [ldflags ' -fprofile-arcs -ftest-coverage -fPIC '];
             try delete([outdir '/*.gcda']); catch; end
@@ -556,23 +555,14 @@ if dbg_opts.gprof
     end
 end
 
-% if dbg_opts.gcov && ismac
-%     % Find command for llvm-profdata and llvm-cov
-%     [profdata, cov] = locate_llvm();
-% 
-%     fprintf(fid, '%s\n', '', ...
-%         '% Process code coverage results', ...
-%         ['if exist(''' funcname '.profraw'', ''file'')'], ...
-%         ['    system(''' profdata ' merge -o ' funcname '.profdata ' funcname '.profraw'');'], ...
-%         ['    system(''' cov ' show ' funcname '.exe -instr-profile=' funcname '.profdata ' srcdir '/' funcname '.c > ' funcname '.cov'');'], ...
-%         ['    fprintf(''See ./' funcname '.cov for detailed coverage information of C code for ' funcname '.\n'');'], ...
-%         'else', ...
-%         ['    fprintf(''Did not find valid profiling file ' funcname '.profraw.\n'');'], ...
-%         'end');
-% else
 if dbg_opts.gcov
     % Find command for gcov
-    gcov = locate_gcov();
+    if isfield(dbg_opts, 'CC')
+        % Use gcov matching the version of gcc
+        gcov = strrep(dbg_opts.CC, 'gcc', 'gcov');
+    else
+        gcov = locate_gcov();
+    end
 
     fprintf(fid, '%s\n', '', ...
         '% Process code coverage results', ...
@@ -1257,32 +1247,6 @@ if status
     end
 end
 end
-
-% function [profdata, cov, found] = locate_llvm
-% profdata = 'llvm-profdata';
-% cov = 'llvm-cov';
-% 
-% [status, ~] = system('which llvm-profdata');
-% if status
-%     paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-%     i = 1;
-%     while status && i<=length(paths)
-%         [status, result] = system(['ls ' paths{i} '/llvm-profdata*']);
-%         i = i + 1;
-%     end
-%     
-%     if status
-%         warning('m2c:profiling', ['Could not locate llvm-profdata in system directories.\n' ...
-%             'To process profiling data, please install llvm using MacPorts or Fink or add llvm installation to your path.']);
-%         found = false;
-%     else
-%         commands = strsplit(result);
-%         profdata = commands{1};
-%         cov = strrep(profdata, 'profdata', 'cov');
-%         found = true;
-%     end
-% end
-% end
 
 function [gprof, found] = locate_gprof
 % Try to locate gprof in system directory
