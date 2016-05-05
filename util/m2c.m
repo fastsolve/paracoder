@@ -28,6 +28,16 @@ function m2c(varargin)
 %     -lapack
 %           Enable LAPACKE and link with MATLAB's builtin LAPACK library.
 %
+% PROFILING AND INSTRUMENTATION
+%     -time
+%           Insert timing statements into C code.
+%     -gprof
+%           Compile standalone code with profiling support and generate 
+%           a script to process results from gprof (Linux only).
+%     -gcov
+%           Compile standalone code with profiling support and generate 
+%           a script to process results from gcov (Linux and Mac).
+%
 % DEBUGGING
 %     -g
 %           Preserve MATLAB code info in C code and generate source-level debug
@@ -45,15 +55,6 @@ function m2c(varargin)
 %           Link the executable with electric-fence for debugging memory.
 %           Only Linux and Mac are supported.
 %
-% PROFILING AND INSTRUMENTATION
-%     -time
-%           Insert timing statements into C code.
-%     -gprof
-%           Compile standalone code with profiling support and generate 
-%           a script to process results from gprof (Linux only).
-%     -gcov
-%           Compile standalone code with profiling support and generate 
-%           a script to process results from gcov (Linux and Mac).
 % OUTPUT C/C++ CODE
 %     -c++
 %           Generates C++ code instead of C code.
