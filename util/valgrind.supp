@@ -1,0 +1,30 @@
+{
+   Suppress_H5_build_extpath
+   Memcheck:Addr4
+   fun:H5_build_extpath
+   fun:H5F_open
+   fun:H5Fopen
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmat.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmat.so
+   fun:_Z7matOpenRKSbIDsSt11char_traitsIDsESaIDsEEPKc
+   fun:matOpen
+   fun:readInputArgs
+   fun:main
+}
+
+{
+   Suppress_profil_counter
+   Memcheck:Value8
+   fun:profil_counter
+   obj:/lib64/libc-2.12.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   fun:doContent
+   fun:contentProcessor
+   fun:XML_ParseBuffer
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+   obj:/gpfs/projects/jiao/MATLAB_R2016a/bin/glnxa64/libmwi18n.so
+}
