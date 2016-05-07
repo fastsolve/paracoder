@@ -1,15 +1,5 @@
-function lib2mex(funcname, mpath, cpath, m2c_opts)
-% Generate a MEXFunction and main function for a C library created by m2c.
-% It also generates MATLAB scripts for building the generated files.
-% Before calling this script, m2c should have been called on the function,
-% or codegen should be present. The generated C file and build script
-% are located in codegen/lib/funcname.
-%
-% See also m2c
-
-if nargin<1
-    error('too few input arguments');
-end
+function writeExeScripts(funcname, cpath, m2c_opts)
+% Generate scripts for building the standalone executable.
 
 switch m2c_opts.optLevel
     case {'0', 'g'}
@@ -22,198 +12,114 @@ end
 
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
 
-% Write out C file.
-outdir = [mpath 'codegen/lib/' funcname];
+if ~isequal(cpath, '.')
+    outMfile = [cpath 'build_' funcname '_exe.m'];
+end
+clear(outMfile);
 
-if m2c_opts.genExe && ...
-        ~ckCompOpt('mex', [cpath  '/' func '_mex.c'], m2c_opts)
-    % Write out a build script for MEX
-    writeMexScript(['mex_' funcname '.m'], opts);
+% Nested function for writing out mex script
+fid = fopen(outMfile, 'w');
+if (fid<0); error('m2c:OpenOutputFile', msg); end
+
+if m2c_opts.efence
+    libs = locate_efence();
+else
+    libs = '';
 end
 
-if m2c_opts.genExe && ...
-        ~ckCompOpt('exe', [cpath  '/' func '_mex.c'], m2c_opts)
-    % Write out a build script for EXE
-    m2c_opts = writeExeScript(['build_' funcname '_exe.m'], opts, m2c_opts);
-    
-    % Write M-file wrapper function for calling EXE within MATLAB
-    writeExeMWrapper(altapis, outdir, funcname, m2c_opts);
+if m2c_opts.useLapack
+    libs = [''' ' libs ' -lmwlapack -lmwblas '''];
+elseif libs
+    libs = [''' ' libs ' '''];
 end
 
-    function writeMexScript(outMfile, opts)
-        % Nested function for writing out mex script
-        if ~isequal(outdir, '.')
-            outMfile = [outdir '/' outMfile];
-        end
-        clear(outMfile);
-        
-        % Nested function for writing out mex script
-        fid = fopen(outMfile, 'w');
-        if (fid<0); error('lib2mex:OpenOutputFile', msg); end
-        
-        if m2c_opts.enableMpi
-            mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
-            mpicflag = ' '' '' mpicflag ';
-            mpildflag = ' '' '' mpildflag ';
-        else
-            mpiopts = '';
-            mpicflag = ''; mpildflag = '';
-        end
-        
+ldflags = '-g ';
+if m2c_opts.verbose; ldflags = '-g -v '; end
+
+if ismac
+    % Try to locate gcc-mp, with support of OpenMP
+    [CC, found] = locate_gcc_mp();
+    if ~found
         if m2c_opts.enableOmp
-            ompopts = '    [ompcflag, ompldflag] = ompflags;';
-            ompcflag = ' '' '' ompcflag';
-            ompldflag = ' '' '' ompldflag ';
-        else
-            ompopts = '';
-            ompcflag = ''; ompldflag = '';
+            warning('m2c:buildEXE', 'OpenMP is disabled.');
+            m2c_opts.enableOmp = false;
         end
-
-        if m2c_opts.enableAcc
-            assert(false); % Not yet implemented
-        end
- 
-        if m2c_opts.useLapack
-            libs = ' -lmwlapack -lmwblas ';
-        else
-            libs = '';
-        end
-
-        % Place mex file in the same directory as the M file.
-        mexdir = '../../../';
-        
-        % Place mex file in the same directory as the M file.
-        fprintf(fid, '%s\n', ...
-            ['% Build script for ' funcname], ...
-            ['if ~isnewer([''' mexdir funcname '.'' mexext], ''' funcname '_mex.' m2c_opts.suf ''', ''' funcname '.' m2c_opts.suf ''')'], ...
-            '    dir = which(''opaque_obj.m''); dir=dir(1:end-12);', '');
-        
-        if mpiopts; fprintf(fid, '%s\n', mpiopts); end
-        if ompopts; fprintf(fid, '%s\n', ompopts); end
-        
-        ldflags = '';
-        if m2c_opts.verbose; ldflags = '-v '; end
-        if m2c_opts.debugInfo; ldflags = [ldflags ' -g ']; end
-
-        fprintf(fid, '%s\n', ...
-            '    if exist(''octave_config_info'', ''builtin''); output = ''-DMATLAB_MEX_FILE -o''; else output = ''-largeArrayDims -output''; end', ...
-            ['    cmd = [''mex ' ldflags ' COPTIMFLAGS=''''' opflags '''''''' mpicflag ompcflag ' '' -I"'' dir ''include" '...
-            funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' '' output '' ' mexdir funcname ' '' '  opts mpildflag ompldflag libs '];'], ...
-            '    fprintf(''Entering %s\n'', pwd);', ...
-            '    disp(cmd);', ...
-            '    eval(cmd);', ...
-            'else', ['    fprintf(''' funcname '.%s is up to date.\n'', mexext);'], 'end');
-        
-        
-        fclose(fid);
+        CC = 'cc';
+    else
+        m2c_opts.CC = CC;
     end
-
-    function m2c_opts = writeExeScript(outMfile, opts, m2c_opts)        
-        if ~isequal(outdir, '.')
-            outMfile = [outdir '/' outMfile];
-        end
-        clear(outMfile);
-                
-        % Nested function for writing out mex script
-        fid = fopen(outMfile, 'w');
-        if (fid<0); error('lib2mex:OpenOutputFile', msg); end
-        
-        if m2c_opts.efence
-            libs = locate_efence();
-        else
-            libs = '';
-        end
-        
-        if m2c_opts.useLapack
-            libs = [''' ' libs ' -lmwlapack -lmwblas '''];
-        elseif libs
-            libs = [''' ' libs ' '''];
-        end
-        
-        ldflags = '-g ';
-        if m2c_opts.verbose; ldflags = '-g -v '; end
-        
-        if ismac
-            % Try to locate gcc-mp, with support of OpenMP
-            [CC, found] = locate_gcc_mp();
-            if ~found
-                if m2c_opts.enableOmp 
-                    warning('m2c:lib2mex', 'OpenMP is disabled.');
-                    m2c_opts.enableOmp = false;
-                end
-                CC = 'cc';
-            else
-                m2c_opts.CC = CC;
-            end
-        else
-            CC = 'gcc';
-        end
-        
-        if m2c_opts.enableMpi
-            mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
-            mpicflag = ' '' '' mpicflag ';
-            mpildflag = ' '' '' mpildflag ';
-        else
-            mpiopts = '';
-            mpicflag = ''; mpildflag = '';
-        end
-        
-        if m2c_opts.enableOmp
-            ompopts = '    [ompcflag, ompldflag] = ompflags;';
-            ompcflag = ' '' '' ompcflag';
-            ompldflag = ' '' '' ompldflag ';
-        else
-            ompopts = '';
-            ompcflag = ''; ompldflag = '';
-        end
-
-        if m2c_opts.enableAcc
-            assert(false); % Not yet implemented
-        end
-
-        if m2c_opts.gprof
-            ldflags = [ldflags ' -pg '];
-        elseif m2c_opts.gcov
-            ldflags = [ldflags ' -fprofile-arcs -ftest-coverage -fPIC '];
-            try delete([outdir '/*.gcda']); catch; end
-            try delete([outdir '/*.gcno']); catch; end
-        end
-        
-        % Place exe file in the same directory as the M file.
-        exedir = '../../../';
-                
-        fprintf(fid, '%s\n', ...
-            ['% Build script for ' funcname ' on ' computer], ...
-            ['if ~isnewer(''' exedir funcname '.exe'', ''' funcname '_exe.' m2c_opts.suf ''', ''' funcname '.' m2c_opts.suf ''')'], ...
-            '    m2cdir = which(''opaque_obj.m''); m2cdir=m2cdir(1:end-12);', '');
-
-        if mpiopts; fprintf(fid, '%s\n', mpiopts); end
-        if ompopts; fprintf(fid, '%s\n', ompopts); end
-
-       
-        fprintf(fid, '%s\n', ...
-            '    incdir = [matlabroot ''/extern/include''];', ...
-            '    bindir = [matlabroot ''/bin/'' lower(computer)];', ...
-            '    if isequal(computer, ''MACI64'')', ...
-            '        matlibs = [''-L'' bindir '' -Wl,-rpath -Wl,'' bindir '' -lmat -lmx -lm''];', ...
-            '    elseif isequal(computer, ''GLNXA64'')', ...
-            '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
-            '    else', ...
-            '        error(''Building executable is not supported on %s\n'', computer);', ...
-            '    end', ...
-            ['    cmd = [''' CC ' ' ldflags '' '' opflags mpicflag ompcflag ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
-             funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf ' -o ' ...
-             exedir funcname '.exe '' '  opts libs mpildflag ompldflag ' matlibs];'], ...
-            '    fprintf(''Entering %s\n'', pwd);', ...
-            '    disp(cmd);', ...
-            '    system(cmd, ''-echo'');', ...
-            'else', ['    fprintf(''' funcname '.exe is up to date.\n'');'], 'end');
-        
-        fclose(fid);
-    end
+else
+    CC = 'gcc';
 end
 
-function writeExeMWrapper(altapis, srcdir, funcname, m2c_opts)
+if m2c_opts.enableMpi
+    mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
+    mpicflag = ' '' '' mpicflag ';
+    mpildflag = ' '' '' mpildflag ';
+else
+    mpiopts = '';
+    mpicflag = ''; mpildflag = '';
+end
+
+if m2c_opts.enableOmp
+    ompopts = '    [ompcflag, ompldflag] = ompflags;';
+    ompcflag = ' '' '' ompcflag';
+    ompldflag = ' '' '' ompldflag ';
+else
+    ompopts = '';
+    ompcflag = ''; ompldflag = '';
+end
+
+if m2c_opts.enableAcc
+    assert(false); % Not yet implemented
+end
+
+if m2c_opts.gprof
+    ldflags = [ldflags ' -pg '];
+elseif m2c_opts.gcov
+    ldflags = [ldflags ' -fprofile-arcs -ftest-coverage -fPIC '];
+    try delete([cpath '*.gcda']); catch; end
+    try delete([cpath '*.gcno']); catch; end
+end
+
+% Place exe file in the same directory as the M file.
+exedir = '../../../';
+
+fprintf(fid, '%s\n', ...
+    ['% Build script for ' funcname ' on ' computer], ...
+    ['if ~isnewer(''' exedir funcname '.exe'', ''' funcname '_exe.' m2c_opts.suf ''', ''' funcname '.' m2c_opts.suf ''')'], ...
+    '    m2cdir = which(''opaque_obj.m''); m2cdir=m2cdir(1:end-12);', '');
+
+if mpiopts; fprintf(fid, '%s\n', mpiopts); end
+if ompopts; fprintf(fid, '%s\n', ompopts); end
+
+
+fprintf(fid, '%s\n', ...
+    '    incdir = [matlabroot ''/extern/include''];', ...
+    '    bindir = [matlabroot ''/bin/'' lower(computer)];', ...
+    '    if isequal(computer, ''MACI64'')', ...
+    '        matlibs = [''-L'' bindir '' -Wl,-rpath -Wl,'' bindir '' -lmat -lmx -lm''];', ...
+    '    elseif isequal(computer, ''GLNXA64'')', ...
+    '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
+    '    else', ...
+    '        error(''Building executable is not supported on %s\n'', computer);', ...
+    '    end', ...
+    ['    cmd = [''' CC ' ' ldflags '' '' opflags mpicflag ompcflag ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
+    funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf ' -o ' ...
+    exedir funcname '.exe '' '  libs mpildflag ompldflag ' matlibs];'], ...
+    '    fprintf(''Entering %s\n'', pwd);', ...
+    '    disp(cmd);', ...
+    '    system(cmd, ''-echo'');', ...
+    'else', ['    fprintf(''' funcname '.exe is up to date.\n'');'], 'end');
+
+fclose(fid);
+
+% Write M-file wrapper function for calling EXE within MATLAB
+writeExeMWrapper(altapis, cpath, funcname, m2c_opts);
+
+end
+
+function writeExeMWrapper(altapis, cpath, funcname, m2c_opts)
 % Generate M-file for reading and writing output through MAT files.
 
 outfile = ['run_' funcname '_exe.m'];
@@ -245,11 +151,11 @@ cmdpre = '';
 if m2c_opts.ddd
     % Find ddd
     ddd = locate_ddd();
-
+    
     % Find gdb
     gdb = locate_gdb();
     
-    if ~isempty(gdb) && ~isempty(ddd) 
+    if ~isempty(gdb) && ~isempty(ddd)
         % Add breakpoints
         breakponts = sprintf(' -ex "break %s"', altapis{:});
         
@@ -302,7 +208,7 @@ fprintf(fid, '%s\n', '', ...
 if m2c_opts.gprof
     % Find command for gprof
     gprof = locate_gprof();
-
+    
     fprintf(fid, '%s\n', '', ...
         '% Process gprof results', ...
         'if exist(''gmon.out'', ''file'')', ...
@@ -327,15 +233,15 @@ if m2c_opts.gcov
     else
         gcov = locate_gcov();
     end
-
+    
     fprintf(fid, '%s\n', '', ...
         '% Process code coverage results', ...
-        ['if exist(''' srcdir '/' funcname '.gcda'', ''file'')'], ...
-        ['    system('' cd ' srcdir '; ' gcov ' -b -c ' funcname '.c'');'], ...
-        ['    fprintf(''Openning up code coverage ' srcdir '/' funcname '.c.gcov for ' funcname 'in editor.\n'');'], ...
-        ['    edit(''' srcdir '/' funcname '.c.gcov'');'], ...
+        ['if exist(''' cpath  funcname '.gcda'', ''file'')'], ...
+        ['    system('' cd ' cpath '; ' gcov ' -b -c ' funcname '.c'');'], ...
+        ['    fprintf(''Openning up code coverage ' cpath '/' funcname '.c.gcov for ' funcname 'in editor.\n'');'], ...
+        ['    edit(''' cpath funcname '.c.gcov'');'], ...
         'else', ...
-        ['    fprintf(''Did not find valid profiling file ' srcdir '/' funcname '.gcda.\n'');'], ...
+        ['    fprintf(''Did not find valid profiling file ' cpath funcname '.gcda.\n'');'], ...
         'end');
 end
 
@@ -360,7 +266,7 @@ if ~exist('/usr/lib/libefence.a', 'file')
     end
     
     if status
-        warning('m2c:lib2mex', ['Could not locate libefence.a in system directories.\n' ...
+        warning('m2c:buildEXE', ['Could not locate libefence.a in system directories.\n' ...
             'Please install efence.']);
         libs = '';
         found = false;
@@ -385,7 +291,7 @@ if status
     end
     
     if status
-        warning('m2c:lib2mex', ['Could not locate valgrind in system directories.\n' ...
+        warning('m2c:buildEXE', ['Could not locate valgrind in system directories.\n' ...
             'Please install valgrind and add it to your path.']);
         valgrind = '';
         found = false;
@@ -401,8 +307,8 @@ if ismac && ~isempty(valgrind)
     vers = strsplit(result(10:end-1), '.');
     vers = [str2double(vers{1}) str2double(vers{2}) str2double(vers{3})];
     if vers(1) < 3 || vers(1) == 3 && vers(2) <= 11 || vers(1) == 3 && vers(2) == 11 && vers(3) == 0
-        warning('m2c:lib2mex', [result(1:end-1) ' may fail on Mac OS X 10.11 El Capitan.\n', ...
-        '(See https://bugs.kde.org/show_bug.cgi?id=354883).']);
+        warning('m2c:buildEXE', [result(1:end-1) ' may fail on Mac OS X 10.11 El Capitan.\n', ...
+            '(See https://bugs.kde.org/show_bug.cgi?id=354883).']);
     end
 end
 end
@@ -420,7 +326,7 @@ if status
     end
     
     if status
-        warning('m2c:lib2mex', ['Could not locate ddd in system directories.\n' ...
+        warning('m2c:buildEXE', ['Could not locate ddd in system directories.\n' ...
             'Please install ddd and add it to your path.']);
         ddd = '';
         found = false;
@@ -446,7 +352,7 @@ if status
     end
     
     if status
-        warning('m2c:lib2mex', ['Could not locate gdb in system directories.\n' ...
+        warning('m2c:buildEXE', ['Could not locate gdb in system directories.\n' ...
             'Please install gdb and add it to your path.']);
         gdb = '';
         found = false;
@@ -461,7 +367,7 @@ end
 function [gprof, found] = locate_gprof
 % Try to locate gprof in system directory
 if ismac
-    warning('m2c:lib2mex', 'gprof may not work on Mac.\n');
+    warning('m2c:buildEXE', 'gprof may not work on Mac.\n');
 end
 
 gprof = 'gprof';
@@ -526,7 +432,7 @@ if status
     end
     
     if status
-        warning('m2c:lib2mex', ['Could not locate gcc-mp in system directories.\n' ...
+        warning('m2c:buildEXE', ['Could not locate gcc-mp in system directories.\n' ...
             'Please install gcc-mp and add it to your path.']);
         CC = 'cc';
         found = false;

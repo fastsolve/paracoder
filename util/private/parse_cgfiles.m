@@ -12,7 +12,7 @@ tyfile = [mpath 'codegen/lib/' funcname '/' funcname '_types.h'];
 htmlfile = get_htmlfile(mpath, funcname, altfunc);
 
 if isempty(mfile)
-    error('lib2mex:parse_cgfile', 'Cannot find MATLAB file %s', funcname);
+    error('m2c:parse_cgfile', 'Cannot find MATLAB file %s', funcname);
 end
 
 if ~exist(hfile, 'file') ||  ~exist(tyfile, 'file')
@@ -23,7 +23,7 @@ end
 
 %% Read in M-file
 [fid, msg] = fopen(mfile , 'r', 'n', 'US-ASCII');
-if fid<0; error('lib2mex:OpenFileFiled', '%s', msg); end
+if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
 
 mfile = fread(fid, inf, '*char')';
 mfile = regexprep(mfile, '\r\n', '\n'); % Change Windows format to UNIX format.
@@ -62,7 +62,7 @@ end
 
 %% Read in C declarations
 [fid, msg] = fopen(hfile, 'r', 'n', 'US-ASCII');
-if fid<0; error('lib2mex:OpenFileFiled', '%s', msg); end
+if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
 
 hfile = fread(fid, inf, '*char')';
 hfile = regexprep(hfile, '\r\n', '\n');
@@ -77,7 +77,7 @@ cdecl.args = toks{1}{3};
 
 %% Read in type declarations
 [fid, msg] = fopen(tyfile , 'r', 'n', 'US-ASCII');
-if fid<0; error('lib2mex:OpenFileFiled', '%s', msg); end
+if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
 
 % Read file into memory
 typedecl = fread(fid, inf, '*char')';
@@ -86,7 +86,7 @@ fclose(fid);
 
 %% Read HTML file for further processing
 [fid, msg] = fopen(htmlfile, 'r', 'n', 'US-ASCII');
-if fid<0; error('lib2mex:OpenFileFiled', '%s', msg); end
+if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
 
 % Read file into memory
 htmlfile = fread(fid, inf, '*char')';
