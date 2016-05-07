@@ -1,15 +1,6 @@
 function writeExeScripts(funcname, cpath, m2c_opts)
 % Generate scripts for building the standalone executable.
 
-switch m2c_opts.optLevel
-    case {'0', 'g'}
-        opflags = ['-O' m2c_opts.optLevel];
-    case {'1','2','3'}
-        opflags = ['-O' m2c_opts.optLevel ' -DNDEBUG'];
-    otherwise
-        opflags = '';
-end
-
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
 
 if ~isequal(cpath, '.')
@@ -21,78 +12,68 @@ clear(outMfile);
 fid = fopen(outMfile, 'w');
 if (fid<0); error('m2c:OpenOutputFile', msg); end
 
-if m2c_opts.efence
-    libs = locate_efence();
-else
-    libs = '';
-end
-
-if m2c_opts.useLapack
-    libs = [''' ' libs ' -lmwlapack -lmwblas '''];
-elseif libs
-    libs = [''' ' libs ' '''];
-end
-
-ldflags = '-g ';
-if m2c_opts.verbose; ldflags = '-g -v '; end
-
-if ismac
-    % Try to locate gcc-mp, with support of OpenMP
-    [CC, found] = locate_gcc_mp();
-    if ~found
-        if m2c_opts.enableOmp
-            warning('m2c:buildEXE', 'OpenMP is disabled.');
-            m2c_opts.enableOmp = false;
-        end
-        CC = 'cc';
+if isempty(m2c_opts.cc)
+    if m2c_opts.useCpp
+        CC = 'g++';
     else
-        m2c_opts.CC = CC;
+        CC = 'gcc';
     end
-else
-    CC = 'gcc';
+
+    if ismac && ~isempty(m2c_opts.ompLibs)
+        % Try to locate gcc-mp, with support of OpenMP
+        [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
+        if ~found
+            if m2c_opts.ompLibs
+                warning('m2c:buildEXE', 'OpenMP is disabled.');
+                m2c_opts.ompLibs = {};
+            end
+        end
+    end
+elseif ~isempty(m2c_opts.cc)
+    CC = sprintf('%s ', m2c_opts.cc{:});
 end
 
-if m2c_opts.enableMpi
-    mpiopts = '    [mpicflag, mpildflag] = mpiflags;';
-    mpicflag = ' '' '' mpicflag ';
-    mpildflag = ' '' '' mpildflag ';
-else
-    mpiopts = '';
-    mpicflag = ''; mpildflag = '';
+switch m2c_opts.optLevel
+    case {'0', 'g'}
+        cflags = ['-O' m2c_opts.optLevel ' -g -Wall -Wno-unused-function'];
+    case {'1','2','3'}
+        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -g -Wall -Wno-unused-function'];
+    otherwise
+        cflags = '-g -Wall -Wunused-function';
 end
 
-if m2c_opts.enableOmp
-    ompopts = '    [ompcflag, ompldflag] = ompflags;';
-    ompcflag = ' '' '' ompcflag';
-    ompldflag = ' '' '' ompldflag ';
-else
-    ompopts = '';
-    ompcflag = ''; ompldflag = '';
-end
-
-if m2c_opts.enableAcc
-    assert(false); % Not yet implemented
-end
-
-if m2c_opts.gprof
-    ldflags = [ldflags ' -pg '];
-elseif m2c_opts.gcov
-    ldflags = [ldflags ' -fprofile-arcs -ftest-coverage -fPIC '];
+if ~isempty(m2c_opts.gprof)
+    cflags = [cflags ' -pg '];
+elseif ~isempty(m2c_opts.gcov)
+    cflags = [cflags ' -fprofile-arcs -ftest-coverage -fPIC '];
     try delete([cpath '*.gcda']); catch; end
     try delete([cpath '*.gcno']); catch; end
 end
 
+if ~isempty(m2c_opts.cflags)
+    % Overwrite cflags
+    cflags = sprintf(' %s ', m2c_opts.cflags{:});
+end
+
+if m2c_opts.verbose; cflags = ['-v ' cflags]; end
+
+libs = sprintf(' %s ', m2c_opts.libs{:});
+libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
+libs = [libs sprintf(' %s ', m2c_opts.efence{:})];
+libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
+libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
+libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
+
+
 % Place exe file in the same directory as the M file.
 exedir = '../../../';
 
+[~, signature] = ckCompOpt(m2c_opts, 'exe');
+
 fprintf(fid, '%s\n', ...
-    ['% Build script for ' funcname ' on ' computer], ...
-    ['if ~isnewer(''' exedir funcname '.exe'', ''' funcname '_exe.' m2c_opts.suf ''', ''' funcname '.' m2c_opts.suf ''')'], ...
+    ['% Build script for ' funcname], signature, ...
+    ['if ~isnewer(''' exedir funcname '.exe'', ''build_' funcname '_exe.m'', ''' funcname '_exe.' m2c_opts.suf ''')'], ...
     '    m2cdir = which(''opaque_obj.m''); m2cdir=m2cdir(1:end-12);', '');
-
-if mpiopts; fprintf(fid, '%s\n', mpiopts); end
-if ompopts; fprintf(fid, '%s\n', ompopts); end
-
 
 fprintf(fid, '%s\n', ...
     '    incdir = [matlabroot ''/extern/include''];', ...
@@ -104,22 +85,22 @@ fprintf(fid, '%s\n', ...
     '    else', ...
     '        error(''Building executable is not supported on %s\n'', computer);', ...
     '    end', ...
-    ['    cmd = [''' CC ' ' ldflags '' '' opflags mpicflag ompcflag ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
+    ['    build_cmd = [''' CC ' ' cflags ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''include" '...
     funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf ' -o ' ...
-    exedir funcname '.exe '' '  libs mpildflag ompldflag ' matlibs];'], ...
+    exedir funcname '.exe '' '  libs ' matlibs];'], ...
     '    fprintf(''Entering %s\n'', pwd);', ...
-    '    disp(cmd);', ...
-    '    system(cmd, ''-echo'');', ...
+    '    disp(build_cmd);', ...
+    '    system(build_cmd, ''-echo'');', ...
     'else', ['    fprintf(''' funcname '.exe is up to date.\n'');'], 'end');
 
 fclose(fid);
 
 % Write M-file wrapper function for calling EXE within MATLAB
-writeExeMWrapper(altapis, cpath, funcname, m2c_opts);
+writeExeMWrapper(altapis, cpath, funcname, m2c_opts, CC);
 
 end
 
-function writeExeMWrapper(altapis, cpath, funcname, m2c_opts)
+function writeExeMWrapper(altapis, cpath, funcname, m2c_opts, CC)
 % Generate M-file for reading and writing output through MAT files.
 
 outfile = ['run_' funcname '_exe.m'];
@@ -148,22 +129,29 @@ fprintf(fid, '%s\n', ...
 echo = ', ''-echo''';
 cmdpre = '';
 
-if m2c_opts.ddd
-    % Find ddd
-    ddd = locate_ddd();
-    
-    % Find gdb
-    gdb = locate_gdb();
-    
-    if ~isempty(gdb) && ~isempty(ddd)
-        % Add breakpoints
-        breakponts = sprintf(' -ex "break %s"', altapis{:});
+if ~isempty(m2c_opts.ddd)
+    ddd = sprintf('%s ', m2c_opts.ddd{:});
+    if isempty(ddd)
+        % Find ddd
+        ddd = locate_ddd();
         
-        cmdpre = [ddd ' --debugger ''''' gdb breakponts ' -ex run -ex where'''' --args '];
+        % Find gdb
+        gdb = locate_gdb();
+        
+        if ~isempty(gdb) && ~isempty(ddd)
+            % Add breakpoints
+            breakponts = sprintf(' -ex "break %s"', altapis{:});
+            
+            cmdpre = [ddd ' --debugger ''''' gdb breakponts ' -ex run -ex where'''' --args '];
+        end
+        echo = '';
     end
-    echo = '';
-elseif m2c_opts.valgrind
-    valgrind = locate_valgrind();
+elseif ~isempty(m2c_opts.valgrind)
+    valgrind = sprintf('%s ', m2c_opts.valgrind{:});
+
+    if isempty(valgrind)
+        valgrind = locate_valgrind();
+    end
     % See http://valgrind.org/docs/manual/manual-core.html for documentation
     % Other useful options include --partial-loads-ok=yes --track-origins=yes
     cmdpre = [valgrind ' --leak-check=summary --show-possibly-lost=no --gen-suppressions-all ' ...
@@ -205,18 +193,21 @@ fprintf(fid, '%s\n', '', ...
     ['if exist(''' funcname '_out.mat'', ''file''); delete(''' funcname '_out.mat''); end'] ...
     );
 
-if m2c_opts.gprof
-    % Find command for gprof
-    gprof = locate_gprof();
+if ~isempty(m2c_opts.gprof)
+    gprof = sprintf('%s ', m2c_opts.gprof{:});
+    if isempty(gprof)
+        % Find command for gprof
+        gprof = locate_gprof();
+    end
     
     fprintf(fid, '%s\n', '', ...
         '% Process gprof results', ...
         'if exist(''gmon.out'', ''file'')', ...
-        ['    [~, result] = system(''' gprof ' --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
+        ['    [~, result] = system(''' gprof ' --brief --flat-profile=' funcname '.' m2c_opts.suf ' ' funcname '.exe gmon.out'');'], ...
         '    cells = strsplit(result, ''\n'');', ...
         '    fprintf(''            Function Flat Profile (top 10):\n'');', ...
         '    fprintf(''%s\n'', cells{3:min(length(cells),14)});', ...
-        ['    [~, result] = system(''' gprof ' -l --brief --flat-profile=' funcname '.c ' funcname '.exe gmon.out'');'], ...
+        ['    [~, result] = system(''' gprof ' -l --brief --flat-profile=' funcname '.' m2c_opts.suf ' ' funcname '.exe gmon.out'');'], ...
         '    cells = strsplit(result, ''\n'');', ...
         '    fprintf(''            Line-by-Line Flat Profile (top 30):\n'');', ...
         '    fprintf(''%s\n'', cells{3:min(length(cells),34)});', ...
@@ -225,21 +216,37 @@ if m2c_opts.gprof
         'end');
 end
 
-if m2c_opts.gcov
-    % Find command for gcov
-    if isfield(m2c_opts, 'CC')
-        % Use gcov matching the version of gcc
-        gcov = strrep(m2c_opts.CC, 'gcc', 'gcov');
-    else
-        gcov = locate_gcov();
+if ~isempty(m2c_opts.gcov)
+    gcov = sprintf('%s ', m2c_opts.gcov{:});
+
+    if isempty(gcov)
+        % Try to use gcov matching the version of gcc
+        [pathstr,name,ext] = fileparts(CC);
+        if isempty(pathstr)
+            if m2c_opts.useCpp
+                gcov = strrep(CC, 'g++', 'gcov');
+            else
+                gcov = strrep(CC, 'gcc', 'gcov');
+            end
+        else
+            if m2c_opts.useCpp
+                gcov = [pathstr '/' strrep(name, 'g++', 'gcov') ext];
+            else
+                gcov = [pathstr '/' strrep(name, 'gcc', 'gcov')  ext];
+            end
+        end
+        
+        if ~exist(gcov, 'file')
+            gcov = locate_gcov(pathstr);
+        end
     end
     
     fprintf(fid, '%s\n', '', ...
         '% Process code coverage results', ...
         ['if exist(''' cpath  funcname '.gcda'', ''file'')'], ...
-        ['    system('' cd ' cpath '; ' gcov ' -b -c ' funcname '.c'');'], ...
-        ['    fprintf(''Openning up code coverage ' cpath '/' funcname '.c.gcov for ' funcname 'in editor.\n'');'], ...
-        ['    edit(''' cpath funcname '.c.gcov'');'], ...
+        ['    system('' cd ' cpath '; ' gcov ' -b -c ' funcname '.' m2c_opts.suf ''');'], ...
+        ['    fprintf(''Openning up code coverage ' cpath '/' funcname '.' m2c_opts.suf '.gcov for ' funcname 'in editor.\n'');'], ...
+        ['    edit(''' cpath funcname '.' m2c_opts.suf '.gcov'');'], ...
         'else', ...
         ['    fprintf(''Did not find valid profiling file ' cpath funcname '.gcda.\n'');'], ...
         'end');
@@ -248,33 +255,6 @@ end
 fprintf(fid, 'end\n');
 fclose(fid);
 
-end
-
-function [libs, found] = locate_efence
-% Find efence
-libs = '-lefence';
-
-if ~exist('/usr/lib/libefence.a', 'file')
-    status = -1;
-    
-    files = {'/usr/local/lib/libefence.a', ...
-        '/opt/local/lib/libefence.a', '/sw/lib/libefence.a'};
-    i = 1;
-    while status && i<=length(files)
-        status = ~exist(files{i}, 'file');
-        i = i + 1;
-    end
-    
-    if status
-        warning('m2c:buildEXE', ['Could not locate libefence.a in system directories.\n' ...
-            'Please install efence.']);
-        libs = '';
-        found = false;
-    else
-        libs = ['-L' fileparts(files{i}) ' -lefence'];
-        found = true;
-    end
-end
 end
 
 function [valgrind, found] = locate_valgrind
@@ -418,28 +398,3 @@ if status
 end
 end
 
-function [CC, found] = locate_gcc_mp
-% Find gcc_mp
-CC = 'gcc-mp';
-
-[status, ~] = system('which gcc-mp');
-if status
-    paths = {'/opt/local/bin', '/usr/local/bin', '/sw/bin'};
-    i = 1;
-    while status && i<=length(paths)
-        [status, result] = system(['ls ' paths{i} '/gcc-mp-*']);
-        i = i + 1;
-    end
-    
-    if status
-        warning('m2c:buildEXE', ['Could not locate gcc-mp in system directories.\n' ...
-            'Please install gcc-mp and add it to your path.']);
-        CC = 'cc';
-        found = false;
-    else
-        commands = strsplit(result);
-        CC = commands{1};
-        found = true;
-    end
-end
-end

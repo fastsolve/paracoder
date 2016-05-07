@@ -1,127 +1,194 @@
 function m2c(varargin)
-% Wrapper for converting MATLAB code into a C library using MATLAB Coder. 
+% Wrapper for converting MATLAB code into a C library using MATLAB Coder and
+%    for building the C code into a MEX file or a standalone executable.
 %
 % Usage:
-%    m2c <options> MatlabFunc [-args {...}]
+%    m2c <options> matlabFunc [-args {...}]
 %
-%  MatlabFunc can be the function name or file name of the top-level
+%  matlabFunc can be the function name or file name of the top-level
 %  function to be converted into C.
 %
 %  -args {...}
-%      Specifies the argument data types in the same format as codegen.
-%      If present, it must appear right after the MATLAB function or file
-%      name. The -args argument and everything after it are passed to codegen.
+%      Specifies the data types of the MATLAB function using the same format
+%      as codegen. If given, it must appear right after matlabFunc.
+%      The -args argument and everything after it will be passed to codegen.
 %      If not present, the argument specification will be extracted from
-%      the MATLAB file from the line start with %#codegen.
+%      the MATLAB file from the first comment block started with %#codegen.
 %
-%  The options for m2c have several groups, as explained below:
+%  The options for m2c have several groups, defined as follows:
+%
+% CODE GENERATION
+%     -api {...} [Not yet implemented]
+%           List functions for generating API calls. The arguments is a cell
+%           array of character strings. E.g., -api {'func1', 'func2'}. Each
+%           string can be a MATLAB expression. An API function must not be
+%           inlined, which can be ensured by adding coder.inline('never') 
+%           in the M code. Note that the top-level function is automatically 
+%           an API function and need not be listed. This argument can be
+%           repeated, and then the functions will be concatenated.
+%     -no-inf
+%     -noinf
+%           Disable support of NonFinite (inf and nan). It produces faster codes.
+%           This is the default.
+%     -inf
+%           Enable support of NonFinite (inf and nan). It produces slower codes.
 %
 % OPTIMIZATION
-%     -Og   Disable function inlining for MATLAB Coder and and pass the -Og
-%           compiler option oto the C compiler to enable basic optimization.
-%           (This is the default mode.)
-%     -O0   Disable function inlining for MATLAB Coder and and pass the -O0
-%           compiler option oto the C compiler to disable optimization.
+%     -Og
+%           Disable function inlining for MATLAB Coder and pass the -Og
+%           compiler option to the C compiler to enable basic optimizations
+%           that do not affect debugging. This is the default mode.
+%     -O0
+%           Disable function inlining for MATLAB Coder and pass the -O0
+%           compiler option to the C compiler to disable all optimizations.
 %     -O1
-%           Enable function inlining for MATLAB Coder and pass the -O1 
-%           compiler option to the C compiler to enable basis optimization.
+%           Enable function inlining for MATLAB Coder and pass the -O1
+%           compiler option to the C compiler to enable basic optimization.
 %     -O
 %     -O2
 %           Enable function inlining for MATLAB Coder and also pass the -O2
 %           compiler option to the C compiler to enable nearly all supported
-%           optimizations for C that do not involve a space-speed tradeoff. 
+%           optimizations that do not involve a space-speed tradeoff.
 %     -O3
 %           Enable function inlining for MATLAB Coder and also pass the -O3
-%           compiler option to the C compiler to enabe all supported 
-%           optimizations for C, including loop unrolling and function inlining.
-%     -inline 
-%           Enable function inlinin in MATLAB Coder. This is the default 
-%           with -O1, -O, -O2, or -O3.
+%           compiler option to the C compiler to enable all supported
+%           optimizations, including loop unrolling and function inlining.
+%     -inline
+%           Enable function inlining in MATLAB Coder. This is the default with
+%           -O1, -O2 and -O3, and it overwrites the value set by -O0 and -Og.
 %     -no-inline
-%           Dissable function inlinin in MATLAB Coder. This is the default
-%           with -O0 and -Og.
-% PARALLELIZATION
-%     -mpi
-%           Enable acceleration support for MPI.
-%     -omp
-%           Enable acceleration support for OpenMP.
-%     -acc
-%           Enable acceleration support for OpenACC.
-%     -lapack
-%           Enable LAPACKE and link with MATLAB's builtin LAPACK library.
+%           Disable function inlining in MATLAB Coder. This is the default with 
+%           -O0 and -Og, and it overwrites the value set by -O1, -O2, and -O3.
 %
-%     Note: If multiple -O options are specified, the highest-leve wins.
+%     Note: If multiple optimization flags are specified, the highest level wins.
 %
 % PROFILING AND INSTRUMENTATION
 %     -time
-%     -time {...}
-%           List of functions for timing. The list is a cell array of 
-%           characters. E.g., -time {'func1', 'func2'}. The function being
-%           timed must not be inlined. This can be ensured by adding 
+%     -time {...} [Not yet implemented]
+%           List of functions for timing. The argument list is a cell array
+%           of character strings. E.g., -time {'func1', 'func2'}. Each string
+%           can be a MATLAB expression. The function to be timed must not
+%           be inlined functions. This can be ensured by adding
 %           coder.inline('never') in the M code. If the list is not given
 %           after -time, then only the top-level function will be timed.
 %     -gprof
-%           Compile standalone code with profiling support and generate 
+%     -gprof {...}
+%           Compile standalone code with profiling support and generate
 %           a script to process results from gprof (Linux only).
+%           The gprof command can be specified in the arglist.
 %     -gcov
-%           Compile standalone code with profiling support and generate 
+%     -gcov {...}
+%           Compile standalone code with profiling support and generate
 %           a script to process results from gcov (Linux and Mac).
+%           The gcov command can be specified in the arglist.
+%
 % DEBUGGING
 %     -g
-%           Preserve MATLAB code info in C code and generate source-level debug
-%           information when compiling C.
-%     -v
-%           Verbose mode.
+%           Preserve MATLAB code info in C code and also generate source-level
+%           debug information when compiling C.
 %     -exe
-%           Generate a MATLAB script for calling the exe file from within 
-%           MATLAB  for debugging. Only Linux and Mac are supported.
+%           Generate a MATLAB script for running the exe file from within
+%           MATLAB for debugging in place of the M-file (Linux and Mac).
 %     -ddd
+%     -ddd {...}
 %           Generate a script for running the standalone executable in ddd.
+%           The ddd command can be listed in the arglist.
 %     -valgrind
+%     -valgrind {...}
 %           Generate a script for running the standalone executable in valgrind.
-%     -efence
-%           Link the executable with electric-fence for debugging memory.
-%           Only Linux and Mac are supported.
+%           The valgrind command can be listed in the arglist.
 %
-% CODE GENERATION
-%     -api {...}
-%           List functions for generating API calls. The arguments is a cell 
-%           array of characters. E.g., -api {'func1', 'func2'}. An API function
-%           must not be inlined. This can be ensured by adding coder.inline('never')
-%           in the M code. Note that the top-level function is automatically
-%           an API function and does not need to be listed.
-%     -noinf
-%     -no-inf (Default)
-%           Disable support of NonFinite (inf and nan. It produces faster codes).
-%     -inf
-%           Enable support of NonFinite (inf and nan. It produces slower codes).
-%     -c++
-%           Generates C++ code instead of C code.
-%     -m
-%           Map different MATLAB functions into separate C files.
-%     -64
-%           Map int32 to int64.
+% BUILD CUSTOMIZATION
+%     -cc {...}
+%           Specify the C compiler. It overwrites the default complier
+%           choice for both the mex file and the standalone executable. The
+%           argument list is a cell array of character strings. E.g.,
+%           -cc {'/usr/bin/gcc', '-Wall'}. Each string can be a MATLAB.
+%            expression. The compiler is also used as linker.
+%     -cflags {...}
+%           Specify additional flags for the C compiler for building the
+%           mex file and the standalone executable. The argument list
+%           is a cell array of character strings. E.g., 
+%           -cflags {'-O3 -NDEBUG'}. Each string can be a MATLAB expression.
+%           It overwrites the default compiler flags set by -O?, -g, -gprof,
+%           -gcov and any supported external libraries.
+%     -mexflags {...}
+%           Specify flags for the mex command. It overwrites the flags 
+%           assigned by -O?, -cc -cflags options. The argument 
+%           list is a cell array of character strings. E.g., 
+%           -mexflags {'COPTIMFLAGS=''-O3 -NDEBUG'''}. Each string can be
+%           a MATLAB expression.
+%     -libs {...}
+%           Specify additional libraries for linker when building both
+%           the mex file and the standalone executable. The argument list
+%           is a cell array of character strings. E.g., 
+%           -libs {'-L/opt/local/lib', '-llapack'}. Each string can be
+%           a MATLAB expression. They will be listed before the libraries
+%           required by the supported external libraries.
+%
+% SUPPORTED EXTERNAL LIBRARIES
+%     -mpi
+%     -mpi {...} [Not yet implemented]
+%           Enable support for MPI. The argument list is a cell array of 
+%           character strings to be passed to the C compiler and linker. 
+%           Each string can be a MATLAB expression. It requires MMPI.
+%     -omp
+%     -omp {...} [Not yet implemented]
+%           Enable support for OpenMP. The argument list is a cell array of 
+%           character strings to be passed to the C compiler and linker. 
+%           Each string can be a MATLAB expression. It requires MACC.
+%     -acc
+%     -acc {...} [Not yet implemented]
+%           Enable support for OpenACC. The argument list is a cell array of
+%           character strings to be passed to the C compiler and linker. 
+%           Each string can be a MATLAB expression. It requires MACC.
+%     -petsc
+%     -petsc {...} [Not yet implemented]
+%           Enable support for OpenACC. The argument list is a cell array of
+%           character strings to be passed to the C compiler and linker. 
+%           Each string can be a MATLAB expression. It requires MACC.
+%     -lapack
+%     -lapack {...}
+%           Enable LAPACKE and link with the LAPACK library specified in 
+%           the list. The argument list is a cell array of character strings 
+%           to be passed to the C compiler and linker. Each string can be 
+%           a MATLAB expression. If the cell array is empty, then the 
+%           MATLAB built-in LAPACK library will be used.
+%     -efence
+%     -efence {...}
+%           Link the standalone executable with electric-fence for
+%           debugging memory errors. The argument list is a cell array of
+%           character string to be passed to the linker, such as
+%  	        -efence {'-L/opt/local/lib', '-lefence'}. Each string can be
+%           a MATLAB expression. It is most useful in conjunction with 
+%           a debugger, such as ddd, for debugging segmentation faults.
 %
 % MISCELLANEOUS
 %     -mex
 %           Build the mex command in addition to generating the C files.
 %     -force
 %           Force to regenerate the C code.
+%     -v
+%           Verbose mode.
+%     -?
+%     -h
+%     -help
+%           Print out help.
 %
 %     Note: Any unrecognized option will be passed to codegen.
 %
-%     Example usage: 
-%       To generate code without MATLAB function inlining and with 
-%       default C compiler optimization:
+%     Example usage:
+%       To generate code without MATLAB function inlining and with
+%       default C compiler optimization flag (-Og):
 %            m2c matlabfunc
 %
-%       To generate code with MATLAB function inlining and with 
+%       To generate code with MATLAB function inlining and with
 %       default C compiler optimization of level 1, 2, or 3:
 %            m2c -O1 matlabfunc
 %            m2c -O matlabfunc
 %            m2c -O3 matlabfunc
 %
-%       To generate code without MATLAB function inlining, without C 
+%       To generate code without MATLAB function inlining, without C
 %       compiler optimization, and with MATLAB code preserved in C code:
 %            m2c -g matlabfunc
 %
@@ -158,57 +225,95 @@ end
 
 if isempty(func)
     func = varargin{end};
-    args = strtrim(sprintf(' %s', varargin{i:end-1}));
+    args = strtrim(sprintf(' %s', varargin{1:end-1}));
 end
-
-m2c_opts = struct('debugInfo', 0, 'optLevel', 'g', 'enableInf', 0, ...
-    'enableInline', 0, 'suf', '.c', 'gen64', 0, 'multiFile', false, ...
-    'useLapack', 0, 'api', [], 'timing', [], 'enableMpi', 0, 'enableOmp', 0, 'enableAcc', 0, ...
-    'genMex', false, 'genExe', false, 'gprof', 0, 'gcov', 0, ...
-    'valgrind', 0, 'efence', 0, 'ddd', 0, 'verbose', false, 'codegenArgs', '');
-
-[~, args, m2c_opts.api] = match_option(args, '-api');
-[~, args, m2c_opts.timing] = match_option(args, '-time');
-
-[force, args] = match_option(args, '-force');
-[m2c_opts.genMex, args] = match_option(args, '-mex');
-[m2c_opts.genExe, args] = match_option(args, '-exe');
-[m2c_opts.efence, args] = match_option(args, '-efence');
-[m2c_opts.valgrind, args] = match_option(args, '-valgrind');
-[m2c_opts.ddd, args] = match_option(args, '-ddd');
-[m2c_opts.gprof, args] = match_option(args, '-gprof');
-[m2c_opts.gcov, args] = match_option(args, '-gcov');
-
-m2c_opts.genExe = m2c_opts.genExe || m2c_opts.efence ||...
-    m2c_opts.valgrind || m2c_opts.ddd || m2c_opts.gprof || m2c_opts.gcov;
 
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile(func);
 cpath = [mpath 'codegen/lib/' func '/'];
 
+m2c_opts = struct('codegenArgs', '', ...
+    'debugInfo', false, ...
+    'enableInline', false, ...
+    'optLevel', 'g', ...
+    'enableInf', false, ...
+    'api', [], ...
+    'timing', [], ...
+    'lapack', [], ...
+    'cc', [], ...
+    'libs', [], ...
+    'cflags', [], ...
+    'mexflags', [], ...
+    'mpiLibs', [], ...
+    'ompLibs', [], ...
+    'accLibs', [], ...
+    'petsc', [], ...
+    'gprof', [], ...
+    'gcov', [], ...
+    'valgrind', [], ...
+    'ddd', [], ...
+    'efence', [], ...
+    'genMex', false, ...
+    'genExe', false, ...
+    'verbose', false, ...
+    'suf', 'c', ...
+    'gen64', false);
+
+[force, args] = proc_options(args, '-force');
+[m2c_opts.genMex, args] = proc_options(args, '-mex');
+[m2c_opts.genExe, args] = proc_options(args, '-exe');
+
 % Parse all options
-[m2c_opts.debugInfo, args] = match_option(args, '-g');
-[match, args] = match_option(args, '-O0'); if match; m2c_opts.optLevel = '0'; end
-[match, args] = match_option(args, '-Og'); if match; m2c_opts.optLevel = 'g'; end
-[match, args] = match_option(args, '-O1'); if match; m2c_opts.optLevel = '1'; end
-[match, args] = match_option(args, '-O2'); if match; m2c_opts.optLevel = '2'; end
-[match, args] = match_option(args, '-O3'); if match; m2c_opts.optLevel = '3'; end
+[m2c_opts.debugInfo, args] = proc_options(args, '-g');
+[match, args] = proc_options(args, '-O0'); if match; m2c_opts.optLevel = '0'; end
+[match, args] = proc_options(args, '-Og'); if match; m2c_opts.optLevel = 'g'; end
+[match, args] = proc_options(args, '-O1'); if match; m2c_opts.optLevel = '1'; end
+[match, args] = proc_options(args, '-O2'); if match; m2c_opts.optLevel = '2'; end
+[match, args] = proc_options(args, '-O3'); if match; m2c_opts.optLevel = '3'; end
 
 m2c_opts.enableInline = m2c_opts.optLevel ~= '0' && m2c_opts.optLevel ~= 'g';
-[match, args] = match_option(args, '-no-inline'); if match; m2c_opts.enableInline = false; end
-[match, args] = match_option(args, '-inline'); if match; m2c_opts.enableInline = true; end
+[match, args] = proc_options(args, '-no-inline'); if match; m2c_opts.enableInline = false; end
+[match, args] = proc_options(args, '-inline'); if match; m2c_opts.enableInline = true; end
 
-[m2c_opts.useLapack, args] = match_option(args, '-lapack');
-[~, args] = match_option(args, '-noinf'); % Omit. This is the default behavior
-[~, args] = match_option(args, '-no-inf'); % Omit. This is the default behavior
-[m2c_opts.enableInf, args] = match_option(args, '-inf');
-[useCpp, args] = match_option(args, '-c++');
-[m2c_opts.enableMpi, args] = match_option(args, '-mpi');
-[m2c_opts.enableOmp, args] = match_option(args, '-omp');
-[m2c_opts.enableAcc, args] = match_option(args, '-acc');
-[m2c_opts.multiFile, args] = match_option(args, '-m');
-[m2c_opts.gen64, args] = match_option(args, '-64');
-[m2c_opts.verbose, args] = match_option(args, '-v');
+[~, args] = proc_options(args, '-noinf'); % Omit. This is the default behavior
+[~, args] = proc_options(args, '-no-inf'); % Omit. This is the default behavior
+[m2c_opts.enableInf, args] = proc_options(args, '-inf');
+
+[~, args, m2c_opts.cc] = proc_options(args, '-cc');
+[~, args, m2c_opts.cflags] = proc_options(args, '-cflags');
+[~, args, m2c_opts.mexflags] = proc_options(args, '-mexflags');
+[~, args, m2c_opts.libs] = proc_options(args, '-libs');
+
+[~, args, m2c_opts.lapackLibs] = proc_options(args, '-lapack');
+[~, args, m2c_opts.efence] = proc_options(args, '-efence');
+
+[~, args, m2c_opts.mpiLibs] = proc_options(args, '-mpi');
+[~, args, m2c_opts.ompLibs] = proc_options(args, '-omp');
+[~, args, m2c_opts.accLibs] = proc_options(args, '-acc');
+
+
+[~, args, m2c_opts.api] = proc_options(args, '-api');
+[~, args, m2c_opts.timing] = proc_options(args, '-time');
+[~, args, m2c_opts.valgrind] = proc_options(args, '-valgrind');
+[~, args, m2c_opts.ddd] = proc_options(args, '-ddd');
+[~, args, m2c_opts.gprof] = proc_options(args, '-gprof');
+[~, args, m2c_opts.gcov] = proc_options(args, '-gcov');
+
+m2c_opts.genExe = m2c_opts.genExe || ...
+    ~isempty(m2c_opts.valgrind) || ~isempty(m2c_opts.ddd) || ...
+    ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
+
+[m2c_opts.verbose, args] = proc_options(args, '-v');
+
+% Process suppressed options
+[multiFile, args] = proc_options(args, '-m');
+if multiFile; warning('Option -m is suppresed.'); end
+
+[m2c_opts.gen64, args] = proc_options(args, '-64'); % Not supported
+if m2c_opts.gen64; warning('Option -64 is suppresed and no longer supported.'); end
+
+[m2c_opts.useCpp, args] = proc_options(args, '-c++');  % Not supported
+if m2c_opts.useCpp; warning('Option -c++ is suppresed and no longer supported.'); end
 
 if m2c_opts.genExe && ~isunix()
     fprintf('Warning: Building executable is not supported on Windows PCs\n');
@@ -218,41 +323,41 @@ end
 % Determine whether to include mpi.h
 if ckuse(mfile, 'MMPI_require_header')
     mpi_header = '#include "mpi.h"';
-    if ~m2c_opts.enableMpi;
+    if ~isempty(m2c_opts.mpiLibs);
         disp('MPI is required. Enabled automatically.');
-        m2c_opts.enableMpi = true;
-    end        
+        [~,~,m2c_opts.mpiLibs] = proc_options('-mpi', '-mpi');
+    end
 else
     mpi_header = '';
-    if m2c_opts.enableMpi
+    if ~isempty(m2c_opts.mpiLibs)
         disp('MPI is not required. Disabled.');
-        m2c_opts.enableMpi = false;
-    end        
+        m2c_opts.mpiLibs = {};
+    end
 end
 
 % Determine whether to include omp.h
 if ckuse(mfile, 'MACC_require_header')
-    if ~m2c_opts.enableAcc && ~m2c_opts.enableOmp
+    if isempty(m2c_opts.accLibs) && isempty(m2c_opts.ompLibs)
         disp('OpenMP or OpenACC is required. Enabling OpenMP.');
-        m2c_opts.enableOmp = true;
+        [~,~,m2c_opts.ompLibs] = proc_options('-omp', '-omp');
     end
     
-    if m2c_opts.enableOmp
+    if isempty(m2c_opts.ompLibs)
         acc_header = '#include "omp.h"';
-    elseif m2c_opts.enableAcc;
+    elseif isempty(m2c_opts.accLibs)
         acc_header = '#include "openacc.h"';
     else
         acc_header = '';
     end
 else
     acc_header = '';
-    if m2c_opts.enableOmp
+    if ~isempty(m2c_opts.ompLibs)
         disp('OpenMP are not required. Disabled.');
-        m2c_opts.enableOmp = false;
-    end        
-    if m2c_opts.enableAcc
+        m2c_opts.ompLibs = {};
+    end
+    if ~isempty(m2c_opts.accLibs)
         disp('OpenAcc is not required. Disabled.');
-        m2c_opts.enableAcc = false;
+        m2c_opts.accLibs = {};
     end
 end
 
@@ -268,11 +373,11 @@ if len>2 && strcmp(func(len - [1, 0]), '.m')
 end
 if strcmp(func(end-1:end), '.m'); func = func(1:end-2); end
 
-if ~force && exist([cpath  func '.c'], 'file') && ...
-        ckdep([cpath  func '.c'], mfile) && ...
-        ckCompOpt('codegen', [cpath  func '.c'], m2c_opts)
+regen_c = force || ~ckCompOpt(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
+    ~ckdep([cpath  func '_mex.c'], mfile);
+
+if ~regen_c
     disp(['C code for ' func ' is up to date.']);
-    regen_c = false;
 else
     %% Specify codegen config options
     co_cfg = coder.config('lib');
@@ -282,11 +387,7 @@ else
     co_cfg.EnableMemcpy = true;
     
     co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
-    if ~m2c_opts.multiFile
-        co_cfg.FilePartitionMethod = 'SingleFile';
-    else
-        co_cfg.FilePartitionMethod = 'MapMFileToCFile';
-    end
+    co_cfg.FilePartitionMethod = 'SingleFile';
     warning('off', 'CoderFoundation:builder:TMFIncompatibilityWarningMATLABCoder');
     
     co_cfg.GenerateMakefile = false;
@@ -295,9 +396,10 @@ else
     co_cfg.InitFltsAndDblsToZero = false;
     co_cfg.SupportNonFinite = m2c_opts.enableInf;
     
-    if useCpp
+    if m2c_opts.useCpp
         co_cfg.TargetLang = 'C++';
         m2c_opts.suf = 'cpp';
+        warning('C++ code generation is not supported. Use at your own risk.');
     else
         co_cfg.TargetLang = 'C';
         m2c_opts.suf = 'c';
@@ -319,7 +421,7 @@ else
     try co_cfg.PassStructByReference = true;
     catch; end
     
-    if m2c_opts.useLapack
+    if ~isempty(m2c_opts.lapackLibs)
         try co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
         catch; end %#ok<CTCH>
     end
@@ -360,7 +462,7 @@ else
     
     % Modify C code generated by codegen
     post_codegen(func, cpath, m2c_opts);
-
+    
     % Write Mex file to annotate the options used in codegen
     [alt_nlhs, alt_nrhs] = writeMexFile(func, mpath, cpath, m2c_opts);
     
@@ -370,30 +472,26 @@ else
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
-    
-    regen_c = true;
 end
 
 %% Generate MATLAB scripts for mex
-if regen_c || ~exist([cpath  'mex_' func '.m'], 'file') || ...
-        ckCompOpt('mex', [cpath  'mex_' func '.m'], m2c_opts)
+if regen_c || ~ckCompOpt(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
     writeMexScript(func, cpath, m2c_opts);
     
     % Write README file
-    writeREADME(cpath, func, m2c_opts.genExe);
+    writeREADME(func, cpath, m2c_opts.genExe);
 end
 
 if ~m2c_opts.genMex
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
         [cpath 'mex_' func '.m']);
 else
-    run_mexcommand(cpath, func); 
+    run_mexcommand(cpath, func);
 end
 
-%% Generate MATLAB scripts for exe
+%% Generate MATLAB scripts for exe if genexe is true.
 if m2c_opts.genExe
-    if regen_c || ~exist([cpath  'build_' func '_exe.m'], 'file') || ...
-            ckCompOpt('exe', [cpath  'build_' func '_exe.m'], m2c_opts)
+    if regen_c || ~ckCompOpt(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
         writeExeScripts(func, cpath, m2c_opts);
     end
     
@@ -406,11 +504,69 @@ end
 function run_mexcommand(cpath, func)
 command = [cpath 'mex_' func '.m'];
 
+clear(command);
 if exist(command, 'file'); run(command); end
 end
 
 function build_exe(cpath, func)
 command = [cpath 'build_' func '_exe.m'];
 
+clear(command);
 if exist(command, 'file'); run(command); end
+end
+
+function [matched, args, list] = proc_options(args, opt)
+
+opt = strrep(opt, '+', '\+');
+matched = ~isempty(regexp(args, ['(\s|^)' opt '(\s|$)'], 'once'));
+
+switch opt
+    case {'-time', '-api', '-mpi', '-omp', '-acc', '-gprof', '-gcov', ...
+            '-ddd', '-valgrind', '-petsc', '-lapack', '-efence'}
+        % Process the list of functions
+        list = {};
+        if matched
+            % Find list of string
+            pair = regexp(args, ['(\s|^)' opt '(\s*{[^}]*})(\s|$)'], 'match');
+            args = regexprep(args, ['(\s|^)' opt '(\s*{[^}]*})?(\s|$)'], '$3');
+
+            for i=1:length(pair)
+                list = [list, eval(regexprep(pair{i}, ['(\s|^)' opt '(\s|$)'], '$2'))]; %#ok<AGROW>
+            end
+            
+            if isempty(list)
+                if isequal(opt, '-lapack')
+                    % Use MATLAB's built-in LAPACK library
+                    list = {'-lmwlapack', '-lmwblas'};
+                elseif isequal(opt, '-efence')
+                    % Use default efence configuration
+                    list = {'-lefence'};
+                else
+                    list = {''};
+                end
+            end
+        end
+    case {'-cc', '-libs', '-mexflags', '-cflags'}
+        % Process the list of functions
+        list = {};
+        if matched
+            % Find list of string
+            pair = regexp(args, ['(\s|^)' opt '(\s*{[^}]*})(\s|$)'], 'match');
+            args = regexprep(args, ['(\s|^)' opt '(\s*{[^}]*})?(\s|$)'], '$3');
+
+            if length(pair)<1
+                warning('m2c:argument', ...
+                    'Option %s requires a cell-array argument after it.', opt);
+                matched = false;
+            else
+                for i=1:length(pair)
+                    list = [list, eval(regexprep(pair{i}, ['(\s|^)' opt '(\s|$)'], '$2'))]; %#ok<AGROW>
+                end
+            end
+        end
+    otherwise
+        if matched
+            args = regexprep(args, ['(\s|^)' opt '(\s|$)'], '$2');
+        end
+end
 end

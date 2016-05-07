@@ -1,7 +1,7 @@
-function writeREADME(outdir, funcname, genexe)
+function writeREADME(funcname, cpath, genexe)
 % Print out README file.
 
-outfile = [outdir '/README'];
+outfile = [cpath '/README'];
 fid = fopen(outfile, 'w');
 if (fid<0); error('m2c:OpenOutputFile', msg); end
 
