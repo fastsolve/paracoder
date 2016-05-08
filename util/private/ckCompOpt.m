@@ -7,7 +7,8 @@ if nargin==3 && OK || nargout==2
 end
 if nargin==3 && OK
     str2 = extractSignature(file);
-    OK = isequal(str, str2);
+    % For compatability with older version, treat empty signature as OK.
+    OK = isempty(str2) || isequal(str, str2);
 end
 
 end

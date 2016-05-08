@@ -52,7 +52,7 @@ function m2mex(varargin)
 func = '';
 args = '';
 for i=length(varargin)-1:-1:2
-    if strcmp( varargin{i}, '-args')
+    if strcmp(varargin{i}, '-args')
         func = varargin{i-1};
         args = strtrim(sprintf(' %s', varargin{i:end}));
         args = [strtrim(sprintf(' %s', varargin{1:i-2})) ' ' args]; %#ok<AGROW>
@@ -65,7 +65,7 @@ if isempty(func)
     for i=1:length(varargin)
         if isempty(varargin{i})
             continue;
-        elseif ~strncmp( strtrim(varargin{i}), '-', 1)
+        elseif ~strncmp(strtrim(varargin{i}), '-', 1)
             func = varargin{i};
         elseif isempty(args)
             args = varargin{i};
@@ -75,7 +75,7 @@ if isempty(func)
     end
 end
 
-if nargin<1 || match_option( args, '-h')
+if nargin<1 || match_option(args, '-h')
     help m2mex; %#ok<MCHLP>
     return;
 end
@@ -88,47 +88,47 @@ end
 hascodegen = exist('codegen.p', 'file');
 
 % Split filename into the path and filename
-[mpath, func, mfile] = get_path_of_mfile( func);
+[mpath, func, mfile] = get_path_of_mfile(func);
 mexfile = [mfile(1:end-1) mexext];
 cpre = [mpath 'codegen/mex/' func '/' func];
 
-[skipdepck, args] = match_option( args, '-force');
-[cgonly, args] = match_option( args, '-c');
+[skipdepck, args] = match_option(args, '-force');
+[cgonly, args] = match_option(args, '-c');
 
 
-if ~skipdepck && ~isempty(mexfile) && ckdep( mexfile, mfile) && ...
+if ~skipdepck && ~isempty(mexfile) && ckdep(mexfile, mfile) && ...
         isnewer(mexfile, [cpre '.h'])
     disp([func '.' mexext ' is up to date.']);
     return;
 end
 
 if ~exist('codegen.p', 'file') && ~exist('emlmex.p', 'file')
-    error( 'm2mex:MissingCoder', ...
+    error('m2mex:MissingCoder', ...
         'Cannot compile the code, since you have neither codegen nor emlmex.');
 end
 
 % Determine whether to include mpi.h
-if ckuse( mfile, 'MMPI_require_header')
-    error( 'm2mex:MPIUnsupported', 'MPI is not supported in the mex mode. Use m2c instead.');
+if ckuse(mfile, 'MMPI_require_header')
+    error('m2mex:MPIUnsupported', 'MPI is not supported in the mex mode. Use m2c instead.');
 end
 
-[enableopt, args] = match_option( args, '-O');
+[enableopt, args] = match_option(args, '-O');
 if enableopt
     opts_opt = '-O enable:inline';
 else
     opts_opt = '-O disable:inline';
 end
 
-[debuginfo, args] = match_option( args, '-g');
+[debuginfo, args] = match_option(args, '-g');
 if debuginfo
     mexopt = '-g';
 else
     mexopt = '';
 end
-[verbose, args] = match_option( args, '-v');
+[verbose, args] = match_option(args, '-v');
 
 % Determine whether to enable OpenMP
-[enableomp, args] = match_option( args, '-acc');
+[enableomp, args] = match_option(args, '-acc');
 if enableomp
     if ~verLessThan('matlab', '8.0.0') && hascodegen
         opts_opt = [opts_opt ' -O enable:OpenMP'];
@@ -139,7 +139,7 @@ end
 
 % Extract arguments from M-code.
 if isempty(regexp(args,'(\s|^)-args(\s|$)','once'))
-    args = [extract_codegen_args( [mfile(1:end-1), 'm']) ' ' args];
+    args = [extract_codegen_args([mfile(1:end-1), 'm']) ' ' args];
 end
 if length(func)>2 && func(end-1)=='.'
     func = func(1:end-2);
@@ -159,7 +159,7 @@ if hascodegen
         'm2cErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \', ...
         '"The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr."');
 elseif exist('emlmex.p', 'file') && ~cgonly
-    args = codegen2eml_args( args);
+    args = codegen2eml_args(args);
     co_cfg = emlcoder.CompilerOptions;
     basecommand = 'emlmex -s co_cfg ';
     warning('off','Coder:common:EMLMEXDeprecation');
@@ -212,8 +212,18 @@ catch err
 end
 end
 
-function args = codegen2eml_args( args)
+function args = codegen2eml_args(args)
 % Convert codegen arguments to eml arguments.
-args = strrep( args, '-args ', '-eg ');
-args = strrep( args, 'coder.typeof(', 'emlcoder.egs(');
+args = strrep(args, '-args ', '-eg ');
+args = strrep(args, 'coder.typeof(', 'emlcoder.egs(');
+end
+
+function [matched, args] = match_option( args, opt)
+
+opt = strrep( opt, '+', '\+');
+matched = ~isempty( regexp( args, ['(\s|^)' opt '(\s|$)'], 'once'));
+
+if matched;
+    args = regexprep(args, ['(\s|^)' opt '(\s|$)'], '$2');
+end
 end

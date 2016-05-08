@@ -4,6 +4,7 @@ function [mpath, func, mfile] = get_path_of_mfile(mfile)
 [mpath, func, ~] = fileparts(mfile);
 
 if ~isempty(mpath)
+    mpath = [mpath '/'];
     if exist([mpath func '.p'], 'file');
         mfile = [mpath func '.p'];
     elseif exist([mpath func '.m'], 'file');
@@ -22,5 +23,5 @@ else
     if isempty(mfile);
         error('m2c:FileNotFound', 'Could not locate file %s', mfile);
     end
-    mpath = fileparts(mfile);
+    mpath = [fileparts(mfile) '/'];
 end
