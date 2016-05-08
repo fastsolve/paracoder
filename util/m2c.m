@@ -34,10 +34,6 @@ function m2c(varargin)
 %           Enable support of NonFinite (inf and nan). It produces slower codes.
 %
 % OPTIMIZATION
-%     -Og
-%           Disable function inlining for MATLAB Coder and pass the -Og
-%           compiler option to the C compiler to enable basic optimizations
-%           that do not affect debugging. This is the default mode.
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
 %           compiler option to the C compiler to disable all optimizations.
@@ -55,10 +51,10 @@ function m2c(varargin)
 %           optimizations, including loop unrolling and function inlining.
 %     -inline
 %           Enable function inlining in MATLAB Coder. This is the default with
-%           -O1, -O2 and -O3, and it overwrites the value set by -O0 and -Og.
+%           -O1, -O2 and -O3, and it overwrites the value set by -O0.
 %     -no-inline
 %           Disable function inlining in MATLAB Coder. This is the default with
-%           -O0 and -Og, and it overwrites the value set by -O1, -O2, and -O3.
+%           -O0, and it overwrites the value set by -O1, -O2, and -O3.
 %
 % PROFILING AND INSTRUMENTATION
 %     -time
@@ -177,7 +173,7 @@ function m2c(varargin)
 %
 %     Example usage:
 %       To generate code without MATLAB function inlining and with
-%       default C compiler optimization flag (-Og):
+%       default C compiler optimization flag (-O0):
 %            m2c matlabfunc
 %
 %       To generate code with MATLAB function inlining and with
@@ -260,8 +256,10 @@ if isempty(m2c_opts.codegenArgs) || ~isequal(m2c_opts.codegenArgs(1:5), -args)
     m2c_opts.codegenArgs = [extract_codegen_args(mfile) ' ' m2c_opts.codegenArgs];
 end
 
-regen_c = m2c_opts.force || ~ckCompOpt(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
-    ~ckdep([cpath  func '_mex.c'], mfile);
+regen_c = m2c_opts.force || ...
+    ~ckCompOpt(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
+    ~ckdep([cpath  func '_mex.c'], mfile) || ...
+    m2c_opts.genExe && ~ckdep([cpath  func '_exe.c'], mfile);
 
 if ~regen_c
     disp(['C code for ' func ' is up to date.']);
@@ -401,10 +399,12 @@ if nargin==0
     return;
 end
 
+% If default value is {}, use [] in place of {} and re-assign default 
+% value to {} at the end.
 m2c_opts = struct('codegenArgs', '', ...
     'debugInfo', false, ...
     'enableInline', [], ...
-    'optLevel', 'g', ...
+    'optLevel', '0', ...
     'enableInf', false, ...
     'api', [], ...
     'timing', [], ...
@@ -443,8 +443,6 @@ while i<=length(varargin)
             m2c_opts.debugInfo = true;
         case '-O0'
             m2c_opts.optLevel = '0';
-        case '-Og'
-            m2c_opts.optLevel = 'g';
         case '-O1'
             m2c_opts.optLevel = '1';
         case {'-O2', '-O'}
@@ -532,7 +530,7 @@ while i<=length(varargin)
 end
 
 if isempty(m2c_opts.enableInline)
-    m2c_opts.enableInline = m2c_opts.optLevel ~= '0' && m2c_opts.optLevel ~= 'g';
+    m2c_opts.enableInline = m2c_opts.optLevel ~= '0';
 end
 
 m2c_opts.genExe = m2c_opts.genExe || ...

@@ -42,11 +42,9 @@ for i=1:length(fields)
             str = [str ' ' fields{i} '=' m2c_opts.(fields{i})];
         end
     elseif iscell(m2c_opts.(fields{i}))
-        if ~isempty(m2c_opts.(fields{i})) && ~isempty(m2c_opts.(fields{i}){1})
-            str = [str ' ' fields{i} '={' ...
-                strtrim(sprintf('%s ', m2c_opts.(fields{i}){:})), '}'];
-        elseif ~isempty(m2c_opts.(fields{i})) && isempty(m2c_opts.(fields{i}){1})
-            str = [str ' ' fields{i} '={''''}'];
+        if ~isempty(m2c_opts.(fields{i}))
+            str = [str ' ' fields{i} '={''' ...
+                strtrim(sprintf('%s ', m2c_opts.(fields{i}){:})), '''}'];
         end
     else
         error('Unsupported argument data type');
