@@ -258,8 +258,7 @@ end
 
 regen_c = m2c_opts.force || ...
     ~ckCompOpt(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
-    ~ckdep([cpath  func '_mex.c'], mfile) || ...
-    m2c_opts.genExe && ~ckdep([cpath  func '_exe.c'], mfile);
+    ~ckdep([cpath  func '_mex.c'], mfile);
 
 if ~regen_c
     disp(['C code for ' func ' is up to date.']);
@@ -352,11 +351,11 @@ else
     post_codegen(func, cpath, m2c_opts);
     
     % Write Mex file to annotate the options used in codegen
-    [alt_nlhs, alt_nrhs] = writeMexFile(func, mpath, cpath, m2c_opts);
-    
-    % Write Exe file
-    writeExeFile(func, cpath, m2c_opts, alt_nlhs, alt_nrhs);
-    
+    writeMexFile(func, mpath, cpath, m2c_opts);
+        
+    % Write README file
+    writeREADME(func, cpath, m2c_opts.genExe);
+
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
@@ -365,9 +364,6 @@ end
 %% Generate MATLAB scripts for mex
 if regen_c || ~ckCompOpt(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
     writeMexScript(func, cpath, m2c_opts);
-    
-    % Write README file
-    writeREADME(func, cpath, m2c_opts.genExe);
 end
 
 if ~m2c_opts.genMex
@@ -379,7 +375,13 @@ end
 
 %% Generate MATLAB scripts for exe if genexe is true.
 if m2c_opts.genExe
+    if regen_c || ~ckdep([cpath  func '_exe.c'], mfile)
+        % Write the main function for Exe
+        writeExeFile(func, cpath, m2c_opts);
+    end
+    
     if regen_c || ~ckCompOpt(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
+        % Write the build script for Exe
         writeExeScripts(func, cpath, m2c_opts);
     end
     
