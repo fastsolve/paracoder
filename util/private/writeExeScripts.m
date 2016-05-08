@@ -30,7 +30,7 @@ if isempty(m2c_opts.cc)
         end
     end
 elseif ~isempty(m2c_opts.cc)
-    CC = sprintf('%s ', m2c_opts.cc{:});
+    CC = sprintf(' %s ', m2c_opts.cc{:});
 end
 
 switch m2c_opts.optLevel
@@ -59,10 +59,10 @@ if m2c_opts.verbose; cflags = ['-v ' cflags]; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
 libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.efence{:})];
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
+libs = [libs sprintf(' %s ', m2c_opts.efence{:})];
 
 
 % Place exe file in the same directory as the M file.
@@ -130,7 +130,7 @@ echo = ', ''-echo''';
 cmdpre = '';
 
 if ~isempty(m2c_opts.ddd)
-    ddd = sprintf('%s ', m2c_opts.ddd{:});
+    ddd = strtrim(sprintf(' %s ', m2c_opts.ddd{:}));
     if isempty(ddd)
         % Find ddd
         ddd = locate_ddd();
@@ -140,14 +140,14 @@ if ~isempty(m2c_opts.ddd)
         
         if ~isempty(gdb) && ~isempty(ddd)
             % Add breakpoints
-            breakponts = sprintf(' -ex "break %s"', altapis{:});
+            breakponts = sprintf(' -ex "break %s" ', altapis{:});
             
             cmdpre = [ddd ' --debugger ''''' gdb breakponts ' -ex run -ex where'''' --args '];
         end
         echo = '';
     end
 elseif ~isempty(m2c_opts.valgrind)
-    valgrind = sprintf('%s ', m2c_opts.valgrind{:});
+    valgrind = strtrim(sprintf(' %s ', m2c_opts.valgrind{:}));
 
     if isempty(valgrind)
         valgrind = locate_valgrind();
@@ -194,7 +194,7 @@ fprintf(fid, '%s\n', '', ...
     );
 
 if ~isempty(m2c_opts.gprof)
-    gprof = sprintf('%s ', m2c_opts.gprof{:});
+    gprof = strtrim(sprintf(' %s ', m2c_opts.gprof{:}));
     if isempty(gprof)
         % Find command for gprof
         gprof = locate_gprof();
@@ -217,7 +217,7 @@ if ~isempty(m2c_opts.gprof)
 end
 
 if ~isempty(m2c_opts.gcov)
-    gcov = sprintf('%s ', m2c_opts.gcov{:});
+    gcov = strtrim(sprintf(' %s ', m2c_opts.gcov{:}));
 
     if isempty(gcov)
         % Try to use gcov matching the version of gcc
@@ -237,7 +237,7 @@ if ~isempty(m2c_opts.gcov)
         end
         
         if ~exist(gcov, 'file')
-            gcov = locate_gcov(pathstr);
+            gcov = locate_gcov();
         end
     end
     
