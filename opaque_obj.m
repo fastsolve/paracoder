@@ -1,6 +1,6 @@
-function obj = opaque_obj( type, data, nitems) %#codegen
+function obj = opaque_obj(type, data, nitems) %#codegen
 %OPAQUE_OBJ Create an opaque object
-%   obj = opaque_obj( type, data, [nitems])
+%   obj = opaque_obj(type, data, [nitems])
 %
 % The function creates a struct with the following fields:
 %     type: a character string
@@ -22,14 +22,14 @@ end
 
 if nargin<3; nitems=int32(1); end
 
-coder.varsize( 'obj.data', [inf,1]);
-coder.varsize( 'obj.type', [1,inf]);
-coder.varsize( 'obj.nitems', [1,1]);
+coder.varsize('obj.data', [inf,1]);
+coder.varsize('obj.type', [1,inf]);
+coder.varsize('obj.nitems', [1,1]);
 
 if isempty(coder.target)
     data = typecast(data, 'uint8');
     if isrow(data); data = data'; end
-    obj = struct( 'data', data, 'type', char(type(:)'), ...
+    obj = struct('data', data, 'type', char(type(:)'), ...
         'nitems', int32(nitems));
 else
     sizepe = int32(0);
@@ -42,8 +42,8 @@ else
         ptr = coder.opaque('char *', 'NULL');
         ptr = coder.ceval('(char *)', coder.rref(data));
         for i=int32(0):sizepe*nitems-1
-            obj.data(i+1) = coder.ceval( '*', ptr);
-            ptr = M2C_offset_ptr( ptr, int32(1));
+            obj.data(i+1) = coder.ceval('*', ptr);
+            ptr = M2C_offset_ptr(ptr, int32(1));
         end
     end
 end

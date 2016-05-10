@@ -96,8 +96,7 @@ cpre = [mpath 'codegen/mex/' func '/' func];
 [cgonly, args] = match_option(args, '-c');
 
 
-if ~skipdepck && ~isempty(mexfile) && ckdep(mexfile, mfile) && ...
-        isnewer(mexfile, [cpre '.h'])
+if ~skipdepck && ~isempty(mexfile) && isnewer(mexfile, [cpre '.h'])
     disp([func '.' mexext ' is up to date.']);
     return;
 end
@@ -105,11 +104,6 @@ end
 if ~exist('codegen.p', 'file') && ~exist('emlmex.p', 'file')
     error('m2mex:MissingCoder', ...
         'Cannot compile the code, since you have neither codegen nor emlmex.');
-end
-
-% Determine whether to include mpi.h
-if ckuse(mfile, 'MMPI_require_header')
-    error('m2mex:MPIUnsupported', 'MPI is not supported in the mex mode. Use m2c instead.');
 end
 
 [enableopt, args] = match_option(args, '-O');

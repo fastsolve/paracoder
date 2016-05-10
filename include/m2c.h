@@ -30,6 +30,9 @@ extern void *mxCalloc(size_t n, size_t size);
 extern void *mxRealloc(void *ptr, size_t size);
 extern void mxFree(void *ptr);
 
+extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+
 /* Define macros to support building function into MATLAB executable. */
 #define malloc  mxMalloc
 #define calloc  mxCalloc
@@ -43,6 +46,7 @@ extern void mxFree(void *ptr);
         if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \
         mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \
         "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
+
 #else
 /* Issue formatted error message with corresponding error identifier */
 #define emlrtIsMATLABThread(s)  0

@@ -1,16 +1,7 @@
 function msg_printf(varargin) %#codegen
-%msg_printf Issue an informational message.
-%   It takes one or more input arguments.
-% Note that if you use %s in the format, the character string must be
-% null-terminated. 
+%msg_printf is now m2c_printf
+%
+% SEE ALSO: m2c_printf, m2c_error, m2c_warn
 
-coder.extrinsic('fprintf');
-coder.inline('never');
-
-if isempty(coder.target) || isequal( coder.target, 'mex')
-    fprintf(1, varargin{:});
-else
-    assert( nargin>=1);
-    fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-    coder.ceval( 'printf', fmt, varargin{2:end});
-end
+coder.inline('always');
+m2c_printf(varargin{:});

@@ -8,7 +8,7 @@ outCfile = [cpath funcname '_mex.' m2c_opts.suf];
 [fid,msg] = fopen(outCfile, 'w');
 if (fid<0); error('m2c:OpenFile', msg); end
 
-[~, signature] = ckCompOpt(m2c_opts, 'codegen');
+[~, signature] = ckSignature(m2c_opts, 'codegen');
 
 fprintf(fid, '%s\n', ...
     '/*', [' * ' outCfile], ' *', ...

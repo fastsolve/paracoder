@@ -32,7 +32,7 @@ fclose(fid);
 mfile = regexprep(mfile, '%[^\n]*\n', '\n');
 mfile = regexprep(mfile, '\.\.\.\s+', '');
 
-toks = regexp(mfile, '^\s*function\s*(\[[\w\s,]+\]|\s+\w+)?\s*=?\s*\w+\s*(\([\w\s,]+\))?\s*\n', 'tokens');
+toks = regexp(mfile, '^\s*function\s*(\[[\w\s,]+\]|\s+\w+)?\s*=?\s*\w+\s*(\([\w\s,]*\))?\s*\n', 'tokens');
 assert(~isempty(toks), 'Cannot parse MATLAB file.');
 clear mfile;
 
@@ -46,7 +46,7 @@ else
     m_args.output = m_args.output{1};
 end
 
-if isempty(toks{1}{2})
+if isempty(toks{1}{2}) || isequal(toks{1}{2}, '()')
     m_args.input = {};
 elseif  toks{1}{2}(1)~='('
     m_args.input = strtrim(textscan(toks{1}{2}, '%s', 'Delimiter', ','));

@@ -12,7 +12,16 @@ if (fid<0); error('m2c:OpenOutputFile', msg); end
 
 mexflags = '';
 
-if isempty(m2c_opts.cc) && ismac && ~isempty(m2c_opts.ompLibs)
+CC = '';
+if ~isempty(m2c_opts.petscDir)
+    % If PETSC is used, enforce using the PCC or CXX commands used in
+    % PETSc for CC and add the include path.
+    if m2c_opts.useCpp
+        CC = m2c_opts.petscCXX{1};
+    else
+        CC = m2c_opts.petscCC{1};
+    end
+elseif isempty(m2c_opts.cc) && ismac && ~isempty(m2c_opts.ompLibs)
     % Try to locate gcc-mp, with support of OpenMP
     [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
     if ~found
@@ -20,10 +29,12 @@ if isempty(m2c_opts.cc) && ismac && ~isempty(m2c_opts.ompLibs)
             warning('m2c:buildEXE', 'OpenMP is disabled.');
             m2c_opts.ompLibs = {};
         end
-        mexflags = [mexflags ' CC=''''' CC ''''''];
     end
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
+end
+
+if ~isempty(CC)
     mexflags = [mexflags ' CC=''''' CC ''''''];
 end
 
@@ -48,7 +59,12 @@ end
 
 if ~isempty(m2c_opts.mexflags)
     % Overwrite mexflags
-    mexflags = sprintf(' %s ', mexflags.mexflags{:});
+    mexflags = sprintf(' %s ', m2c_opts.mexflags{:});
+end
+
+if ~isempty(m2c_opts.petscInc)
+    % Append mexflags using petscInc
+    mexflags = [mexflags sprintf(' %s ', m2c_opts.petscInc{:})];
 end
 if m2c_opts.verbose; mexflags = [mexflags ' -v']; end
 
@@ -57,6 +73,7 @@ libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
+libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
 
 srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf];
 if m2c_opts.enableInf
@@ -66,7 +83,7 @@ end
 % Place mex file in the same directory as the M file.
 mexdir = '../../../';
 
-[~, signature] = ckCompOpt(m2c_opts, 'mex');
+[~, signature] = ckSignature(m2c_opts, 'mex');
 
 % Place mex file in the same directory as the M file.
 fprintf(fid, '%s\n', ...

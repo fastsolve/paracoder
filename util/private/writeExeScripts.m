@@ -12,7 +12,15 @@ clear(outMfile);
 fid = fopen(outMfile, 'w');
 if (fid<0); error('m2c:OpenOutputFile', msg); end
 
-if isempty(m2c_opts.cc)
+if ~isempty(m2c_opts.petscDir)
+    % If PETSC is used, enforce using the PCC or CXX commands used in
+    % PETSc for CC, and add the include path and libraries.
+    if m2c_opts.useCpp
+        CC = m2c_opts.petscCXX{1};
+    else
+        CC = m2c_opts.petscCC{1};
+    end
+elseif isempty(m2c_opts.cc)
     if m2c_opts.useCpp
         CC = 'g++';
     else
@@ -29,7 +37,7 @@ if isempty(m2c_opts.cc)
             end
         end
     end
-elseif ~isempty(m2c_opts.cc)
+else
     CC = sprintf(' %s ', m2c_opts.cc{:});
 end
 
@@ -54,21 +62,25 @@ if ~isempty(m2c_opts.cflags)
     % Overwrite cflags
     cflags = sprintf(' %s ', m2c_opts.cflags{:});
 end
+if ~isempty(m2c_opts.petscInc)
+    % Append petscInc to cflags
+    cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
+end
 
 if m2c_opts.verbose; cflags = ['-v ' cflags]; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
+libs = [libs sprintf(' %s ', m2c_opts.efenceLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.efence{:})];
-
+libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
 
 % Place exe file in the same directory as the M file.
 exedir = '../../../';
 
-[~, signature] = ckCompOpt(m2c_opts, 'exe');
+[~, signature] = ckSignature(m2c_opts, 'exe');
 
 fprintf(fid, '%s\n', ...
     ['% Build script for ' funcname], signature, '', ...
@@ -84,7 +96,7 @@ fprintf(fid, '%s\n', ...
     '    incdir = [matlabroot ''/extern/include''];', ...
     '    bindir = [matlabroot ''/bin/'' lower(computer)];', ...
     '    if isequal(computer, ''MACI64'')', ...
-    '        matlibs = [''-L'' bindir '' -Wl,-rpath -Wl,'' bindir '' -lmat -lmx -lm''];', ...
+    '        matlibs = [''-L'' bindir '' -Wl,-rpath,'' bindir '' -lmat -lmx -lm''];', ...
     '    elseif isequal(computer, ''GLNXA64'')', ...
     '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
     '    else', ...

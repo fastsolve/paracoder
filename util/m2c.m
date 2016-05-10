@@ -18,20 +18,41 @@ function m2c(varargin)
 %  The options for m2c have several groups, defined as follows:
 %
 % CODE GENERATION
-%     -api {...}
-%           List functions for generating API calls. The arguments is a cell
-%           array of character strings. E.g., -api {'func1', 'func2'}. Each
-%           string can be a MATLAB expression. An API function must not be
-%           inlined, which can be ensured by adding coder.inline('never')
-%           in the M code. Note that the top-level function is automatically
-%           an API function and need not be listed. This argument can be
-%           repeated, and then the functions will be concatenated.
+%     -force
+%           Force to regenerate the C code.
+%     -inline
+%           Enable function inlining in MATLAB Coder. This is the default
+%           with -O1, -O2 and -O3, and it overwrites the value set by -O0.
+%     -no-inline
+%           Disable function inlining in MATLAB Coder. This is the default
+%            with -O0, and it overwrites the value set by -O1, -O2, and -O3.
 %     -no-inf
 %     -noinf
 %           Disable support of NonFinite (inf and nan). It produces faster codes.
 %           This is the default.
 %     -inf
 %           Enable support of NonFinite (inf and nan). It produces slower codes.
+%     -config 'objname'
+%     -config {'expression'}
+%           Use the given coder.CodeConfig object for codegen. The argument
+%           is a string contained a variable or function name that evaluates
+%           to a coder.CodeConfig object in the MATLAB base workspace.
+%           When this option is specified, code generation is forced.
+%           If string is contained in a cell array, then the string can
+%           be a MATLAB expression that evaluates to a character string.
+%           This overwrites the default values used by m2c, except that the
+%           headers for MPI, OpenMP etc. are appended to the given CustomSourceCode.
+%     -api
+%     -api 'func'
+%     -api {'expression1, 'expression2', ...}
+%           Request m2c to generate API code to the list of functions and
+%           include them in the header file. The argument list may be the
+%           name of a single function or a cell array of MATLAB expressions
+%           that evaluate to the names of the functions. An API function must
+%           not be inlined, which can be ensured by adding coder.inline('never')
+%           in the M code. Note that the top-level function is automatically
+%           an API function and need not be listed. This argument can be
+%           repeated, and then the functions will be concatenated.
 %
 % OPTIMIZATION
 %     -O0
@@ -49,32 +70,33 @@ function m2c(varargin)
 %           Enable function inlining for MATLAB Coder and also pass the -O3
 %           compiler option to the C compiler to enable all supported
 %           optimizations, including loop unrolling and function inlining.
-%     -inline
-%           Enable function inlining in MATLAB Coder. This is the default with
-%           -O1, -O2 and -O3, and it overwrites the value set by -O0.
-%     -no-inline
-%           Disable function inlining in MATLAB Coder. This is the default with
-%           -O0, and it overwrites the value set by -O1, -O2, and -O3.
 %
 % PROFILING AND INSTRUMENTATION
 %     -time
-%     -time {...} [Not yet implemented]
-%           List of functions for timing. The argument list is a cell array
-%           of character strings. E.g., -time {'func1', 'func2'}. Each string
-%           can be a MATLAB expression. The function to be timed must not
-%           be inlined functions. This can be ensured by adding
-%           coder.inline('never') in the M code. If the list is not given
-%           after -time, then only the top-level function will be timed.
+%     -time 'func'
+%     -time {'expression1, 'expression2', ...} [Not yet implemented]
+%           List of functions for timing. The argument list may be the name
+%           of a single function or a cell array of expressions that
+%           evaluate to the names of the functions to be timed. These
+%           functions must not be inlined. This can be ensured by
+%           adding coder.inline('never') in the M fiile. If no function is
+%           given after -time, then the top-level function will be timed.
+%           This argument can be repeated, and then the functions will 
+%           be concatenated.
 %     -gprof
-%     -gprof {...}
+%     -gprof 'gprof command'
+%     -gprof {'expression'}
 %           Compile standalone code with profiling support and generate
 %           a script to process results from gprof (Linux only).
-%           The gprof command can be specified in the arglist.
+%           The gprof command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
 %     -gcov
-%     -gcov {...}
+%     -gcov 'gcov command'
+%     -gcov {'expression'}
 %           Compile standalone code with profiling support and generate
 %           a script to process results from gcov (Linux and Mac).
-%           The gcov command can be specified in the arglist.
+%           The gcov command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
 %
 % DEBUGGING
 %     -g
@@ -84,35 +106,39 @@ function m2c(varargin)
 %           Generate a MATLAB script for running the exe file from within
 %           MATLAB for debugging in place of the M-file (Linux and Mac).
 %     -ddd
-%     -ddd {...}
+%     -ddd 'ddd command'
+%     -ddd {'expression'}
 %           Generate a script for running the standalone executable in ddd.
-%           The ddd command can be listed in the arglist.
+%           The ddd command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
 %     -valgrind
-%     -valgrind {...}
+%     -valgrind 'valgrind command'
+%     -valgrind {'expression'}
 %           Generate a script for running the standalone executable in valgrind.
-%           The valgrind command can be listed in the arglist.
+%           The valgrind command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
 %
 % BUILD CUSTOMIZATION
-%     -cc {...}
+%     -cc 'c-compiler command'
+%     -cc {'expression'}
 %           Specify the C compiler. It overwrites the default complier
-%           choice for both the mex file and the standalone executable. The
-%           argument list is a cell array of character strings. E.g.,
-%           -cc {'/usr/bin/gcc', '-Wall'}. Each string can be a MATLAB.
-%            expression. The compiler is also used as linker.
-%     -cflags {...}
+%           choice for both the mex file and the standalone executable.
+%           The cc command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
+%     -cflags {'flag1', 'flag2', ...}
 %           Specify additional flags for the C compiler for building the
 %           mex file and the standalone executable. The argument list
 %           is a cell array of character strings. E.g.,
 %           -cflags {'-O3 -NDEBUG'}. Each string can be a MATLAB expression.
 %           It overwrites the default compiler flags set by -O?, -g, -gprof,
 %           -gcov and any supported external libraries.
-%     -mexflags {...}
+%     -mexflags {'flag1', 'flag2', ...}
 %           Specify flags for the mex command. It overwrites the flags
 %           assigned by -O?, -cc -cflags options. The argument
 %           list is a cell array of character strings. E.g.,
 %           -mexflags {'COPTIMFLAGS=''-O3 -NDEBUG'''}. Each string can be
 %           a MATLAB expression.
-%     -libs {...}
+%     -libs {'-Ldir1', '-llib1', '-llib2', ...}
 %           Specify additional libraries for linker when building both
 %           the mex file and the standalone executable. The argument list
 %           is a cell array of character strings. E.g.,
@@ -122,46 +148,46 @@ function m2c(varargin)
 %
 % SUPPORTED EXTERNAL LIBRARIES
 %     -mpi
-%     -mpi {...}
+%     -mpi {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable support for MPI. The argument list is a cell array of
 %           character strings to be passed to the C compiler and linker.
 %           Each string can be a MATLAB expression. It requires MMPI.
 %     -omp
-%     -omp {...}
+%     -omp {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable support for OpenMP. The argument list is a cell array of
 %           character strings to be passed to the C compiler and linker.
 %           Each string can be a MATLAB expression. It requires MACC.
 %     -acc
-%     -acc {...}
+%     -acc {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable support for OpenACC. The argument list is a cell array of
 %           character strings to be passed to the C compiler and linker.
 %           Each string can be a MATLAB expression. It requires MACC.
 %     -petsc
-%     -petsc {...} [Not yet implemented]
-%           Enable support for OpenACC. The argument list is a cell array of
-%           character strings to be passed to the C compiler and linker.
-%           Each string can be a MATLAB expression. It requires MACC.
+%     -petsc 'petsc-directory'
+%     -petsc {'expression'}
+%           Enable support for PETSc. The root directory of PETSc can be
+%           specified as a character string, or a MATLAB expression
+%           contained in a cell array. The default path can be extracted
+%           from the environment variables PETSC_DIR and PETSC_ARCH.
 %     -lapack
-%     -lapack {...}
+%     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable LAPACKE and link with the LAPACK library specified in
 %           the list. The argument list is a cell array of character strings
 %           to be passed to the C compiler and linker. Each string can be
 %           a MATLAB expression. If the cell array is empty, then the
 %           MATLAB built-in LAPACK library will be used.
 %     -efence
-%     -efence {...}
+%     -efence {'-Ldir1', '-llib1', '-llib2', ...}
 %           Link the standalone executable with electric-fence for
 %           debugging memory errors. The argument list is a cell array of
 %           character string to be passed to the linker, such as
-%  	        -efence {'-L/opt/local/lib', '-lefence'}. Each string can be
+%  	        -efence {'-L/usr/local/lib', '-lefence'}. Each string can be
 %           a MATLAB expression. It is most useful in conjunction with
 %           a debugger, such as ddd, for debugging segmentation faults.
 %
 % MISCELLANEOUS
 %     -mex
 %           Build the mex command in addition to generating the C files.
-%     -force
-%           Force to regenerate the C code.
 %     -v
 %           Verbose mode.
 %     -?
@@ -169,9 +195,7 @@ function m2c(varargin)
 %     -help
 %           Print out help.
 %
-%     Note: Any unrecognized option will be passed to codegen.
-%
-%     Example usage:
+% Example usage:
 %       To generate code without MATLAB function inlining and with
 %       default C compiler optimization flag (-O0):
 %            m2c matlabfunc
@@ -205,115 +229,131 @@ if isempty(matlabFunc)
     error('Missing function in the argument list.');
 end
 
+%% Set default values for inline, force and genExe
+if isempty(m2c_opts.enableInline)
+    m2c_opts.enableInline = m2c_opts.optLevel ~= '0';
+end
+
+% Force code generation if config is specified
+if ~isempty(m2c_opts.codegenConfig)
+    m2c_opts.force = true;
+end
+
+m2c_opts.genExe = m2c_opts.genExe || ...
+    ~isempty(m2c_opts.valgrind) || ~isempty(m2c_opts.ddd) || ...
+    ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
+
+if m2c_opts.genExe && ~isunix()
+    fprintf('Warning: Building executable is not supported on Windows PCs\n');
+    m2c_opts.genExe = false;
+end
+
 %% Process arguments
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile(matlabFunc);
 cpath = [mpath 'codegen/lib/' func '/'];
-
-% Determine whether to include mpi.h
-if ckuse(mfile, 'MMPI_require_header')
-    mpi_header = '#include "mpi.h"';
-    if ~isempty(m2c_opts.mpiLibs);
-        disp('MPI is required. Enabled automatically.');
-        opt = proc_options('-mpi'); m2c_opts.mpiLibs = opt.mpiLibs;
-    end
-else
-    mpi_header = '';
-    if ~isempty(m2c_opts.mpiLibs)
-        disp('MPI is not required. Disabled.');
-        m2c_opts.mpiLibs = {};
-    end
-end
-
-% Determine whether to include omp.h
-if ckuse(mfile, 'MACC_require_header')
-    if isempty(m2c_opts.accLibs) && isempty(m2c_opts.ompLibs)
-        disp('OpenMP or OpenACC is required. Enabling OpenMP.');
-        opt = proc_options('-omp'); m2c_opts.ompLibs = opt.ompLibs;
-    end
-    
-    if isempty(m2c_opts.ompLibs)
-        acc_header = '#include "omp.h"';
-    elseif isempty(m2c_opts.accLibs)
-        acc_header = '#include "openacc.h"';
-    else
-        acc_header = '';
-    end
-else
-    acc_header = '';
-    if ~isempty(m2c_opts.ompLibs)
-        disp('OpenMP are not required. Disabled.');
-        m2c_opts.ompLibs = {};
-    end
-    if ~isempty(m2c_opts.accLibs)
-        disp('OpenAcc is not required. Disabled.');
-        m2c_opts.accLibs = {};
-    end
-end
 
 if isempty(m2c_opts.codegenArgs) || ~isequal(m2c_opts.codegenArgs(1:5), -args)
     % Extract arguments from source code.
     m2c_opts.codegenArgs = [extract_codegen_args(mfile) ' ' m2c_opts.codegenArgs];
 end
 
-regen_c = m2c_opts.force || ...
-    ~ckCompOpt(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
-    ~ckdep([cpath  func '_mex.c'], mfile);
+if m2c_opts.force && exist([mpath func '.' mexext], 'file')
+    delete([mpath func '.' mexext]);
+end
 
-if ~regen_c
-    disp(['C code for ' func ' is up to date.']);
+% Determine whether to include mpi.h
+if ~isempty(m2c_opts.mpiLibs)
+    mpi_header = '#include "mpi.h"';
 else
+    mpi_header = '';
+end
+
+% Determine whether to include omp.h
+if ~isempty(m2c_opts.ompLibs)
+    acc_header = '#include "omp.h"';
+elseif ~isempty(m2c_opts.accLibs)
+    acc_header = '#include "openacc.h"';
+else
+    acc_header = '';
+end
+
+if ~isempty(m2c_opts.petscLibs)
+    petsc_header = sprintf('\n%s', '#include "petscsys.h"', '#include "petscksp.h"');
+else
+    petsc_header = '';
+end
+
+regen_c = m2c_opts.force || ...
+    isnewer(mfile, [cpath  func '_mex.c']) || ...
+    ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']);
+
+if regen_c
     % Determine whether you have codegen.
     if ~exist('codegen.p', 'file')
         error('m2c:MissingCoder', 'MATLAB Coder is required to generate C code.');
     end
     
-    %% Specify codegen config options
-    co_cfg = coder.config('lib');
-    co_cfg.SaturateOnIntegerOverflow = false;
-    co_cfg.EnableVariableSizing = true;
-    cfg.PassStructByReference = true;
-    co_cfg.EnableMemcpy = true;
-    
-    co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
-    co_cfg.FilePartitionMethod = 'SingleFile';
-    warning('off', 'CoderFoundation:builder:TMFIncompatibilityWarningMATLABCoder');
-    
-    co_cfg.GenerateMakefile = false;
-    co_cfg.GenCodeOnly = true;
-    co_cfg.GenerateReport = true;
-    co_cfg.InitFltsAndDblsToZero = false;
-    co_cfg.SupportNonFinite = m2c_opts.enableInf;
-    
-    if m2c_opts.useCpp
-        co_cfg.TargetLang = 'C++';
-        m2c_opts.suf = 'cpp';
-        warning('C++ code generation is not supported. Use at your own risk.');
+    if ~isempty(m2c_opts.codegenConfig)
+        co_cfg = evalin('base', sprintf('%s', m2c_opts.codegenConfig{1}));
+        
+        if isempty(co_cfg) || ~isa(co_cfg, 'coder.CodeConfig')
+            error('m2c:WrongArgument', ['The argument after -config must evaluate to a coder.CodeConfig ' ...
+                'object. Received %s Use command coder.config(''lib'') to create the object'], ...
+                m2c_opts.codegenConfig{1});
+        end
     else
-        co_cfg.TargetLang = 'C';
-        m2c_opts.suf = 'c';
+        %% Specify codegen config options
+        co_cfg = coder.config('lib');
+        
+        co_cfg.SaturateOnIntegerOverflow = false;
+        co_cfg.EnableVariableSizing = true;
+        cfg.PassStructByReference = true;
+        co_cfg.EnableMemcpy = true;
+        
+        co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
+        co_cfg.FilePartitionMethod = 'SingleFile';
+        
+        co_cfg.GenerateMakefile = false;
+        co_cfg.GenCodeOnly = true;
+        co_cfg.GenerateReport = true;
+        co_cfg.InitFltsAndDblsToZero = false;
+        co_cfg.SupportNonFinite = m2c_opts.enableInf;
+        
+        if m2c_opts.useCpp
+            co_cfg.TargetLang = 'C++';
+            m2c_opts.suf = 'cpp';
+        else
+            co_cfg.TargetLang = 'C';
+            m2c_opts.suf = 'c';
+        end
+        
+        try co_cfg.CustomSymbolStrTmpVar = '$M$N';
+        catch; end
+        try co_cfg.MultiInstanceCode = true;
+        catch; end
+        try co_cfg.GenerateComments = m2c_opts.debugInfo;
+        catch; end
+        try co_cfg.MATLABFcnDesc = m2c_opts.debugInfo;
+        catch; end
+        try co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
+        catch; end
+        try co_cfg.PassStructByReference = true;
+        catch; end
+        
+        if ~isempty(m2c_opts.lapackLibs)
+            try co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
+            catch; end %#ok<CTCH>
+        end
     end
     
-    co_cfg.CustomSourceCode = sprintf('%s\n',...
-        mpi_header, acc_header, '#include "m2c.h"');
-    
-    try co_cfg.CustomSymbolStrTmpVar = '$M$N';
-    catch; end
-    try co_cfg.MultiInstanceCode = true;
-    catch; end
-    try co_cfg.GenerateComments = m2c_opts.debugInfo;
-    catch; end
-    try co_cfg.MATLABFcnDesc = m2c_opts.debugInfo;
-    catch; end
-    try co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
-    catch; end
-    try co_cfg.PassStructByReference = true;
-    catch; end
-    
-    if ~isempty(m2c_opts.lapackLibs)
-        try co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
-        catch; end %#ok<CTCH>
+    warning('off', 'CoderFoundation:builder:TMFIncompatibilityWarningMATLABCoder');
+    if isequal(co_cfg.TargetLang, 'C++')
+        warning('C++ code generation is not supported. Use at your own risk.');
     end
+
+    co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode, ...
+        mpi_header, acc_header, petsc_header, '#include "m2c.h"');
     
     %% Run command
     if m2c_opts.verbose
@@ -352,17 +392,17 @@ else
     
     % Write Mex file to annotate the options used in codegen
     writeMexFile(func, mpath, cpath, m2c_opts);
-        
+    
     % Write README file
     writeREADME(func, cpath, m2c_opts.genExe);
-
+    
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
 end
 
 %% Generate MATLAB scripts for mex
-if regen_c || ~ckCompOpt(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
+if regen_c || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
     writeMexScript(func, cpath, m2c_opts);
 end
 
@@ -375,12 +415,12 @@ end
 
 %% Generate MATLAB scripts for exe if genexe is true.
 if m2c_opts.genExe
-    if regen_c || ~ckdep([cpath  func '_exe.c'], mfile)
+    if regen_c
         % Write the main function for Exe
         writeExeFile(func, cpath, m2c_opts);
     end
     
-    if regen_c || ~ckCompOpt(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
+    if regen_c || ~ckSignature(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
         % Write the build script for Exe
         writeExeScripts(func, cpath, m2c_opts);
     end
@@ -401,9 +441,10 @@ if nargin==0
     return;
 end
 
-% If default value is {}, use [] in place of {} and re-assign default 
+% If default value is {}, use [] in place of {} and re-assign default
 % value to {} at the end.
 m2c_opts = struct('codegenArgs', '', ...
+    'codegenConfig', [], ...
     'debugInfo', false, ...
     'enableInline', [], ...
     'optLevel', '0', ...
@@ -418,12 +459,16 @@ m2c_opts = struct('codegenArgs', '', ...
     'ompLibs', [], ...
     'accLibs', [], ...
     'lapackLibs', [], ...
+    'petscDir', [], ...
+    'petscCC', [], ...
+    'petscCXX', [], ...
+    'petscInc', [], ...
     'petscLibs', [], ...
     'gprof', [], ...
     'gcov', [], ...
     'valgrind', [], ...
     'ddd', [], ...
-    'efence', [], ...
+    'efenceLibs', [], ...
     'genMex', false, ...
     'genExe', false, ...
     'useCpp', false, ...
@@ -432,8 +477,25 @@ m2c_opts = struct('codegenArgs', '', ...
     'force', false, ...
     'gen64', false);
 
+% Locate -args in the argument
+func_index = length(varargin);
+for i=1:length(varargin)
+    if isequal(varargin{i}, '-args')
+        func_index = i-1;
+        break;
+    end
+end
+
+if func_index>=1 && exist(varargin{func_index}, 'file')
+    func = varargin{func_index};
+else
+    error('m2c:InvalidFileName', 'Function name %s is invalid.', varargin{func_index});
+end
+m2c_opts.codegenArgs = strtrim(sprintf(' %s', varargin{func_index+1:end}));
+
 i = 1;
-while i<=length(varargin)
+last_index = func_index-1;
+while i<=last_index
     switch varargin{i}
         case '-force'
             m2c_opts.force = true;
@@ -460,47 +522,129 @@ while i<=length(varargin)
         case '-inf'
             m2c_opts.enableInf = true;
         case '-time'
-            if i<length(varargin) && varargin{i+1}(1) == '{'
+            if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.timing = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.timing = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.timing = {''};
             end
-        case '-efence'
-            if i<length(varargin) && varargin{i+1}(1) == '{'
-                m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
+        case '-api'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.api = eval(varargin{i+1});
                 i = i + 1;
-            elseif isfield(defaultValues, varargin{i}(2:end))
-                m2c_opts.efence = {'-lefence'};
-            end
-        case '-lapack'
-            if i<length(varargin) && varargin{i+1}(1) == '{'
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.api = varargin(i+1);
                 i = i + 1;
             else
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = {'-lmwlapack', '-lmwblas'};
+                m2c_opts.api = {''};
             end
-        case {'-api', '-valgrind', '-ddd', '-gprof', '-gcov'}
-            if i<length(varargin) && varargin{i+1}(1) == '{'
+        case '-efence'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.efenceLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.efenceLibs = varargin(i+1);
+                i = i + 1;
+            elseif isfield(defaultValues, varargin{i}(2:end))
+                m2c_opts.efenceLibs = {'-lefence'};
+            end
+        case {'-valgrind', '-ddd', '-gprof', '-gcov'}
+            if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.(varargin{i}(2:end)) = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.(varargin{i}(2:end)) = {''};
             end
         case {'-cc', '-libs', '-mexflags', '-cflags'}
-            if i<length(varargin) && varargin{i+1}(1) == '{'
+            if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.(varargin{i}(2:end)) = varargin(i+1);
                 i = i + 1;
             else
                 warning('m2c:wrong_argument', ...
-                    'Argument %s requires a cell-array argument after it. Ignored', opt);
+                    'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
             end
-        case {'-mpi', '-omp', '-acc', '-petsc'}
-            if i<length(varargin) && varargin{i+1}(1) == '{'
+        case '-lapack'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.lapackLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.lapackLibs = varargin(i+1);
+                i = i + 1;
+            else
+                m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
+            end
+        case '-petsc'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.petscDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.petscDir = varargin(i+1);
+                i = i + 1;
+            else
+                if ~isempty(getenv('PETSC_DIR')) && ~isempty(getenv('PETSC_ARCH'))
+                    m2c_opts.petscDir = {[getenv('PETSC_DIR') '/' getenv('PETSC_ARCH')]};
+                elseif ~isempty(getenv('PETSC_DIR'))
+                    m2c_opts.petscDir = {getenv('PETSC_DIR')};
+                else
+                    error('m2c:petsc_dir', ...
+                        ['Root directory of PETSc must be given after the ' ...
+                        '-petsc flag or be specified by environment variable PETSC_DIR.']);
+                end
+            end
+            
+            petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
+            if ~exist(petscvariables, 'file')
+                error('m2c:petsc_dir', ...
+                    ['Could not locate file lib/petsc/conf/petscvariables ' ...
+                    'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
+            end
+            
+            if ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.so'], 'file') && ...
+                    ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.dylib'], 'file')
+                warning('m2c:petsc', ...
+                    'PETSc must be built as a shared library in order to be used in MATLAB. ');
+            end
+            
+            [PCC, CXX] = obtain_petscCC(petscvariables);
+            if isempty(PCC)
+                error('m2c:petsc_dir', ...
+                    ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
+                    'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
+            else
+                m2c_opts.petscCC = {PCC};
+                m2c_opts.petscCXX = {CXX};
+            end
+            m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include']};
+            m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
+        case {'-mpi', '-omp', '-acc'}
+            if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i}(i+1) ~= '-'
+                m2c_opts.([varargin{i}(2:end) 'Libs']) = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = {''};
+            end
+        case '-config'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.codegenConfig = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i}(i+1) ~= '-'
+                m2c_opts.codegenConfig = varargin(i+1);
+                i = i + 1;
+            else
+                warning('m2c:wrong_argument', ...
+                    'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
             end
         case '-v'
             m2c_opts.verbose = true;
@@ -516,32 +660,10 @@ while i<=length(varargin)
             m2c_opts = [];
             return;
         otherwise
-            if varargin{i}(1) == '-'
-                error('m2c:wrong_argument', ...
-                    'Unrecognized argument %s.', varargin{i});
-            elseif varargin{i}(1) == '{'
-                error('m2c:wrong_argument', ...
-                    'Unxpected argument %s.', varargin{i});
-            else
-                func = varargin{i};
-                m2c_opts.codegenArgs = strtrim(sprintf(' %s', varargin{i+1:end}));
-                break;
-            end
+            error('m2c:wrong_argument', ...
+                'Unrecognized argument %s.', varargin{i});
     end
     i = i +1;
-end
-
-if isempty(m2c_opts.enableInline)
-    m2c_opts.enableInline = m2c_opts.optLevel ~= '0';
-end
-
-m2c_opts.genExe = m2c_opts.genExe || ...
-    ~isempty(m2c_opts.valgrind) || ~isempty(m2c_opts.ddd) || ...
-    ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
-
-if m2c_opts.genExe && ~isunix()
-    fprintf('Warning: Building executable is not supported on Windows PCs\n');
-    m2c_opts.genExe = false;
 end
 
 names = fieldnames(m2c_opts);
@@ -565,4 +687,30 @@ command = [cpath 'build_' func '_exe.m'];
 
 clear(command);
 if exist(command, 'file'); run(command); end
+end
+
+function [PCC, CXX] = obtain_petscCC(filename)
+% Obtian the PCC and CXX commands from the petscvariables file
+str = readFile(filename);
+pat = '\nPCC\s*=\s*([^\n]+)\n';
+
+pccdef = regexp(str, pat, 'match', 'once');
+
+if ~isempty(pccdef)
+    PCC = strtrim(regexprep(pccdef, pat, '$1'));
+else
+    PCC = '';
+end
+
+if nargout>1
+    pat = '\nCXX\s*=\s*([^\n]+)\n';
+    
+    pccdef = regexp(str, pat, 'match', 'once');
+    
+    if ~isempty(pccdef)
+        CXX = strtrim(regexprep(pccdef, pat, '$1'));
+    else
+        CXX = '';
+    end
+end
 end

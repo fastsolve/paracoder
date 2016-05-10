@@ -1,33 +1,7 @@
 function msg_error(varargin) %#codegen
-%msg_fatal Issue a fatal error message.
-%   It takes one or more input arguments.
-% Note that if you use %s in the format, the character string must be
-% null-terminated.
+%msg_error is now m2c_error.
+%
+% SEE ALSO: m2c_error, m2c_warn, m2c_printf
 
-coder.extrinsic('error');
-coder.inline('never');
-
-if isempty(coder.target) || isequal( coder.target, 'mex')
-    error( varargin{:});
-elseif nargin==1 || ischar( varargin{1}) && ~ischar(varargin{2})
-    if coder.ismatlabthread
-        fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-        
-        coder.ceval( 'mexErrMsgIdAndTxt', ...
-            coder.opaque('const char *', '"runtime:Error"'), ...
-            fmt, varargin{2:end});
-    else
-        fmt = coder.opaque( 'const char *', ['"Error\n' varargin{1} '"']);
-        coder.ceval( 'printf', fmt, varargin{2:end});
-    end
-else
-    msgid = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-    
-    if coder.ismatlabthread
-        fmt = coder.opaque( 'const char *', ['"' varargin{2} '"']);
-        coder.ceval( 'mexErrMsgIdAndTxt', msgid, fmt, varargin{3:end});
-    else
-        fmt = coder.opaque( 'const char *', ['"Error %s\n' varargin{2} '"']);
-        coder.ceval( 'printf', fmt, msgid, varargin{3:end});
-    end
-end
+coder.inline('always');
+m2c_error(varargin{:});

@@ -27,14 +27,6 @@ typedef struct emxArray__common
 #endif
 #define CGEN_MAXDIM 10
 
-#ifndef MATLAB_MEX_FILE
-/* Issue formatted error message with corresponding error identifier */
-void mexErrMsgIdAndTxt(const char * id, const char * msg, ...) {
-    fprintf(stderr, "Error %s: %s\n", id, msg);
-    abort();
-}
-#endif
-
 /*****************************************************************
  * Initialize an emxArray.
  *****************************************************************/
@@ -511,3 +503,17 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
 }
 
 #undef CGEN_MAXDIM
+
+#ifndef MATLAB_MEX_FILE
+/* Issue formatted warning message with corresponding warning identifier */
+void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...) {
+    fprintf(stderr, "Warning %s: %s\n", id, msg);
+}
+
+/* Issue formatted error message with corresponding error identifier */
+void mexErrMsgIdAndTxt(const char * id, const char * msg, ...) {
+    fprintf(stderr, "Error %s: %s\n", id, msg);
+    abort();
+}
+
+#endif
