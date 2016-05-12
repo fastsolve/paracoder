@@ -506,13 +506,25 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
 
 #ifndef MATLAB_MEX_FILE
 /* Issue formatted warning message with corresponding warning identifier */
-void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...) {
-    fprintf(stderr, "Warning %s: %s\n", id, msg);
+void M2C_warn(const char * id, const char * msg, ...) {
+    va_list args;
+
+    fprintf(stderr, "Warning %s:\n", id);
+    va_start (args, msg);
+    vfprintf (stderr, msg, args);
+    va_end (args);
 }
 
 /* Issue formatted error message with corresponding error identifier */
-void mexErrMsgIdAndTxt(const char * id, const char * msg, ...) {
-    fprintf(stderr, "Error %s: %s\n", id, msg);
+void M2C_error(const char * id, const char * msg, ...) {
+    va_list args;
+
+    fprintf(stderr, "Error %s:\n", id);
+
+    va_start (args, msg);
+    vfprintf (stderr, msg, args);
+    va_end (args);
+
     abort();
 }
 

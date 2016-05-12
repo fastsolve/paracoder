@@ -15,32 +15,19 @@ function m2c_error(varargin) %#codegen
 %
 % SEE ALSO: m2c_print, m2c_warn
 
-coder.extrinsic('error');
-coder.inline('never');
+coder.inline('always');
 
-if coder.target('MATLAB') || isequal( coder.target, 'mex')
+if coder.target('MATLAB')
     error(varargin{:});
 elseif nargin==1 || ischar(varargin{1}) && ~ischar(varargin{2})
-    if coder.ismatlabthread
-        fmt = coder.opaque('const char *', ['"' varargin{1} '"']);
+    fmt = coder.opaque('const char *', ['"' varargin{1} '"']);
         
-        coder.ceval('mexErrMsgIdAndTxt', ...
+    coder.ceval('M2C_error', ...
             coder.opaque('const char *', '"runtime:Error"'), ...
             fmt, varargin{2:end});
-    else
-        fmt = coder.opaque('const char *', ['"Error\n' varargin{1} '"']);
-        coder.ceval('printf', fmt, varargin{2:end});
-        coder.ceval('abort');
-    end
 else
     msgid = coder.opaque('const char *', ['"' varargin{1} '"']);
    
-    if coder.ismatlabthread
-        fmt = coder.opaque('const char *', ['"' varargin{2} '"']);
-        coder.ceval('mexErrMsgIdAndTxt', msgid, fmt, varargin{3:end});
-    else
-        fmt = coder.opaque('const char *', ['"Error %s\n' varargin{2} '"']);
-        coder.ceval('printf', fmt, msgid, varargin{3:end});
-        coder.ceval('abort');
-    end
+    fmt = coder.opaque('const char *', ['"' varargin{2} '"']);
+    coder.ceval('M2C_error', msgid, fmt, varargin{3:end});
 end

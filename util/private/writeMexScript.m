@@ -13,7 +13,7 @@ if (fid<0); error('m2c:OpenOutputFile', msg); end
 mexflags = '';
 
 CC = '';
-if ~isempty(m2c_opts.petscDir)
+if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
     % PETSc for CC and add the include path.
     if m2c_opts.useCpp
@@ -21,11 +21,11 @@ if ~isempty(m2c_opts.petscDir)
     else
         CC = m2c_opts.petscCC{1};
     end
-elseif isempty(m2c_opts.cc) && ismac && ~isempty(m2c_opts.ompLibs)
+elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     % Try to locate gcc-mp, with support of OpenMP
     [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
     if ~found
-        if ~isempty(m2c_opts.ompLibs)
+        if m2c_opts.withOMP
             warning('m2c:buildEXE', 'OpenMP is disabled.');
             m2c_opts.ompLibs = {};
         end
@@ -40,9 +40,9 @@ end
 
 switch m2c_opts.optLevel
     case '0'
-        cflags = ['-O' m2c_opts.optLevel];
+        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1'];
     case {'1','2','3'}
-        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG'];
+        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0'];
     otherwise
         cflags = '';
 end
@@ -62,7 +62,7 @@ if ~isempty(m2c_opts.mexflags)
     mexflags = sprintf(' %s ', m2c_opts.mexflags{:});
 end
 
-if ~isempty(m2c_opts.petscInc)
+if m2c_opts.withPetsc
     % Append mexflags using petscInc
     mexflags = [mexflags sprintf(' %s ', m2c_opts.petscInc{:})];
 end

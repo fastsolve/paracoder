@@ -14,13 +14,12 @@ function m2c_printf(varargin) %#codegen
 % SEE ALSO: m2c_error, m2c_warn
 
 
-coder.extrinsic('fprintf');
-coder.inline('never');
+coder.inline('always');
 
-if coder.target('MATLAB') || isequal( coder.target, 'mex')
+if coder.target('MATLAB')
     fprintf(1, varargin{:});
 else
     assert( nargin>=1);
     fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-    coder.ceval( 'printf', fmt, varargin{2:end});
+    coder.ceval( 'M2C_printf', fmt, varargin{2:end});
 end

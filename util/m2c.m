@@ -263,22 +263,22 @@ if m2c_opts.force && exist([mpath func '.' mexext], 'file')
 end
 
 % Determine whether to include mpi.h
-if ~isempty(m2c_opts.mpiLibs)
+if m2c_opts.withMPI
     mpi_header = '#include "mpi.h"';
 else
     mpi_header = '';
 end
 
 % Determine whether to include omp.h
-if ~isempty(m2c_opts.ompLibs)
+if m2c_opts.withOMP
     acc_header = '#include "omp.h"';
-elseif ~isempty(m2c_opts.accLibs)
+elseif m2c_opts.withACC
     acc_header = '#include "openacc.h"';
 else
     acc_header = '';
 end
 
-if ~isempty(m2c_opts.petscLibs)
+if m2c_opts.withPetsc
     petsc_header = sprintf('\n%s', '#include "petscsys.h"', '#include "petscksp.h"');
 else
     petsc_header = '';
@@ -341,7 +341,7 @@ if regen_c
         try co_cfg.PassStructByReference = true;
         catch; end
         
-        if ~isempty(m2c_opts.lapackLibs)
+        if m2c_opts.withLapack
             try co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
             catch; end %#ok<CTCH>
         end
@@ -455,10 +455,15 @@ m2c_opts = struct('codegenArgs', '', ...
     'libs', [], ...
     'cflags', [], ...
     'mexflags', [], ...
+    'withMPI', false, ...
     'mpiLibs', [], ...
+    'withOMP', false, ...
     'ompLibs', [], ...
+    'withACC', false, ...
     'accLibs', [], ...
+    'withLapack', false, ...
     'lapackLibs', [], ...
+    'withPetsc', false, ...
     'petscDir', [], ...
     'petscCC', [], ...
     'petscCXX', [], ...
@@ -582,6 +587,7 @@ while i<=last_index
             else
                 m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
             end
+            m2c_opts.withLapack = true;
         case '-petsc'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.petscDir = eval(varargin{i+1});
@@ -625,7 +631,9 @@ while i<=last_index
             end
             m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include']};
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
+            m2c_opts.withPetsc = true;
         case {'-mpi', '-omp', '-acc'}
+            m2c_opts.(['with' upper(varargin{i}(2:end))])= true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
                 i = i + 1;

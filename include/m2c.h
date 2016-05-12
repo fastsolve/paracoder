@@ -8,21 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define M2C_OFFSET_PTR(ptr,offset)    ((char *)ptr)+(offset)
-#define M2C_GET_FIELD(s,field)        s.field
-#define M2C_GET_FIELD_IND(s,field)    s->field
-#define M2C_BEGIN_REGION()            {
-#define M2C_END_REGION()              }
-
-typedef int int32_triple[3];
-typedef int int32_double[2];
-
-extern double M2C_wtime();
-
-#ifndef ONCUDA
-# define ONCUDA (255U)
-#endif
-
 #if defined(MATLAB_MEX_FILE) || defined(BUILD_MAT) 
 
 extern void *mxMalloc(size_t n);
@@ -32,30 +17,67 @@ extern void mxFree(void *ptr);
 
 extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
 extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+extern int  mexPrintf(const char * msg, ...);
 
 /* Define macros to support building function into MATLAB executable. */
 #define malloc  mxMalloc
 #define calloc  mxCalloc
 #define realloc mxRealloc
 #define free    mxFree
+
+#define M2C_error   mexErrMsgIdAndTxt
+#define M2C_warn    mexWarnMsgIdAndTxt
+#define M2C_printf  mexPrintf
+
+#define emlrtIsMATLABThread(s)  1
+
+#else
+
+/* Define M2C_DEBUG to be the opposite of NDEBUG by default. It can be overwritten 
+   by compiler options -DM2C_DEBUG=1 or -DM2C_DEBUG=0 */
+#ifndef M2C_DEBUG
+#ifdef NDEBUG
+#define M2C_DEBUG  0
+#else
+#define M2C_DEBUG  1
+#endif
 #endif
 
+extern void M2C_error(const char * id, const char * msg, ...);
+extern void M2C_warn(const char * id, const char * msg, ...);
+#define M2C_printf  printf
+
+#define emlrtIsMATLABThread(s)  0
+
+#endif
+
+extern double M2C_wtime();
+
+#define M2C_OFFSET_PTR(ptr,offset)    ((char *)ptr)+(offset)
+#define M2C_GET_FIELD(s,field)        s.field
+#define M2C_GET_FIELD_IND(s,field)    s->field
+#define M2C_BEGIN_REGION()            {
+#define M2C_END_REGION()              }
+
+typedef int int32_triple[3];
+typedef int int32_double[2];
+
 #ifdef MATLAB_MEX_FILE
-#define emlrtIsMATLABThread(s)  1
 #define M2C_CHK_OPAQUE_PTR(ptr,parent,offset)                         \
         if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \
         mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \
         "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
-
 #else
 /* Issue formatted error message with corresponding error identifier */
-#define emlrtIsMATLABThread(s)  0
 #define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) 
-
 #endif
 
 #ifndef struct_emxArray__common
 #define struct_emxArray__common
+
+#ifndef ONCUDA
+# define ONCUDA (255U)
+#endif
 
 struct emxArray__common
 {

@@ -12,7 +12,7 @@ clear(outMfile);
 fid = fopen(outMfile, 'w');
 if (fid<0); error('m2c:OpenOutputFile', msg); end
 
-if ~isempty(m2c_opts.petscDir)
+if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
     % PETSc for CC, and add the include path and libraries.
     if m2c_opts.useCpp
@@ -27,7 +27,7 @@ elseif isempty(m2c_opts.cc)
         CC = 'gcc';
     end
 
-    if ismac && ~isempty(m2c_opts.ompLibs)
+    if ismac && m2c_opts.withOMP
         % Try to locate gcc-mp, with support of OpenMP
         [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
         if ~found
@@ -43,9 +43,9 @@ end
 
 switch m2c_opts.optLevel
     case '0',
-        cflags = ['-O' m2c_opts.optLevel ' -g -Wall -Wno-unused-function'];
+        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1 -g -Wall -Wno-unused-function'];
     case {'1','2','3'}
-        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -g -Wall -Wno-unused-function'];
+        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0 -g -Wall -Wno-unused-function'];
     otherwise
         cflags = '-g -Wall -Wunused-function';
 end
@@ -62,7 +62,7 @@ if ~isempty(m2c_opts.cflags)
     % Overwrite cflags
     cflags = sprintf(' %s ', m2c_opts.cflags{:});
 end
-if ~isempty(m2c_opts.petscInc)
+if m2c_opts.withPetsc
     % Append petscInc to cflags
     cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
 end

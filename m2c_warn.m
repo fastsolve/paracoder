@@ -16,30 +16,19 @@ function m2c_warn(varargin) %#codegen
 % SEE ALSO: m2c_print, m2c_error
 
 
-coder.extrinsic('warning');
-coder.inline('never');
+coder.inline('always');
 
-if coder.target('MATLAB') || isequal( coder.target, 'mex')
+if coder.target('MATLAB')
     warning( varargin{:});
 elseif nargin==1 || ischar( varargin{1}) && ~ischar(varargin{2})
-    if coder.ismatlabthread
-        fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
+    fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
         
-        coder.ceval( 'mexWarnMsgIdAndTxt', ...
-            coder.opaque('const char *', '"runtime:Warning"'), ...
-            fmt, varargin{2:end});
-    else
-        fmt = coder.opaque( 'const char *', ['"Warning\n' varargin{1} '"']);
-        coder.ceval( 'printf', fmt, varargin{2:end});
-    end
+    coder.ceval( 'M2C_warn', ...
+        coder.opaque('const char *', '"runtime:Warning"'), ...
+        fmt, varargin{2:end});
 else
     msgid = coder.opaque( 'const char *', ['"' varargin{1} '"']);
     
-    if coder.ismatlabthread
-        fmt = coder.opaque( 'const char *', ['"' varargin{2} '"']);
-        coder.ceval( 'mexWarnMsgIdAndTxt', msgid, fmt, varargin{3:end});
-    else
-        fmt = coder.opaque( 'const char *', ['"Warning %s\n' varargin{2} '"']);
-        coder.ceval( 'printf', fmt, msgid, varargin{3:end});
-    end
+    fmt = coder.opaque( 'const char *', ['"' varargin{2} '"']);
+    coder.ceval( 'M2C_warn', msgid, fmt, varargin{3:end});
 end
