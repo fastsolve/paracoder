@@ -3,10 +3,10 @@ function argout = csize_t(argin) %#codegen
 
 coder.inline('always');
 if isempty(coder.target)
-    if ~isempty( strfind(computer,'64')); argout = uint64(argin);
+    if ~isempty(strfind(computer,'64')); argout = uint64(argin);
     else argout = uint32(argin); end
 else
-    argout = coder.opaque( 'size_t', argin);
+    argout = coder.opaque('size_t', argin);
 end
 
 end

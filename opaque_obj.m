@@ -41,9 +41,19 @@ else
     if ~isempty(data)
         ptr = coder.opaque('char *', 'NULL');
         ptr = coder.ceval('(char *)', coder.rref(data));
-        for i=int32(0):sizepe*nitems-1
-            obj.data(i+1) = coder.ceval('*', ptr);
+        for i=int32(1):sizepe*nitems
+            obj.data(i) = coder.ceval('*', ptr);
             ptr = M2C_offset_ptr(ptr, int32(1));
         end
     end
+end
+end
+
+function ptr = M2C_offset_ptr(ptr, offset) %#codegen
+%Offset a pointer by n bytes
+%   ptr = M2C_OFFSET_PTR(ptr, offset)
+
+coder.inline('always');
+
+ptr = coder.ceval('M2C_OFFSET_PTR', ptr, int32(offset));
 end

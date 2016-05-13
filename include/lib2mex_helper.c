@@ -5,6 +5,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 /* Type Definitions */
 #ifndef struct_emxArray__common

@@ -81,7 +81,7 @@ function m2c(varargin)
 %           functions must not be inlined. This can be ensured by
 %           adding coder.inline('never') in the M fiile. If no function is
 %           given after -time, then the top-level function will be timed.
-%           This argument can be repeated, and then the functions will 
+%           This argument can be repeated, and then the functions will
 %           be concatenated.
 %     -gprof
 %     -gprof 'gprof command'
@@ -351,7 +351,7 @@ if regen_c
     if isequal(co_cfg.TargetLang, 'C++')
         warning('C++ code generation is not supported. Use at your own risk.');
     end
-
+    
     co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode, ...
         mpi_header, acc_header, petsc_header, '#include "m2c.h"');
     
@@ -620,16 +620,16 @@ while i<=last_index
                     'PETSc must be built as a shared library in order to be used in MATLAB. ');
             end
             
-            [PCC, CXX] = obtain_petscCC(petscvariables);
+            [PCC, CXX, INC] = obtain_petscCC(petscvariables);
             if isempty(PCC)
                 error('m2c:petsc_dir', ...
                     ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
                     'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
-            else
-                m2c_opts.petscCC = {PCC};
-                m2c_opts.petscCXX = {CXX};
             end
-            m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include']};
+            
+            m2c_opts.petscCC = {PCC};
+            m2c_opts.petscCXX = {CXX};
+            m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
             m2c_opts.withPetsc = true;
         case {'-mpi', '-omp', '-acc'}
@@ -697,7 +697,7 @@ clear(command);
 if exist(command, 'file'); run(command); end
 end
 
-function [PCC, CXX] = obtain_petscCC(filename)
+function [PCC, CXX, INC] = obtain_petscCC(filename)
 % Obtian the PCC and CXX commands from the petscvariables file
 str = readFile(filename);
 pat = '\nPCC\s*=\s*([^\n]+)\n';
@@ -719,6 +719,20 @@ if nargout>1
         CXX = strtrim(regexprep(pccdef, pat, '$1'));
     else
         CXX = '';
+    end
+end
+
+if nargout>2
+    INC = '';
+    [~, base, ~] = fileparts(PCC);
+    if ~isequal(base(1:3), 'mpi')
+        % Need to add MPI include directory if CC is not an MPI wrapper
+        pat = '\nMPI_INCLUDE\s*=\s*([^\n]+)\n';
+        pccdef = regexp(str, pat, 'match', 'once');
+        
+        if ~isempty(pccdef)
+            INC = strtrim(regexprep(pccdef, pat, '$1'));
+        end
     end
 end
 end
