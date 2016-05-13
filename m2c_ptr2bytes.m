@@ -11,8 +11,10 @@ addr = zeros(8, 1, 'uint8');
 sizepe = int32(0);
 sizepe = coder.ceval('sizeof', coder.opaque('ctype','void *'));
 
+ptr = coder.opaque('char *', 'NULL');
+ptr = coder.ceval('(char *)', coder.rref(cptr));
 for i=int32(1):sizepe
-    addr.data(i+1) = coder.ceval('*', opaque_ptr(cptr, 'char *', i-1));
+    obj.data(i) = coder.ceval('*', ptr);
+    ptr = M2C_offset_ptr(ptr, int32(1));
 end
-
 end
