@@ -19,16 +19,25 @@ function m2c_warn(varargin) %#codegen
 coder.inline('always');
 
 if coder.target('MATLAB')
-    warning( varargin{:});
-elseif nargin==1 || ischar( varargin{1}) && ~ischar(varargin{2})
-    fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-        
-    coder.ceval( 'M2C_warn', ...
-        coder.opaque('const char *', '"runtime:Warning"'), ...
-        fmt, varargin{2:end});
-else
-    msgid = coder.opaque( 'const char *', ['"' varargin{1} '"']);
+    warning(varargin{:});
+else   
+    if isequal(coder.target, 'mex')
+        cmd = 'mexWarnMsgIdAndTxt';
+    else
+        cmd = 'M2C_warn';
+    end
     
-    fmt = coder.opaque( 'const char *', ['"' varargin{2} '"']);
-    coder.ceval( 'M2C_warn', msgid, fmt, varargin{3:end});
+    
+    if nargin==1 || ischar(varargin{1}) && ~ischar(varargin{2})
+        fmt = coder.opaque('const char *', ['"' varargin{1} '"']);
+        
+        coder.ceval(cmd, ...
+                    coder.opaque('const char *', '"runtime:Warning"'), ...
+                    fmt, varargin{2:end});
+    else
+        msgid = coder.opaque('const char *', ['"' varargin{1} '"']);
+        
+        fmt = coder.opaque('const char *', ['"' varargin{2} '"']);
+        coder.ceval(cmd, msgid, fmt, varargin{3:end});
+    end
 end

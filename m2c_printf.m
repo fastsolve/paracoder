@@ -19,7 +19,12 @@ coder.inline('always');
 if coder.target('MATLAB')
     fprintf(1, varargin{:});
 else
-    assert( nargin>=1);
-    fmt = coder.opaque( 'const char *', ['"' varargin{1} '"']);
-    coder.ceval( 'M2C_printf', fmt, varargin{2:end});
+    if isequal(coder.target, 'mex')
+        cmd = 'mexPrint';
+    else
+        cmd = 'M2C_printf';
+    end
+    assert(nargin>=1);
+    fmt = coder.opaque('const char *', ['"' varargin{1} '"']);
+    coder.ceval(cmd, fmt, varargin{2:end});
 end
