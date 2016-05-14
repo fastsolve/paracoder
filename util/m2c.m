@@ -18,8 +18,6 @@ function m2c(varargin)
 %  The options for m2c have several groups, defined as follows:
 %
 % CODE GENERATION
-%     -force
-%           Force to regenerate the C code.
 %     -inline
 %           Enable function inlining in MATLAB Coder. This is the default
 %           with -O1, -O2 and -O3, and it overwrites the value set by -O0.
@@ -53,7 +51,12 @@ function m2c(varargin)
 %           in the M code. Note that the top-level function is automatically
 %           an API function and need not be listed. This argument can be
 %           repeated, and then the functions will be concatenated.
-%
+%     -force
+%           Force to regenerate the C code.
+%     -ckdep
+%           Check dependecies of the M file and regenerate if any dependence
+%           is newer. This can be very slow, so it should be only if you 
+%           do not want to use -force.
 % OPTIMIZATION
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
@@ -286,7 +289,8 @@ end
 
 regen_c = m2c_opts.force || ...
     isnewer(mfile, [cpath  func '_mex.c']) || ...
-    ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']);
+    ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
+    m2c_opts.ckdep && ~ckdep([cpath  func '.c'], mfile, true);
 
 if regen_c
     % Determine whether you have codegen.
@@ -480,6 +484,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'verbose', false, ...
     'suf', 'c', ...
     'force', false, ...
+    'ckdep', false, ...
     'gen64', false);
 
 % Locate -args in the argument
@@ -504,6 +509,8 @@ while i<=last_index
     switch varargin{i}
         case '-force'
             m2c_opts.force = true;
+        case '-ckdep'
+            m2c_opts.ckdep = true;
         case '-mex'
             m2c_opts.genMex = true;
         case '-exe'
