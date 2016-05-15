@@ -15,7 +15,7 @@ function m2c_error(varargin) %#codegen
 %
 % SEE ALSO: m2c_print, m2c_warn
 
-coder.inline('always');
+coder.inline('never');
 
 if coder.target('MATLAB')
     error(varargin{:});

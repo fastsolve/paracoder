@@ -1,12 +1,12 @@
 function [var1, var2, var3, var4, var5, var6, var7, var8, var9, var10] = ...
-    refv(var1, var2, var3, var4, ...
+    m2c_refv(var1, var2, var3, var4, ...
     var5, var6, var7, var8, var9, var10) %#codegen
-%refv  Access the variable to avoid aliasing in code generation.
-%   [var1, var2, ...] = refv(var1, var2, ...)
+%m2c_refv  Access the variable to avoid aliasing in code generation.
+%   [var1, var2, ...] = m2c_refv(var1, var2, ...)
 %
 % It is important that all the input variables are listed as output variables.
 %
-% Example: [var1, var2] = refv(var1, var2)
+% Example: [var1, var2] = m2c_refv(var1, var2)
 
 coder.inline('always');
 

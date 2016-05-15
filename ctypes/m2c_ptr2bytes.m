@@ -15,6 +15,6 @@ ptr = coder.opaque('char *', 'NULL');
 ptr = coder.ceval('(char *)', coder.rref(cptr));
 for i=int32(1):sizepe
     obj.data(i) = coder.ceval('*', ptr);
-    ptr = M2C_offset_ptr(ptr, int32(1));
+    ptr = m2c_offset_ptr(ptr, int32(1));
 end
 end

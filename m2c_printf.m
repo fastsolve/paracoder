@@ -14,7 +14,7 @@ function m2c_printf(varargin) %#codegen
 % SEE ALSO: m2c_error, m2c_warn
 
 
-coder.inline('always');
+coder.inline('never');
 
 if coder.target('MATLAB')
     fprintf(1, varargin{:});

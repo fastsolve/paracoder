@@ -1,4 +1,4 @@
-function ptr = M2C_offset_ptr(ptr, offset) %#codegen
+function ptr = m2c_offset_ptr(ptr, offset) %#codegen
 %Offset a pointer by n bytes
 %   ptr = M2C_OFFSET_PTR(ptr, n)
 

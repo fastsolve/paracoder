@@ -7,6 +7,7 @@ warning('off', 'MATLAB:mex:GccVersion')
 if exist('m2c', 'file')~=2
     addpath(pwd); %#ok<*MCAP>
     addpath([pwd '/util']);
+    addpath([pwd '/ctypes']);
 end
 
 if ~exist('coder.p', 'file')

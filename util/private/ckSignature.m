@@ -6,10 +6,15 @@ OK = nargin<3 || nargin==3 && exist(file, 'file');
 if nargin==3 && OK || nargout==2
     str = createSignature(m2c_opts, stage);
 end
+
 if nargin==3 && OK
-    str2 = extractSignature(file);
+    [str2,isold] = extractSignature(file);
     % For compatability with older version, treat empty signature as OK.
-    OK = isempty(str2) || isequal(str, str2);
+    if isequal(stage, 'codegen')
+        OK = isempty(str2) || isequal(str, str2);
+    else
+        OK = isequal(str, str2) && ~isold;
+    end
 end
 
 end
@@ -59,7 +64,7 @@ str = ['%#m2c options:' str];
 end
 
 
-function str = extractSignature(fame)
+function [str, contained_opaque] = extractSignature(fame)
 
 file = readFile(fame);
 
@@ -70,5 +75,7 @@ if ~isempty(line)
 else
     str = '';
 end
+
+contained_opaque = ~isempty(strfind(file, 'opaque_obj.m'')'));
 
 end

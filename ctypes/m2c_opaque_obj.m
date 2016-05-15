@@ -1,6 +1,6 @@
-function obj = opaque_obj(type, data, nitems) %#codegen
-%OPAQUE_OBJ Create an opaque object
-%   obj = opaque_obj(type, data, [nitems])
+function obj = m2c_opaque_obj(type, data, nitems) %#codegen
+%M2C_OPAQUE_OBJ Create an opaque object
+%   obj = m2c_opaque_obj(type, data, [nitems])
 %
 % The function creates a struct with the following fields:
 %     type: a character string
@@ -17,7 +17,7 @@ function obj = opaque_obj(type, data, nitems) %#codegen
 coder.inline('always');
 
 if nargin==0
-    obj = opaque_obj_type; return;
+    obj = m2c_opaque_type; return;
 end
 
 if nargin<3; nitems=int32(1); end
@@ -43,7 +43,7 @@ else
         ptr = coder.ceval('(char *)', coder.rref(data));
         for i=int32(1):sizepe*nitems
             obj.data(i) = coder.ceval('*', ptr);
-            ptr = M2C_offset_ptr(ptr, int32(1));
+            ptr = m2c_offset_ptr(ptr, int32(1));
         end
     end
 end
