@@ -528,5 +528,14 @@ void M2C_error(const char * id, const char * msg, ...) {
 
     abort();
 }
+#endif
 
+#ifdef MATLAB_MEX_FILE
+#include "mex.h"
+
+__attribute__((visibility("default")))
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
+
+#else
+#include "matrix.h"
 #endif

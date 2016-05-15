@@ -471,6 +471,8 @@ m2c_opts = struct('codegenArgs', '', ...
     'petscDir', [], ...
     'petscCC', [], ...
     'petscCXX', [], ...
+    'petscCFLAGS', [], ...
+    'petscCXXFLAGS', [], ...
     'petscInc', [], ...
     'petscLibs', [], ...
     'gprof', [], ...
@@ -627,7 +629,7 @@ while i<=last_index
                     'PETSc must be built as a shared library in order to be used in MATLAB. ');
             end
             
-            [PCC, CXX, INC] = obtain_petscCC(petscvariables);
+            [PCC, CXX, INC, CFLAGS, CXXFLAGS] = obtain_petscCC(petscvariables);
             if isempty(PCC)
                 error('m2c:petsc_dir', ...
                     ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
@@ -636,6 +638,8 @@ while i<=last_index
             
             m2c_opts.petscCC = {PCC};
             m2c_opts.petscCXX = {CXX};
+            m2c_opts.petscCFLAGS = {CFLAGS};
+            m2c_opts.petscCXXFLAGS = {CXXFLAGS};
             m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
             m2c_opts.withPetsc = true;
@@ -704,15 +708,15 @@ clear(command);
 if exist(command, 'file'); run(command); end
 end
 
-function [PCC, CXX, INC] = obtain_petscCC(filename)
+function [PCC, CXX, INC, CFLAGS, CXXFLAGS] = obtain_petscCC(filename)
 % Obtian the PCC and CXX commands from the petscvariables file
 str = readFile(filename);
 pat = '\nPCC\s*=\s*([^\n]+)\n';
 
-pccdef = regexp(str, pat, 'match', 'once');
+def = regexp(str, pat, 'match', 'once');
 
-if ~isempty(pccdef)
-    PCC = strtrim(regexprep(pccdef, pat, '$1'));
+if ~isempty(def)
+    PCC = strtrim(regexprep(def, pat, '$1'));
 else
     PCC = '';
 end
@@ -720,10 +724,10 @@ end
 if nargout>1
     pat = '\nCXX\s*=\s*([^\n]+)\n';
     
-    pccdef = regexp(str, pat, 'match', 'once');
+    def = regexp(str, pat, 'match', 'once');
     
-    if ~isempty(pccdef)
-        CXX = strtrim(regexprep(pccdef, pat, '$1'));
+    if ~isempty(def)
+        CXX = strtrim(regexprep(def, pat, '$1'));
     else
         CXX = '';
     end
@@ -735,11 +739,31 @@ if nargout>2
     if ~isequal(base(1:3), 'mpi')
         % Need to add MPI include directory if CC is not an MPI wrapper
         pat = '\nMPI_INCLUDE\s*=\s*([^\n]+)\n';
-        pccdef = regexp(str, pat, 'match', 'once');
+        def = regexp(str, pat, 'match', 'once');
         
-        if ~isempty(pccdef)
-            INC = strtrim(regexprep(pccdef, pat, '$1'));
+        if ~isempty(def)
+            INC = strtrim(regexprep(def, pat, '$1'));
         end
+    end
+end
+
+if nargout>3
+    CFLAGS = '';
+    pat = '\nCC_FLAGS\s*=\s*([^\n]+)\n';
+    def = regexp(str, pat, 'match', 'once');
+    
+    if ~isempty(def)
+        CFLAGS = strtrim(regexprep(def, pat, '$1'));
+    end
+end
+
+if nargout>4
+    CXXFLAGS = '';
+    pat = '\CXX_FLAGS\s*=\s*([^\n]+)\n';
+    def = regexp(str, pat, 'match', 'once');
+    
+    if ~isempty(def)
+        CXXFLAGS = strtrim(regexprep(def, pat, '$1'));
     end
 end
 end

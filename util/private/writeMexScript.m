@@ -10,48 +10,62 @@ clear(outMfile);
 mexflags = '';
 
 CC = '';
+CFLAGS = '';
+
 if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
     % PETSc for CC and add the include path.
     if m2c_opts.useCpp
-        CC = m2c_opts.petscCXX{1};
+        CC = ['CXX=''''' m2c_opts.petscCXX{1} ''''''];
+        CFLAGS = ['CXXFLAGS=''''' m2c_opts.petscCXXFLAGS{1} ' -Wno-unused-variable -Wno-unused-function'''''];
     else
-        CC = m2c_opts.petscCC{1};
+        CC = ['CC=''''' m2c_opts.petscCC{1} ''''''];
+        CFLAGS = ['CFLAGS=''''' m2c_opts.petscCFLAGS{1} ' -Wno-unused-variable -Wno-unused-function'''''];
     end
 elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     % Try to locate gcc-mp, with support of OpenMP
-    [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
+    [CBASE, found] = locate_gcc_mp(m2c_opts.useCpp);
     if ~found
         if m2c_opts.withOMP
             warning('m2c:buildEXE', 'OpenMP is disabled.');
             m2c_opts.ompLibs = {};
         end
     end
+    
+    if m2c_opts.useCpp
+        CC = ['CXX=''''' CBASE ''''''];
+    else
+        CC = ['CC=''''' CBASE ''''''];
+    end
+
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
 end
 
 if ~isempty(CC)
-    mexflags = [mexflags ' CC=''''' CC ''''''];
+    mexflags = [mexflags ' ' CC];
+end
+if ~isempty(CFLAGS)
+    mexflags = [mexflags ' ' CFLAGS];
 end
 
 switch m2c_opts.optLevel
     case '0'
-        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1'];
+        coptflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1'];
     case {'1','2','3'}
-        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0'];
+        coptflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0'];
     otherwise
-        cflags = '';
+        coptflags = '';
+end
+
+mexflags = [mexflags ' COPTIMFLAGS=''''' coptflags ''''''];
+if m2c_opts.debugInfo; 
+    mexflags = [mexflags ' CDEBUGFLAGS=''''-g'''''];
 end
 
 if ~isempty(m2c_opts.cflags)
-    % Overwrite cflags
-    cflags = sprintf(' %s ', m2c_opts.cflags{:});
-end
-
-mexflags = [mexflags ' COPTIMFLAGS=''''' cflags ''''''];
-if m2c_opts.debugInfo; 
-    mexflags = [mexflags ' CDEBUGFLAGS=''''-g'''''];
+    % Overwrite all the C flags
+    mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
 end
 
 if ~isempty(m2c_opts.mexflags)

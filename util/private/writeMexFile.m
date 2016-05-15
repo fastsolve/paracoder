@@ -62,11 +62,15 @@ else
     SDname = ['&' vars(SDindex).name];
 end
 
+%TODO: Improve computation of sub_mx_level_in and sub_mx_level_out
+[marshallin_substr, sub_mx_level_in] = marshallin(altname, vars_ret, nlhs, nrhs, SDindex);
+[marshallout_substr, sub_mx_level_out] = marshallout(vars_ret, nlhs);
+sub_mx_level = max(sub_mx_level_in, sub_mx_level_out);
+
 str = sprintf('%s\n', ...
     ['void ' altname '_api(const mxArray ** prhs, const mxArray **plhs) {'], ...
-    var_declr(vars, ret, timing), ...
-    marshallin(altname, vars_ret, nlhs, nrhs, SDindex), ...
-    '', '    /* Invoke the target function */', ...
+    var_declr(vars, ret, sub_mx_level, timing), ...
+    marshallin_substr, '', '    /* Invoke the target function */', ...
     ['    ' funcname '_initialize(' SDname ');']);
 
 if ~isempty(timing)
@@ -84,7 +88,7 @@ end
 
 str = sprintf('%s\n', str, ...
     ['    ' funcname '_terminate();'], '', ...
-    marshallout(vars_ret, nlhs), '', var_free(vars_ret), '}');
+    marshallout_substr, '', var_free(vars_ret), '}');
 
 % Remove two consecutive empty lines
 while ~isempty(regexp(str, '\n\n\n', 'once'))
@@ -153,12 +157,11 @@ end
 
 end
 
-function str = var_declr(vars, ret, timing)
+function str = var_declr(vars, ret, sub_mx_level, timing)
 % Produce variable declarations
 decl_emx = '';
 decl_basic = '';
 decl_struct = '';
-sub_mx_level = 0;
 has_struct_arr = false;
 
 for i=1:length(vars)
@@ -166,9 +169,6 @@ for i=1:length(vars)
         % declare a varialbe of type emxArray
         if ~isempty(vars(i).subfields)
             has_struct_arr=true;
-            
-            a = check_struct_levels(vars(i).subfields);
-            sub_mx_level = max(sub_mx_level, a);
         end
         decl_emx = sprintf('%s\n    %-20s %s;', decl_emx, ...
             vars(i).type, vars(i).name);
@@ -185,9 +185,8 @@ for i=1:length(vars)
             decl_struct = sprintf('%s\n    %-20s %s[%d];', decl_struct, ...
                 vars(i).type, vars(i).name, prod(vars(i).size));
         end
-        [a,b] = check_struct_levels(vars(i).subfields);
+        [~,b] = check_struct_levels(vars(i).subfields);
         
-        sub_mx_level = max(sub_mx_level, a);
         has_struct_arr = has_struct_arr || b;
     else
         % declare a varialbe of primitive type
@@ -238,7 +237,7 @@ for i=1:length(vars)
 end
 end
 
-function str = marshallin(funcname, vars, nlhs, nrhs, SDindex)
+function [str, sub_mx_leve] = marshallin(funcname, vars, nlhs, nrhs, SDindex)
 % Marshall function input arguments and preallocate output arguments.
 
 invarsindex = zeros(nrhs, 1);
@@ -253,6 +252,7 @@ for i=1:length(vars)
     end
 end
 
+sub_mx_leve = 0;
 str = '';
 first = true;
 for j=1:nrhs
@@ -272,7 +272,7 @@ for j=1:nrhs
         mx = ['prhs[' int2str(var.iindex-1) ']'];
     end
     if ~isempty(var.subfields)
-        str = marshallin_struct(str, mx, var, funcname);
+        [str, sub_mx_leve] = marshallin_struct(str, mx, var, funcname);
     else
         str = sprintf(['%s\n    if (mxGetNumberOfElements(%s) && mxGetClassID(%s) != %s)\n', ...
             '        mexErrMsgIdAndTxt("%s:WrongInputType",\n',...
@@ -377,7 +377,7 @@ end
 str = sprintf('%s%s', str, substr);
 end
 
-function str = marshallin_struct(str, mx, var, funcname, level, prefix)
+function [str, sub_mx_level] = marshallin_struct(str, mx, var, funcname, level, prefix)
 if nargin<5; level=1; end
 if nargin<6; prefix=''; end
 
@@ -415,6 +415,8 @@ end
 
 submx = ['_sub_mx' int2str(level)];
 substr = '';
+sub_mx_level = 0;
+local_sub_mx_level = ~isempty(var.subfields);
 for k=1:length(var.subfields)
     sf = var.subfields(k);
     
@@ -438,8 +440,9 @@ for k=1:length(var.subfields)
         substr = sprintf('%s\n%s    alias_mxArray_to_emxArray(%s, (emxArray__common*)%s.%s, "%s.%s", %d);', ...
             substr, indent, submx, p, sf.name, [prefix var.name], sf.name, length(sf.size));
     elseif ~isempty(var.subfields(k).subfields)
-        substr = marshallin_struct(substr, submx, var.subfields(k), ...
+        [substr, sub_mx_level1] = marshallin_struct(substr, submx, var.subfields(k), ...
             funcname, level+1, [prefix var.name '.']);
+        sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif prod(sf.size)>1
         assert(~isequal(sf.type, 'char') && ~isequal(sf.type, 'char_T'));
         substr = sprintf(['%s\n%s    if (mxGetNumberOfElements(%s) != %d)\n', ...
@@ -473,6 +476,9 @@ if ~isempty(substr)
         str = sprintf('%s\n%s', str, substr);
     end
 end
+
+sub_mx_level = sub_mx_level + local_sub_mx_level;
+
 end
 
 function str = listargs(vars)
@@ -497,7 +503,7 @@ end
 str = str(3:end);
 end
 
-function str = marshallout(vars, nlhs)
+function [str,sub_mx_level] = marshallout(vars, nlhs)
 % Marshall function output arguments
 
 if nlhs==0;
@@ -514,11 +520,13 @@ for i=1:length(vars)
     end
 end
 
+sub_mx_level = 0;
 for j=1:nlhs
     var = vars(outvarsindex(j));
     
     if ~isempty(var.subfields)
-        str = marshallout_struct(str, sprintf('plhs[%d]', j-1), var);
+        [str,sub_mx_level1] = marshallout_struct(str, sprintf('plhs[%d]', j-1), var);
+        sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif ~isempty(var.iindex) && var.isemx
         str = sprintf('%s\n    if (%s.canFreeData) plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
             str, var.name, j-1, var.name, getMxClassID(var.basetype));
@@ -534,7 +542,8 @@ for j=1:nlhs
 end
 end
 
-function str = marshallout_struct(str, mx, var, level, prefix)
+function [str,sub_mx_level] = marshallout_struct(str, mx, var, level, prefix)
+% sub_mx_level is needed for determining the levels of _sub_mx
 
 if nargin<4; level=1; end
 if nargin<5; prefix=''; end
@@ -561,13 +570,16 @@ else
     index='0';  sub='';
 end
 
+sub_mx_level = 0;
+local_sub_mx_level = ~isempty(var.subfields);
 substr = '';
 for k=1:length(var.subfields)
     sf = var.subfields(k).name;
     if ~isempty(var.subfields(k).subfields)
-        substr = marshallout_struct(substr, ['_sub_mx' int2str(level)], var.subfields(k), level+1, [prefix var.name sub '.']);
+        [substr,sub_mx_level1] = marshallout_struct(substr, ['_sub_mx' int2str(level)], var.subfields(k), level+1, [prefix var.name sub '.']);
         substr = sprintf('%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, _sub_mx%d);', ...
             substr, indent, mx, index, k-1, level);
+        sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif var.subfields(k).isemx
         substr = sprintf(['%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
             'move_emxArray_to_mxArray((emxArray__common*)%s%s.%s, %s));'], ...
@@ -600,6 +612,8 @@ if ~isempty(substr)
         str = sprintf('%s%s', str, substr);
     end
 end
+
+sub_mx_level = sub_mx_level + local_sub_mx_level;
 end
 
 function str = var_free(vars)
