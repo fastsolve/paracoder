@@ -136,9 +136,6 @@ while ~isempty(regexp(cfile_str, '\n\n\n', 'once'))
     cfile_str = regexprep(cfile_str, '(\n\n)\n', '$1');
 end
 
-% Check emxCopyStruct
-check_emxCopyStruct(cfile_str);
-
 % Check copying of constant input arrays
 check_inputArrays(cfile_str);
 
@@ -153,69 +150,6 @@ if ~isequal(cfile_str, cfile_str_orig)
     changed = true;
 end
 
-end
-
-function check_emxCopyStruct(str)
-% Disable emxCopyStruct
-
-funcs = regexp(str, '(\w+)(\([^)]+\))\s*({([^}][^\n]*\n)+\s+(?:\w+_)?emxCopyStruct_\w+\(&\w+,\s*\w+\);([^}][^\n]*\n)+})', 'tokens');
-
-for i=1:length(funcs)
-    % Remove emxCopyStruct_ from the function.
-    funname = funcs{i}{1};
-    args = funcs{i}{2};
-    fun = funcs{i}{3};
-    
-    if ~isempty(strfind(funname, 'emlrt_')); continue; end
-    toks = regexp(fun, '\s+(?:\w+_)?emxCopyStruct_(\w+)\(&(\w+),\s*(\w+)\);', 'tokens');
-    
-    for j=1:length(toks)
-        assert(isequal([ '_' toks{j}{3}], toks{j}{2}(end-length(toks{j}{3}):end)));
-        
-        % Check input arguments to see whether the object is defined as const
-        if ~isempty(regexp(args, ['\sconst\s+' toks{j}{1} '\w*\s*\*?\s*' toks{j}{3}], 'once'))
-            warning('m2c:StructCopyConst', ['Function "%s" modifies an input struct object "%s". ' ...
-                'For better performance, make this object an output as well, '...
-                'and when calling the function, use a same variable '...
-                'on the left- and right-hand side for this argument.'], funname, toks{j}{2});
-            continue;
-        end
-        
-        if isempty(regexp(args, ['[^\w\s]\s*' toks{j}{1} '\w*\s*\*\s*' toks{j}{3}], 'once'))
-            warning('m2c:StructCopy', 'Function "%s" copies a local struct object "%s".', funname, toks{j}{2});
-            continue;
-        end
-        
-        assert(~isempty(regexp(fun, '\s+(?:\w+_)?emxCopyStruct_(\w+)\((\w+),\s*&(\w+)\);', 'once')));
-        
-        % Check whether there is assignment to itself
-        if ~isempty(regexp(fun, [toks{j}{3} '->\w+([\w\[\]->\.])?\s*=\s*' toks{j}{2} '\.\w+([\w\[\]->\.])?;'], 'once')) || ...
-                ~isempty(regexp(fun, [toks{j}{2} '\.\w+([\w\[\]->\.])?\s*=\s*' toks{j}{3} '->\w+([\w\[\]->\.])?;'], 'once'))
-            warning('m2c:StructCopy', ['m2c Info: Function "%s" copies the output struct object "%s" into a local variable "%s". ' ...
-                'm2c cannot optmize it. Please rewrite the MATLAB function to modify the object in a subfunction.'], ...
-                funname, toks{j}{3}, toks{j}{2});
-            continue;
-        end
-        
-        body = regexprep(fun, ['\n\s+\w*emxCopyStruct_' toks{j}{1} '\w*\(' toks{j}{3} ',\s*\&' toks{j}{2} '\);'], char(187));
-        smallbody = ['\n\s+\w*emxCopyStruct_' toks{j}{1} '\w*\(\&' toks{j}{2} ',\s*' toks{j}{3} '\);([^' char(187) ']+)' char(187)];
-        
-        body = regexp(body, smallbody, 'tokens');
-        if isempty(body); continue; end
-        
-        hasinline = false;
-        for k=1:length(body)
-            if ~isempty(regexp(body{k}{1}, ['(\n\s+[^\n]*[^\w])' toks{j}{2} '\.(\w+)'], 'once'))
-                warning('m2c:StructCopyFailed', ['Could not strip out copying of "' funname '", ' ...
-                    'because the following inlined code "' body{k}{1} '". '...
-                    'Please disable inlining by inserting coder.inline(''never'') into the MATLAB function corresponds to this code segment.']);
-                hasinline = true;
-                break;
-            end
-        end
-        if hasinline; continue; end
-    end
-end
 end
 
 function check_inputArrays(str)
