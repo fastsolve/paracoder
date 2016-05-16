@@ -460,6 +460,8 @@ m2c_opts = struct('codegenArgs', '', ...
     'cflags', [], ...
     'mexflags', [], ...
     'withMPI', false, ...
+    'mpiCC', [], ...
+    'mpiCXX', [], ...
     'mpiLibs', [], ...
     'withOMP', false, ...
     'ompLibs', [], ...
@@ -643,12 +645,36 @@ while i<=last_index
             m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
             m2c_opts.withPetsc = true;
-        case {'-mpi', '-omp', '-acc'}
+        case {'-mpi'}
+            m2c_opts.withMPI= true;
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.mpiLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.mpiLibs = varargin(i+1);
+                i = i + 1;
+            else
+                m2c_opts.mpiLibs = {''};
+            end
+            
+            if ~isempty(m2c_opts.petscCC)
+                petsc_opts = m2c_opts;
+            else
+                petsc_opts = proc_options('-petsc', func);
+            end
+            if ~isempty(petsc_opts.petscCC)
+                m2c_opts.mpiCC = petsc_opts.petscCC;
+                m2c_opts.mpiCXX = petsc_opts.petscCXX;
+            else
+                m2c_opts.mpiCC = {'mpicc'};
+                m2c_opts.mpiCXX = {'mpicc'};
+            end            
+        case {'-omp', '-acc'}
             m2c_opts.(['with' upper(varargin{i}(2:end))])= true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index && varargin{i}(i+1) ~= '-'
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = varargin(i+1);
                 i = i + 1;
             else
@@ -658,7 +684,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.codegenConfig = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index && varargin{i}(i+1) ~= '-'
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
                 m2c_opts.codegenConfig = varargin(i+1);
                 i = i + 1;
             else

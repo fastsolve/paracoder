@@ -127,7 +127,7 @@ region = ['(\n)#{([\w\s]*)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
     '((\n|#pragma [^{}][^\n]+\n|[^#\n]+\n)+)#}([\w\s]*)\(\s*\)[^\n]*'];
 while ~isempty(regexp( str, region, 'once'))
     str = regexprep( str, region, ...
-        '$1$4PLC_BEGIN_REGION(/*omp $2*/)$3$4$5$4PLC_END_REGION(/*omp $6*/)$1');
+        '$1$4M2C_BEGIN_REGION(/*omp $2*/)$3$4$5$4M2C_END_REGION(/*omp $6*/)$1');
 end
 
 str = optimize_kernel_functions( str);

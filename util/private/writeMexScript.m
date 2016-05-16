@@ -22,6 +22,13 @@ if m2c_opts.withPetsc
         CC = ['CC=''''' m2c_opts.petscCC{1} ''''''];
         CFLAGS = ['CFLAGS=''''' m2c_opts.petscCFLAGS{1} ' -Wno-unused-variable -Wno-unused-function'''''];
     end
+elseif m2c_opts.withMPI
+    % If MPI is used, enforce using mpi compiler wrappers
+    if m2c_opts.useCpp
+        CC = ['CXX=''''' m2c_opts.mpiCXX{1} ''''''];
+    else
+        CC = ['CC=''''' m2c_opts.mpiCC{1} ''''''];
+    end
 elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     % Try to locate gcc-mp, with support of OpenMP
     [CBASE, found] = locate_gcc_mp(m2c_opts.useCpp);

@@ -16,6 +16,13 @@ if m2c_opts.withPetsc
     else
         CC = m2c_opts.petscCC{1};
     end
+elseif m2c_opts.withMPI
+    % If MPI is used, enforce using mpi compiler wrappers
+    if m2c_opts.useCpp
+        CC = ['CXX=''''' m2c_opts.mpiCXX{1} ''''''];
+    else
+        CC = ['CC=''''' m2c_opts.mpiCC{1} ''''''];
+    end
 elseif isempty(m2c_opts.cc)
     if m2c_opts.useCpp
         CC = 'g++';
