@@ -51,12 +51,14 @@ function m2c(varargin)
 %           in the M code. Note that the top-level function is automatically
 %           an API function and need not be listed. This argument can be
 %           repeated, and then the functions will be concatenated.
-%     -force
-%           Force to regenerate the C code.
 %     -ckdep
-%           Check dependecies of the M file and regenerate if any dependence
-%           is newer. This can be very slow, so it should be only if you 
-%           do not want to use -force.
+%           By default, m2c does not regenerated C code if it already exist.
+%           Use this optoin to request m2c to check the dependecies of the 
+%           M file and and regenerate C code if any dependence is newer.
+%           This can be slow, so it should be only if you do not want to 
+%           use -force.
+%     -force
+%           Force the regeneration of C code
 % OPTIMIZATION
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
