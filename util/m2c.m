@@ -58,7 +58,9 @@ function m2c(varargin)
 %           This can be slow, so it should be only if you do not want to 
 %           use -force.
 %     -force
-%           Force the regeneration of C code
+%           Force the regeneration of C code and recompilation.
+%     -skipcg
+%           Skip calling codegen, even if -ckdep and -force are specified.
 % OPTIMIZATION
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
@@ -289,10 +291,10 @@ else
     petsc_header = '';
 end
 
-regen_c = m2c_opts.force || ~exist([cpath  func '.c'], 'file') || ...
+regen_c = ~m2c_opts.skipcg && (m2c_opts.force || ~exist([cpath  func '.c'], 'file') || ...
     ~exist([cpath  func '_mex.c'], 'file') || ...
     ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
-    m2c_opts.ckdep && ~ckdep([cpath  func '.c'], mfile, true);
+    m2c_opts.ckdep && ~ckdep([cpath  func '.c'], mfile, true));
 
 if regen_c
     % Determine whether you have codegen.
@@ -408,7 +410,7 @@ if regen_c
 end
 
 %% Generate MATLAB scripts for mex
-if regen_c || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
+if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
     writeMexScript(func, cpath, m2c_opts);
 end
 
@@ -421,12 +423,12 @@ end
 
 %% Generate MATLAB scripts for exe if genexe is true.
 if m2c_opts.genExe
-    if regen_c
+    if regen_c || m2c_opts.force
         % Write the main function for Exe
         writeExeFile(func, cpath, m2c_opts);
     end
     
-    if regen_c || ~ckSignature(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
+    if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
         % Write the build script for Exe
         writeExeScripts(func, cpath, m2c_opts);
     end
@@ -491,6 +493,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'suf', 'c', ...
     'force', false, ...
     'ckdep', false, ...
+    'skipcg', false, ...
     'gen64', false);
 
 % Locate -args in the argument
@@ -517,6 +520,8 @@ while i<=last_index
             m2c_opts.force = true;
         case '-ckdep'
             m2c_opts.ckdep = true;
+        case '-skipcg'
+            m2c_opts.skipcg = true;
         case '-mex'
             m2c_opts.genMex = true;
         case '-exe'
@@ -645,7 +650,9 @@ while i<=last_index
             m2c_opts.petscCFLAGS = {CFLAGS};
             m2c_opts.petscCXXFLAGS = {CXXFLAGS};
             m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
-            m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
+            if ismac; concat = ','; else concat = '='; end
+            m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib', ...
+                ' -Wl,-rpath' concat m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
             m2c_opts.withPetsc = true;
         case {'-mpi'}
             m2c_opts.withMPI= true;
