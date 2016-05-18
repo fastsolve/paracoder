@@ -651,6 +651,10 @@ while i<=last_index
                 end
             end
             
+            if m2c_opts.petscDir(end) == '/'
+                m2c_opts.petscDir(end) = [];
+            end
+            
             petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
             if ~exist(petscvariables, 'file')
                 error('m2c:petsc_dir', ...
@@ -675,7 +679,17 @@ while i<=last_index
             m2c_opts.petscCXX = {CXX};
             m2c_opts.petscCFLAGS = {CFLAGS};
             m2c_opts.petscCXXFLAGS = {CXXFLAGS};
-            m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
+            
+            if exist([m2c_opts.petscDir{1} '/include/petsc.h'], 'file')
+                m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
+            else
+                dir1 = fileparts(m2c_opts.petscDir{1});
+                if exist([dir1 '/include/petsc.h'], 'file')
+                    m2c_opts.petscInc = {['-I' dir1 '/include'], INC};
+                else
+                    error('Could not find petsc header files under %s/include', m2c_opts.petscDir{1});
+                end
+            end
             if ismac; concat = ','; else concat = '='; end
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib', ...
                 ' -Wl,-rpath' concat m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
