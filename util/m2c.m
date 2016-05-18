@@ -651,8 +651,8 @@ while i<=last_index
                 end
             end
             
-            if m2c_opts.petscDir(end) == '/'
-                m2c_opts.petscDir(end) = [];
+            if m2c_opts.petscDir{1}(end) == '/'
+                m2c_opts.petscDir{1}(end) = [];
             end
             
             petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
