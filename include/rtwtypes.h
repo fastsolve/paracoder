@@ -3,6 +3,10 @@
  *
  */
 
+#if defined(MATLAB_MEX_FILE)
+#include "tmwtypes.h" /* Use MATLAB's TMWTYPES */
+#endif
+
 #ifndef __RTWTYPES_H__
 #define __RTWTYPES_H__
 #ifndef TRUE
@@ -137,14 +141,23 @@ typedef char_T byte_T;
 #define MIN_uint64_T	((uint64_T)(0UL))
 
 /* Logical type definitions */
-#if !defined(__cplusplus) && !defined(__true_false_are_keywords)
-#  ifndef false
-#   define false (0U)
-#  endif
-#  ifndef true
-#   define true (1U)
-#  endif
+#if !defined(__cplusplus) && !defined(__bool_true_false_are_defined)
+
+#ifndef _bool_T
+#define _bool_T
+
+typedef boolean_T bool;
+
+#ifndef false
+#define false (0)
 #endif
+#ifndef true 
+#define true (1)
+#endif
+
+#endif /* _bool_T */
+
+#endif /* !__cplusplus */
 
 /*
  * MATLAB for code generation assumes the code is compiled on a target using a 2's compliment representation
