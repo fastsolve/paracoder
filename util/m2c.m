@@ -53,9 +53,9 @@ function m2c(varargin)
 %           repeated, and then the functions will be concatenated.
 %     -ckdep
 %           By default, m2c does not regenerated C code if it already exist.
-%           Use this optoin to request m2c to check the dependecies of the 
+%           Use this optoin to request m2c to check the dependecies of the
 %           M file and and regenerate C code if any dependence is newer.
-%           This can be slow, so it should be only if you do not want to 
+%           This can be slow, so it should be only if you do not want to
 %           use -force.
 %     -force
 %           Force the regeneration of C code and recompilation.
@@ -109,9 +109,6 @@ function m2c(varargin)
 %     -g
 %           Preserve MATLAB code info in C code and also generate source-level
 %           debug information when compiling C.
-%     -exe
-%           Generate a MATLAB script for running the exe file from within
-%           MATLAB for debugging in place of the M-file (Linux and Mac).
 %     -ddd
 %     -ddd 'ddd command'
 %     -ddd {'expression'}
@@ -195,8 +192,21 @@ function m2c(varargin)
 % MISCELLANEOUS
 %     -mex
 %           Build the mex command in addition to generating the C files.
+%     -mexdir {'relative_path_to_m_file'}
+%           Save the mex file to the directory given by the path relative
+%           to the M file. By default, the mex files will be saved in the
+%           same directory as the M file.
+%     -exe
+%           Generate a MATLAB script for running the exe file from within
+%           MATLAB for debugging in place of the M-file (Linux and Mac).
+%     -exedir {'relative_path_to_m_file'}
+%           Save the exe file into the directory given by the path relative
+%           to the M file. By default, the exe fileswill be saved in the
+%           same directory as the M file.
 %     -v
 %           Verbose mode.
+%     -q
+%           Quiet mode.
 %     -?
 %     -h
 %     -help
@@ -251,7 +261,9 @@ m2c_opts.genExe = m2c_opts.genExe || ...
     ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
 
 if m2c_opts.genExe && ~isunix()
-    fprintf('Warning: Building executable is not supported on Windows PCs\n');
+    if ~m2c_opts.quiet
+        fprintf('Warning: Building executable is not supported on Windows PCs\n');
+    end
     m2c_opts.genExe = false;
 end
 
@@ -263,10 +275,6 @@ cpath = [mpath 'codegen/lib/' func '/'];
 if isempty(m2c_opts.codegenArgs) || ~isequal(m2c_opts.codegenArgs(1:5), -args)
     % Extract arguments from source code.
     m2c_opts.codegenArgs = [extract_codegen_args(mfile) ' ' m2c_opts.codegenArgs];
-end
-
-if m2c_opts.force && exist([mpath func '.' mexext], 'file')
-    delete([mpath func '.' mexext]);
 end
 
 % Determine whether to include mpi.h
@@ -391,7 +399,9 @@ if regen_c
         path(p); cd(olddir);
     catch err
         path(p); cd(olddir);
-        fprintf(2, 'm2c: %s', err.message);
+        if ~m2c_opts.quiet
+            fprintf(2, 'm2c: %s', err.message);
+        end
         return;
     end
     
@@ -414,11 +424,11 @@ if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' fun
     writeMexScript(func, cpath, m2c_opts);
 end
 
-if ~m2c_opts.genMex
+if m2c_opts.genMex 
+    run_mexcommand(cpath, func);
+elseif ~m2c_opts.quiet
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
         [cpath 'mex_' func '.m']);
-else
-    run_mexcommand(cpath, func);
 end
 
 %% Generate MATLAB scripts for exe if genexe is true.
@@ -434,8 +444,10 @@ if m2c_opts.genExe
     end
     
     build_exe(cpath, func);
-    fprintf(['To run the EXE file in MATLAB, ', ...
-        'replace calls to ' func ' by run_' func '_exe.\n']);
+    if ~m2c_opts.quiet
+        fprintf(['To run the EXE file in MATLAB, ', ...
+            'replace calls to ' func ' by run_' func '_exe.\n']);
+    end
 end
 end
 
@@ -487,9 +499,12 @@ m2c_opts = struct('codegenArgs', '', ...
     'ddd', [], ...
     'efenceLibs', [], ...
     'genMex', false, ...
+    'mexDir', [], ...
     'genExe', false, ...
+    'exeDir', [], ...
     'useCpp', false, ...
     'verbose', false, ...
+    'quiet', false, ...
     'suf', 'c', ...
     'force', false, ...
     'ckdep', false, ...
@@ -508,7 +523,7 @@ end
 if func_index>=1 && exist(varargin{func_index}, 'file')
     func = varargin{func_index};
 else
-    error('m2c:InvalidFileName', 'Function name %s is invalid.', varargin{func_index});
+    error('m2c:InvalidFileName', 'Function %s could not be found.', varargin{func_index});
 end
 m2c_opts.codegenArgs = strtrim(sprintf(' %s', varargin{func_index+1:end}));
 
@@ -526,6 +541,17 @@ while i<=last_index
             m2c_opts.genMex = true;
         case '-exe'
             m2c_opts.genExe = true;
+        case {'-mexdir', '-exedir'}
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.([varargin{i}(2:4) 'Dir']) = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.([varargin{i}(2:4) 'Dir']) = varargin(i+1);
+                i = i + 1;
+            else
+                error('m2c:wrong_argument', ...
+                    'Argument %s requires a cell-array argument after it.', varargin{i});
+            end
         case '-g'
             m2c_opts.debugInfo = true;
         case '-O0'
@@ -592,7 +618,7 @@ while i<=last_index
                 m2c_opts.(varargin{i}(2:end)) = varargin(i+1);
                 i = i + 1;
             else
-                warning('m2c:wrong_argument', ...
+                error('m2c:wrong_argument', ...
                     'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
             end
         case '-lapack'
@@ -634,7 +660,7 @@ while i<=last_index
             
             if ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.so'], 'file') && ...
                     ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.dylib'], 'file')
-                warning('m2c:petsc', ...
+                error('m2c:petsc', ...
                     'PETSc must be built as a shared library in order to be used in MATLAB. ');
             end
             
@@ -677,7 +703,7 @@ while i<=last_index
             else
                 m2c_opts.mpiCC = {'mpicc'};
                 m2c_opts.mpiCXX = {'mpicc'};
-            end            
+            end
         case {'-omp', '-acc'}
             m2c_opts.(['with' upper(varargin{i}(2:end))])= true;
             if i<last_index && varargin{i+1}(1) == '{'
@@ -697,11 +723,13 @@ while i<=last_index
                 m2c_opts.codegenConfig = varargin(i+1);
                 i = i + 1;
             else
-                warning('m2c:wrong_argument', ...
+                error('m2c:wrong_argument', ...
                     'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
             end
         case '-v'
             m2c_opts.verbose = true;
+        case '-q'
+            m2c_opts.quiet = true;
         case '-m'
             warning('Option -m is suppresed.');
         case '-64'

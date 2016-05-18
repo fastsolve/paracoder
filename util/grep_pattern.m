@@ -1,6 +1,6 @@
-function lines = grep_pattern( filepat, pattern)
+function lines = grep_pattern(filepat, pattern)
 %GREP_PATTERN    file pattern searcher
-%     lines = grep_pattern( filepat, pattern)
+%     lines = grep_pattern(filepat, pattern)
 %
 %It emulates the grep command in UNIX 
 %     > grep "pattern" filepat
@@ -10,7 +10,7 @@ function lines = grep_pattern( filepat, pattern)
 %It works on both UNIX and Windows systems.
 
 lines = '';
-files = dir( filepat);
+files = dir(filepat);
 
 % Determine the path
 if ispc
@@ -29,15 +29,15 @@ for i=1:length(files)
     
     fid = fopen([fpath file], 'rt');
     if fid>=0
-        str = fread( fid,'*char')';
-        fclose( fid);
+        str = fread(fid,'*char')';
+        fclose(fid);
     else
         continue;
     end
 
-    line = regexp( str, ['[^\n]*' pattern '[^\n]*\n'], 'once', 'match');
+    line = regexp(str, ['[^\n]*' pattern '[^\n]*\n'], 'once', 'match');
     
     if ~isempty(line)
-        lines = sprintf( '%s%s%s:%s', lines, fpath, file, line);
+        lines = sprintf('%s%s%s:%s', lines, fpath, file, line);
     end
 end

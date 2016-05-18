@@ -29,14 +29,14 @@ alt_nlhs = zeros(length(altapis),1);
 alt_nrhs = zeros(length(altapis),1);
 for i=1:length(altapis)
     % Parse input arguments from C files.
-    [vars, ret, nlhs, nrhs, SDindex] = parse_cgfiles(funcname, altapis{i}, mpath);
+    [vars, ret, nlhs, nrhs, SDindex, pruned_vars] = parse_cgfiles(funcname, altapis{i}, mpath);
     if ~isempty(SDindex)
         fprintf(2, ['m2c Info: Codegen generated a StackData object "%s" of type "%s". ' ...
             'This probably indicates that you have some large, fixed-size local buffers in some subroutines ' ...
             'that Codegen grouped into an object. See "%scodegen/lib/%s/%s_types.h" for the definition and content of the object.\n'], ...
             vars(SDindex).name, vars(SDindex).type, mpath, funcname, funcname);
     end
-    filestr = sprintf('%s', filestr, printApiFunction(funcname, altapis{i}, nlhs, nrhs, vars, ret, SDindex, m2c_opts.timing));
+    filestr = sprintf('%s', filestr, printApiFunction(funcname, altapis{i}, nlhs, nrhs, vars, ret, SDindex, pruned_vars, m2c_opts.timing));
     alt_nlhs(i) = nlhs; alt_nrhs(i) = nrhs;
 end
 
@@ -45,7 +45,7 @@ filestr = sprintf('%s', filestr, printMexFunction(altapis, alt_nlhs, alt_nrhs));
 writeFile(outCfile, filestr);
 end
 
-function str = printApiFunction(funcname, altname, nlhs, nrhs, vars, ret, SDindex, timing)
+function str = printApiFunction(funcname, altname, nlhs, nrhs, vars, ret, SDindex, pruned_vars, timing)
 % Print into a string an API function for the function with the given
 % numbers of input and output arguments.
 
@@ -64,7 +64,7 @@ end
 
 %TODO: Improve computation of sub_mx_level_in and sub_mx_level_out
 [marshallin_substr, sub_mx_level_in] = marshallin(altname, vars_ret, nlhs, nrhs, SDindex);
-[marshallout_substr, sub_mx_level_out] = marshallout(vars_ret, nlhs);
+[marshallout_substr, sub_mx_level_out] = marshallout(vars_ret, nlhs, pruned_vars);
 sub_mx_level = max(sub_mx_level_in, sub_mx_level_out);
 
 str = sprintf('%s\n', ...
@@ -316,8 +316,13 @@ end
 first = true;
 % Preallocate output arguemnts that are arrays of fixed size
 for j=1:nlhs
+    if outvarsindex(j)==0
+        continue;
+    end
+    
     var = vars(outvarsindex(j));
     if ~isempty(var.iindex); continue; end
+    
     if first
         str = sprintf('%s\n\n%s', str, '    /* Preallocate output variables */');
         first = false;
@@ -332,7 +337,7 @@ for j=1:nlhs
         str = sprintf(['%s\n    {mwSize l_size[] = {', ...
             regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
             '    *(void **)&%s = prealloc_mxArray((mxArray**)&plhs[%d], %s, %d, l_size); }'], ...
-            str, var.name, var.oindex-1, getMxClassID(var.basetype), length(var.size));
+            str, var.name, j-1, getMxClassID(var.basetype), length(var.size));
     end
 end
 
@@ -503,7 +508,7 @@ end
 str = str(3:end);
 end
 
-function [str,sub_mx_level] = marshallout(vars, nlhs)
+function [str,sub_mx_level] = marshallout(vars, nlhs, pruned_vars)
 % Marshall function output arguments
 
 if nlhs==0;
@@ -522,9 +527,26 @@ end
 
 sub_mx_level = 0;
 for j=1:nlhs
-    var = vars(outvarsindex(j));
+    pruned = 0;
+    if outvarsindex(j)==0
+        for k=1:length(pruned_vars)
+            if pruned_vars(k).oindex==j
+                pruned = k;
+                var = pruned_vars(k);
+                break;
+            end
+        end
+    else
+        var = vars(outvarsindex(j));
+    end
     
-    if ~isempty(var.subfields)
+    if pruned
+        str = sprintf('%s\n    /* Creating empty mxArray for pruned variable %s */', str, var.name);
+        str = sprintf(['%s\n    {mwSize l_size[] = {', ...
+            regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
+            '    prealloc_mxArray((mxArray**)&plhs[%d], %s, %d, l_size); }'], ...
+            str, j-1, ['mx' upper(var.type) '_CLASS'], length(var.size));
+    elseif ~isempty(var.subfields)
         [str,sub_mx_level1] = marshallout_struct(str, sprintf('plhs[%d]', j-1), var);
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif ~isempty(var.iindex) && var.isemx
