@@ -6,172 +6,172 @@
 #include "m2c.h"
 
 define_emxEnsureCapacity
-
+        
 #ifdef struct_emxArray_boolean_T
-define_emxInit( emxInit_boolean_T, boolean_T)
-define_emxFree( emxFree_boolean_T, boolean_T)
-
-define_emxCreate( emxInit_boolean_T, boolean_T)
-define_emxCreateND( emxInit_boolean_T, boolean_T)
-define_emxCreateWrapper( emxInit_boolean_T, boolean_T, boolean_T)
-define_emxCreateWrapperND( emxInit_boolean_T, boolean_T, boolean_T)
-define_emxDestroyArray( emxFree_boolean_T, boolean_T)
+        define_emxInit( emxInit_boolean_T, boolean_T)
+        define_emxFree( emxFree_boolean_T, boolean_T)
+        
+        define_emxCreate( emxInit_boolean_T, boolean_T)
+        define_emxCreateND( emxInit_boolean_T, boolean_T)
+        define_emxCreateWrapper( emxInit_boolean_T, boolean_T, boolean_T)
+        define_emxCreateWrapperND( emxInit_boolean_T, boolean_T, boolean_T)
+        define_emxDestroyArray( emxFree_boolean_T, boolean_T)
 #endif
-
-
+        
+        
 #ifdef struct_emxArray_char_T
-define_emxInit( emxInit_char_T, char_T)
-define_emxFree( emxFree_char_T, char_T)
-
-define_emxCreate( emxInit_char_T, char_T)
-define_emxCreateND( emxInit_char_T, char_T)
-define_emxCreateWrapper( emxInit_char_T, char_T, char_T)
-define_emxCreateWrapperND( emxInit_char_T, char_T, char_T)
-define_emxDestroyArray( emxFree_char_T, char_T)
+        define_emxInit( emxInit_char_T, char_T)
+        define_emxFree( emxFree_char_T, char_T)
+        
+        define_emxCreate( emxInit_char_T, char_T)
+        define_emxCreateND( emxInit_char_T, char_T)
+        define_emxCreateWrapper( emxInit_char_T, char_T, char_T)
+        define_emxCreateWrapperND( emxInit_char_T, char_T, char_T)
+        define_emxDestroyArray( emxFree_char_T, char_T)
 #endif
-
+        
 #ifdef struct_emxArray_int8_T
-define_emxInit( emxInit_int8_T, int8_T)
-define_emxFree( emxFree_int8_T, int8_T)
-
-define_emxCreate( emxInit_int8_T, int8_T)
-define_emxCreateND( emxInit_int8_T, int8_T)
-define_emxCreateWrapper( emxInit_int8_T, int8_T, int8_T)
-define_emxCreateWrapperND( emxInit_int8_T, int8_T, int8_T)
-define_emxDestroyArray( emxFree_int8_T, int8_T)
+        define_emxInit( emxInit_int8_T, int8_T)
+        define_emxFree( emxFree_int8_T, int8_T)
+        
+        define_emxCreate( emxInit_int8_T, int8_T)
+        define_emxCreateND( emxInit_int8_T, int8_T)
+        define_emxCreateWrapper( emxInit_int8_T, int8_T, int8_T)
+        define_emxCreateWrapperND( emxInit_int8_T, int8_T, int8_T)
+        define_emxDestroyArray( emxFree_int8_T, int8_T)
 #endif
-
+        
 #ifdef struct_emxArray_int16_T
-define_emxInit( emxInit_int16_T, int16_T)
-define_emxFree( emxFree_int16_T, int16_T)
-
-define_emxCreate( emxInit_int16_T, int16_T)
-define_emxCreateND( emxInit_int16_T, int16_T)
-define_emxCreateWrapper( emxInit_int16_T, int16_T, int16_T)
-define_emxCreateWrapperND( emxInit_int16_T, int16_T, int16_T)
-define_emxDestroyArray( emxFree_int16_T, int16_T)
+        define_emxInit( emxInit_int16_T, int16_T)
+        define_emxFree( emxFree_int16_T, int16_T)
+        
+        define_emxCreate( emxInit_int16_T, int16_T)
+        define_emxCreateND( emxInit_int16_T, int16_T)
+        define_emxCreateWrapper( emxInit_int16_T, int16_T, int16_T)
+        define_emxCreateWrapperND( emxInit_int16_T, int16_T, int16_T)
+        define_emxDestroyArray( emxFree_int16_T, int16_T)
 #endif
-
+        
 #ifdef struct_emxArray_int32_T
-define_emxInit( emxInit_int32_T, int32_T)
-define_emxFree( emxFree_int32_T, int32_T)
-
-define_emxCreate( emxInit_int32_T, int32_T)
-define_emxCreateND( emxInit_int32_T, int32_T)
-define_emxCreateWrapper( emxInit_int32_T, int32_T, int32_T)
-define_emxCreateWrapperND( emxInit_int32_T, int32_T, int32_T)
-define_emxDestroyArray( emxFree_int32_T, int32_T)
+        define_emxInit( emxInit_int32_T, int32_T)
+        define_emxFree( emxFree_int32_T, int32_T)
+        
+        define_emxCreate( emxInit_int32_T, int32_T)
+        define_emxCreateND( emxInit_int32_T, int32_T)
+        define_emxCreateWrapper( emxInit_int32_T, int32_T, int32_T)
+        define_emxCreateWrapperND( emxInit_int32_T, int32_T, int32_T)
+        define_emxDestroyArray( emxFree_int32_T, int32_T)
 #endif
-
+        
 #ifdef struct_emxArray_int64_T
-define_emxInit( emxInit_int64_T, int64_T)
-define_emxFree( emxFree_int64_T, int64_T)
-
-define_emxCreate( emxInit_int64_T, int64_T)
-define_emxCreateND( emxInit_int64_T, int64_T)
-define_emxCreateWrapper( emxInit_int64_T, int64_T, int64_T)
-define_emxCreateWrapperND( emxInit_int64_T, int64_T, int64_T)
-define_emxDestroyArray( emxFree_int64_T, int64_T)
+        define_emxInit( emxInit_int64_T, int64_T)
+        define_emxFree( emxFree_int64_T, int64_T)
+        
+        define_emxCreate( emxInit_int64_T, int64_T)
+        define_emxCreateND( emxInit_int64_T, int64_T)
+        define_emxCreateWrapper( emxInit_int64_T, int64_T, int64_T)
+        define_emxCreateWrapperND( emxInit_int64_T, int64_T, int64_T)
+        define_emxDestroyArray( emxFree_int64_T, int64_T)
 #endif
-
+        
 #ifdef struct_emxArray_uint8_T
-define_emxInit( emxInit_uint8_T, uint8_T)
-define_emxFree( emxFree_uint8_T, uint8_T)
-
-define_emxCreate( emxInit_uint8_T, uint8_T)
-define_emxCreateND( emxInit_uint8_T, uint8_T)
-define_emxCreateWrapper( emxInit_uint8_T, uint8_T, uint8_T)
-define_emxCreateWrapperND( emxInit_uint8_T, uint8_T, uint8_T)
-define_emxDestroyArray( emxFree_uint8_T, uint8_T)
+        define_emxInit( emxInit_uint8_T, uint8_T)
+        define_emxFree( emxFree_uint8_T, uint8_T)
+        
+        define_emxCreate( emxInit_uint8_T, uint8_T)
+        define_emxCreateND( emxInit_uint8_T, uint8_T)
+        define_emxCreateWrapper( emxInit_uint8_T, uint8_T, uint8_T)
+        define_emxCreateWrapperND( emxInit_uint8_T, uint8_T, uint8_T)
+        define_emxDestroyArray( emxFree_uint8_T, uint8_T)
 #endif
-
+        
 #ifdef struct_emxArray_uint16_T
-define_emxInit( emxInit_uint16_T, uint16_T)
-define_emxFree( emxFree_uint16_T, uint16_T)
-
-define_emxCreate( emxInit_uint16_T, uint16_T)
-define_emxCreateND( emxInit_uint16_T, uint16_T)
-define_emxCreateWrapper( emxInit_uint16_T, uint16_T, uint16_T)
-define_emxCreateWrapperND( emxInit_uint16_T, uint16_T, uint16_T)
-define_emxDestroyArray( emxFree_uint16_T, uint16_T)
+        define_emxInit( emxInit_uint16_T, uint16_T)
+        define_emxFree( emxFree_uint16_T, uint16_T)
+        
+        define_emxCreate( emxInit_uint16_T, uint16_T)
+        define_emxCreateND( emxInit_uint16_T, uint16_T)
+        define_emxCreateWrapper( emxInit_uint16_T, uint16_T, uint16_T)
+        define_emxCreateWrapperND( emxInit_uint16_T, uint16_T, uint16_T)
+        define_emxDestroyArray( emxFree_uint16_T, uint16_T)
 #endif
-
+        
 #ifdef struct_emxArray_uint32_T
-define_emxInit( emxInit_uint32_T, uint32_T)
-define_emxFree( emxFree_uint32_T, uint32_T)
-
-define_emxCreate( emxInit_uint32_T, uint32_T)
-define_emxCreateND( emxInit_uint32_T, uint32_T)
-define_emxCreateWrapper( emxInit_uint32_T, uint32_T, uint32_T)
-define_emxCreateWrapperND( emxInit_uint32_T, uint32_T, uint32_T)
-define_emxDestroyArray( emxFree_uint32_T, uint32_T)
+        define_emxInit( emxInit_uint32_T, uint32_T)
+        define_emxFree( emxFree_uint32_T, uint32_T)
+        
+        define_emxCreate( emxInit_uint32_T, uint32_T)
+        define_emxCreateND( emxInit_uint32_T, uint32_T)
+        define_emxCreateWrapper( emxInit_uint32_T, uint32_T, uint32_T)
+        define_emxCreateWrapperND( emxInit_uint32_T, uint32_T, uint32_T)
+        define_emxDestroyArray( emxFree_uint32_T, uint32_T)
 #endif
-
+        
 #ifdef struct_emxArray_uint64_T
-define_emxInit( emxInit_uint64_T, uint64_T)
-define_emxFree( emxFree_uint64_T, uint64_T)
-
-define_emxCreate( emxInit_uint64_T, uint64_T)
-define_emxCreateND( emxInit_uint64_T, uint64_T)
-define_emxCreateWrapper( emxInit_uint64_T, uint64_T, uint64_T)
-define_emxCreateWrapperND( emxInit_uint64_T, uint64_T, uint64_T)
-define_emxDestroyArray( emxFree_uint64_T, uint64_T)
+        define_emxInit( emxInit_uint64_T, uint64_T)
+        define_emxFree( emxFree_uint64_T, uint64_T)
+        
+        define_emxCreate( emxInit_uint64_T, uint64_T)
+        define_emxCreateND( emxInit_uint64_T, uint64_T)
+        define_emxCreateWrapper( emxInit_uint64_T, uint64_T, uint64_T)
+        define_emxCreateWrapperND( emxInit_uint64_T, uint64_T, uint64_T)
+        define_emxDestroyArray( emxFree_uint64_T, uint64_T)
 #endif
-
+        
 #ifdef struct_emxArray_real_T
-define_emxInit( emxInit_real_T, real_T)
-define_emxFree( emxFree_real_T, real_T)
-
-define_emxCreate( emxInit_real_T, real_T)
-define_emxCreateND( emxInit_real_T, real_T)
-define_emxCreateWrapper( emxInit_real_T, real_T, real_T)
-define_emxCreateWrapperND( emxInit_real_T, real_T, real_T)
-define_emxDestroyArray( emxFree_real_T, real_T)
+        define_emxInit( emxInit_real_T, real_T)
+        define_emxFree( emxFree_real_T, real_T)
+        
+        define_emxCreate( emxInit_real_T, real_T)
+        define_emxCreateND( emxInit_real_T, real_T)
+        define_emxCreateWrapper( emxInit_real_T, real_T, real_T)
+        define_emxCreateWrapperND( emxInit_real_T, real_T, real_T)
+        define_emxDestroyArray( emxFree_real_T, real_T)
 #endif
-
+        
 #ifdef struct_emxArray_real32_T
-define_emxInit( emxInit_real32_T, real32_T)
-define_emxFree( emxFree_real32_T, real32_T)
-
-define_emxCreate( emxInit_real32_T, real32_T)
-define_emxCreateND( emxInit_real32_T, real32_T)
-define_emxCreateWrapper( emxInit_real32_T, real32_T, real32_T)
-define_emxCreateWrapperND( emxInit_real32_T, real32_T, real32_T)
-define_emxDestroyArray( emxFree_real32_T, real32_T)
+        define_emxInit( emxInit_real32_T, real32_T)
+        define_emxFree( emxFree_real32_T, real32_T)
+        
+        define_emxCreate( emxInit_real32_T, real32_T)
+        define_emxCreateND( emxInit_real32_T, real32_T)
+        define_emxCreateWrapper( emxInit_real32_T, real32_T, real32_T)
+        define_emxCreateWrapperND( emxInit_real32_T, real32_T, real32_T)
+        define_emxDestroyArray( emxFree_real32_T, real32_T)
 #endif
-
+        
 #ifdef struct_emxArray_real64_T
-define_emxInit( emxInit_real64_T, real64_T)
-define_emxFree( emxFree_real64_T, real64_T)
-
-define_emxCreate( emxInit_real64_T, real64_T)
-define_emxCreateND( emxInit_real64_T, real64_T)
-define_emxCreateWrapper( emxInit_real64_T, real64_T, real64_T)
-define_emxCreateWrapperND( emxInit_real64_T, real64_T, real64_T)
-define_emxDestroyArray( emxFree_real64_T, real64_T)
+        define_emxInit( emxInit_real64_T, real64_T)
+        define_emxFree( emxFree_real64_T, real64_T)
+        
+        define_emxCreate( emxInit_real64_T, real64_T)
+        define_emxCreateND( emxInit_real64_T, real64_T)
+        define_emxCreateWrapper( emxInit_real64_T, real64_T, real64_T)
+        define_emxCreateWrapperND( emxInit_real64_T, real64_T, real64_T)
+        define_emxDestroyArray( emxFree_real64_T, real64_T)
 #endif
-
+        
 #include <time.h>
-
+        
 #if defined( __GNUC__)
 #include <sys/time.h>
 #else
-
+        
 #ifdef _MSC_VER
-/* Provides an implementation of gettimeofday for Windows
- */
-#include <windows.h> 
+        /* Provides an implementation of gettimeofday for Windows
+         */
+#include <windows.h>
 #elif !defined(__LCC__)
 #include <math.h>
 #endif
-
+        
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
-
-struct timezone
+        
+        struct timezone
 {
     int  tz_minuteswest; /* minutes W of Greenwich */
     int  tz_dsttime;     /* type of dst correction */
@@ -224,12 +224,12 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
         tz->tz_dsttime = _daylight;
     }
 #elif !defined(__LCC__)
-    double t = clock(); 
+    double t = clock();
     t /= CLOCKS_PER_SEC;
     tv->tv_sec = (long)(floor(t));
     tv->tv_usec = (long)(floor((t-tv->tv_sec)*1.e6));
 #endif
-
+    
     return 0;
 }
 
@@ -247,6 +247,34 @@ double M2C_wtime() {
     
     y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
 #endif
-
+    
     return (y);
 }
+
+#ifndef MATLAB_MEX_FILE
+#include <stdarg.h>
+
+/* Issue formatted warning message with corresponding warning identifier */
+void M2C_warn(const char * id, const char * msg, ...) {
+    va_list args;
+    
+    fprintf(stderr, "Warning %s:\n", id);
+    va_start (args, msg);
+    vfprintf (stderr, msg, args);
+    va_end (args);
+}
+
+/* Issue formatted error message with corresponding error identifier */
+void M2C_error(const char * id, const char * msg, ...) {
+    va_list args;
+    
+    fprintf(stderr, "Error %s:\n", id);
+    
+    va_start (args, msg);
+    vfprintf (stderr, msg, args);
+    va_end (args);
+    
+    abort();
+}
+
+#endif

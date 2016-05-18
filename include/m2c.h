@@ -15,21 +15,11 @@ extern void *mxCalloc(size_t n, size_t size);
 extern void *mxRealloc(void *ptr, size_t size);
 extern void mxFree(void *ptr);
 
-extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
-extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
-extern int  mexPrintf(const char * msg, ...);
-
 /* Define macros to support building function into MATLAB executable. */
 #define malloc  mxMalloc
 #define calloc  mxCalloc
 #define realloc mxRealloc
 #define free    mxFree
-
-#define M2C_error   mexErrMsgIdAndTxt
-#define M2C_warn    mexWarnMsgIdAndTxt
-#define M2C_printf  mexPrintf
-
-#define emlrtIsMATLABThread(s)  1
 
 #else
 
@@ -43,6 +33,33 @@ extern int  mexPrintf(const char * msg, ...);
 #endif
 #endif
 
+#endif
+
+
+#if defined(MATLAB_MEX_FILE)
+extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+extern int  mexPrintf(const char * msg, ...);
+
+#define M2C_error   mexErrMsgIdAndTxt
+#define M2C_warn    mexWarnMsgIdAndTxt
+#define M2C_printf  mexPrintf
+
+#define emlrtIsMATLABThread(s)  1
+
+#elif defined(BUILD_MAT)
+
+extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+
+#define M2C_error   mexErrMsgIdAndTxt
+#define M2C_warn    mexWarnMsgIdAndTxt
+#define M2C_printf  printf
+
+#define emlrtIsMATLABThread(s)  0
+
+#else
+
 extern void M2C_error(const char * id, const char * msg, ...);
 extern void M2C_warn(const char * id, const char * msg, ...);
 #define M2C_printf  printf
@@ -50,6 +67,7 @@ extern void M2C_warn(const char * id, const char * msg, ...);
 #define emlrtIsMATLABThread(s)  0
 
 #endif
+
 
 extern double M2C_wtime();
 

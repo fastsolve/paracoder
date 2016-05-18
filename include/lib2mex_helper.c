@@ -5,7 +5,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
 
 /* Type Definitions */
 #ifndef struct_emxArray__common
@@ -504,31 +503,6 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
 }
 
 #undef CGEN_MAXDIM
-
-#ifndef MATLAB_MEX_FILE
-/* Issue formatted warning message with corresponding warning identifier */
-void M2C_warn(const char * id, const char * msg, ...) {
-    va_list args;
-
-    fprintf(stderr, "Warning %s:\n", id);
-    va_start (args, msg);
-    vfprintf (stderr, msg, args);
-    va_end (args);
-}
-
-/* Issue formatted error message with corresponding error identifier */
-void M2C_error(const char * id, const char * msg, ...) {
-    va_list args;
-
-    fprintf(stderr, "Error %s:\n", id);
-
-    va_start (args, msg);
-    vfprintf (stderr, msg, args);
-    va_end (args);
-
-    abort();
-}
-#endif
 
 #ifdef MATLAB_MEX_FILE
 #include "mex.h"
