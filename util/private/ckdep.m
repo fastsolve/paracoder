@@ -25,6 +25,9 @@ if exist('octave_config_info', 'builtin')
     % In octave, cannot check dependence
     OK=a1.datenum>=a2.datenum;
     return;
+elseif a1.datenum<a2.datenum;
+    OK=false;
+    return;
 end
 
 if exist([mfile(1:end-1) mexext], 'file')
