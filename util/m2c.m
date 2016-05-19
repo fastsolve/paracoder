@@ -426,7 +426,7 @@ end
 
 if m2c_opts.genMex 
     run_mexcommand(cpath, func);
-elseif ~m2c_opts.quiet
+elseif m2c_opts.verbose
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
         [cpath 'mex_' func '.m']);
 end
@@ -444,7 +444,7 @@ if m2c_opts.genExe
     end
     
     build_exe(cpath, func);
-    if ~m2c_opts.quiet
+    if m2c_opts.verbose
         fprintf(['To run the EXE file in MATLAB, ', ...
             'replace calls to ' func ' by run_' func '_exe.\n']);
     end
