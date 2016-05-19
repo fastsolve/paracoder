@@ -294,7 +294,7 @@ else
 end
 
 if m2c_opts.withPetsc
-    petsc_header = sprintf('\n%s', '#include "petscsys.h"', '#include "petscksp.h"');
+    petsc_header = '#include "mpetsc.h"';
 else
     petsc_header = '';
 end
@@ -651,10 +651,6 @@ while i<=last_index
                 end
             end
             
-            if m2c_opts.petscDir{1}(end) == '/'
-                m2c_opts.petscDir{1}(end) = [];
-            end
-            
             petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
             if ~exist(petscvariables, 'file')
                 error('m2c:petsc_dir', ...
@@ -678,18 +674,11 @@ while i<=last_index
             m2c_opts.petscCC = {PCC};
             m2c_opts.petscCXX = {CXX};
             m2c_opts.petscCFLAGS = {CFLAGS};
-            m2c_opts.petscCXXFLAGS = {CXXFLAGS};
+            m2c_opts.petscCXXFLAGS = {CXXFLAGS};            
             
-            if exist([m2c_opts.petscDir{1} '/include/petsc.h'], 'file')
-                m2c_opts.petscInc = {['-I' m2c_opts.petscDir{1} '/include'], INC};
-            else
-                dir1 = fileparts(m2c_opts.petscDir{1});
-                if exist([dir1 '/include/petsc.h'], 'file')
-                    m2c_opts.petscInc = {['-I' dir1 '/include'], INC};
-                else
-                    error('Could not find petsc header files under %s/include', m2c_opts.petscDir{1});
-                end
-            end
+            mpetscInc = [fileparts(which('mptSolve.m')), '/include'];
+            m2c_opts.petscInc = {[INC ' -I' mpetscInc]};
+
             if ismac; concat = ','; else concat = '='; end
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib', ...
                 ' -Wl,-rpath' concat m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
@@ -812,15 +801,11 @@ end
 
 if nargout>2
     INC = '';
-    [~, base, ~] = fileparts(PCC);
-    if ~isequal(base(1:3), 'mpi')
-        % Need to add MPI include directory if CC is not an MPI wrapper
-        pat = '\nMPI_INCLUDE\s*=\s*([^\n]+)\n';
-        def = regexp(str, pat, 'match', 'once');
-        
-        if ~isempty(def)
-            INC = strtrim(regexprep(def, pat, '$1'));
-        end
+    pat = '\PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
+    def = regexp(str, pat, 'match', 'once');
+    
+    if ~isempty(def)
+        INC = strtrim(regexprep(def, pat, '$1'));
     end
 end
 
