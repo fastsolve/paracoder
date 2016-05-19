@@ -433,7 +433,7 @@ end
 
 %% Generate MATLAB scripts for exe if genexe is true.
 if m2c_opts.genExe
-    if regen_c || m2c_opts.force
+    if regen_c || m2c_opts.force || ~exist([cpath  func '_exe.c'], 'file')
         % Write the main function for Exe
         writeExeFile(func, cpath, m2c_opts);
     end
