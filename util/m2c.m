@@ -57,10 +57,15 @@ function m2c(varargin)
 %           M file and and regenerate C code if any dependence is newer.
 %           This can be slow, so it should be only if you do not want to
 %           use -force.
+%     -cktop
+%           By default, m2c does not regenerated C code if it already exist.
+%           Use this optoin to request m2c to check the dependecies of the
+%           top-level M file and and regenerate C code. This is much faster, 
+%           than -ckdep, so it should be the default mode for most code development.
 %     -force
 %           Force the regeneration of C code and recompilation.
 %     -skipcg
-%           Skip calling codegen, even if -ckdep and -force are specified.
+%           Skip calling codegen, even if -force, -ckdep, or -cktop is specified.
 % OPTIMIZATION
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
@@ -302,6 +307,7 @@ end
 regen_c = ~m2c_opts.skipcg && (m2c_opts.force || ~exist([cpath  func '.c'], 'file') || ...
     ~exist([cpath  func '_mex.c'], 'file') || ...
     ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
+    m2c_opts.cktop && ~isnewer([cpath  func '_mex.c'], mfile) || ...
     m2c_opts.ckdep && ~ckdep([cpath  func '.c'], mfile, true));
 
 if regen_c
@@ -508,6 +514,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'suf', 'c', ...
     'force', false, ...
     'ckdep', false, ...
+    'cktop', false, ...
     'skipcg', false, ...
     'gen64', false);
 
@@ -535,6 +542,8 @@ while i<=last_index
             m2c_opts.force = true;
         case '-ckdep'
             m2c_opts.ckdep = true;
+        case '-cktop'
+            m2c_opts.cktop = true;
         case '-skipcg'
             m2c_opts.skipcg = true;
         case '-mex'
