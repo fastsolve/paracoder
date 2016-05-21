@@ -16,6 +16,10 @@ extern void *mxRealloc(void *ptr, size_t size);
 extern void mxFree(void *ptr);
 
 /* Define macros to support building function into MATLAB executable. */
+#ifdef malloc
+# error Function malloc was previously defined as a macro. This can cause MEX functions to fail.
+#endif
+
 #define malloc  mxMalloc
 #define calloc  mxCalloc
 #define realloc mxRealloc

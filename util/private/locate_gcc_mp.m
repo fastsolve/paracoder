@@ -1,12 +1,7 @@
-function [CC, found] = locate_gcc_mp(usecpp)
+function [CC, CXX, found] = locate_gcc_mp
 % Find gcc_mp
 
-if usecpp
-    CC = 'g++-mp';
-else
-    CC = 'gcc-mp';
-end
-
+CC = 'gcc-mp';
 
 [status, ~] = system(['which ' CC]);
 if status
@@ -28,5 +23,8 @@ if status
         found = true;
     end
 end
+
+CXX = strrep(CC, 'gcc-mp', 'g++-mp');
+
 end
 

@@ -449,10 +449,15 @@ if m2c_opts.genExe
         writeExeScripts(func, cpath, m2c_opts);
     end
     
-    build_exe(cpath, func);
-    if m2c_opts.verbose
-        fprintf(['To run the EXE file in MATLAB, ', ...
-            'replace calls to ' func ' by run_' func '_exe.\n']);
+    if ~exist('octave_config_info', 'builtin')
+        build_exe(cpath, func);
+        if m2c_opts.verbose
+            fprintf(['To run the EXE file in MATLAB, ', ...
+                'replace calls to ' func ' by run_' func '_exe.\n']);
+        end
+    elseif ~m2c_opts.quiet
+        fprintf('Skipping compilation of EXE file in Octave.\n');
+        
     end
 end
 end
@@ -810,7 +815,7 @@ end
 
 if nargout>2
     INC = '';
-    pat = '\PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
+    pat = 'PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
     
     if ~isempty(def)

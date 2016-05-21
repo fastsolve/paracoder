@@ -32,12 +32,15 @@ elseif isempty(m2c_opts.cc)
     
     if ismac && m2c_opts.withOMP
         % Try to locate gcc-mp, with support of OpenMP
-        [CC, found] = locate_gcc_mp(m2c_opts.useCpp);
+        [CC, CXX, found] = locate_gcc_mp;
+        
         if ~found
             if m2c_opts.ompLibs
                 warning('m2c:buildEXE', 'OpenMP is disabled.');
                 m2c_opts.ompLibs = {};
             end
+        elseif m2c_opts.useCpp
+            CC = CXX;
         end
     end
 else

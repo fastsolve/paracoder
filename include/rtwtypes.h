@@ -3,7 +3,7 @@
  *
  */
 
-#if defined(MATLAB_MEX_FILE)
+#if defined(MATLAB_MEX_FILE) && !defined(OCTAVE_MEX_FILE)
 #include "tmwtypes.h" /* Use MATLAB's TMWTYPES */
 #endif
 
@@ -145,8 +145,6 @@ typedef char_T byte_T;
 
 #ifndef _bool_T
 #define _bool_T
-
-typedef boolean_T bool;
 
 #ifndef false
 #define false (0)

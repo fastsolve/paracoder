@@ -68,7 +68,7 @@ function [str, contained_opaque] = extractSignature(fame)
 
 file = readFile(fame);
 
-line = regexp(file, '%#m2c options:([^\n])*\n', 'match');
+line = regexp(file, '%#m2c options:[^\n]*\n', 'match');
 
 if ~isempty(line)
     str = line{1}(1:end-1);

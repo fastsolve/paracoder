@@ -4,7 +4,7 @@
 warning('off', 'MATLAB:pfileOlderThanMfile');
 warning('off', 'MATLAB:mex:GccVersion')
 
-if exist('m2c', 'file')~=2
+if exist('m2c.m', 'file')~=2
     addpath(pwd); %#ok<*MCAP>
     addpath([pwd '/util']);
     addpath([pwd '/ctypes']);
@@ -12,4 +12,9 @@ end
 
 if ~exist('coder.p', 'file')
     addpath([pwd '/No_coder']);
+    
+    if exist('octave_config_info', 'builtin')
+        % If using Octave, add the Octave path
+        addpath([pwd '/octave']);
+    end
 end
