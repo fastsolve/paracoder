@@ -16,7 +16,7 @@ function m2c_printf(varargin) %#codegen
 
 coder.inline('never');
 
-if isempty(coder.target))
+if isempty(coder.target)
     fprintf(1, varargin{:});
 else
     if isequal(coder.target, 'mex')

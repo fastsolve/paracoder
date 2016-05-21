@@ -6,7 +6,7 @@ function flag = m2c_debug
 
 coder.inline('always');
 
-if isempty(coder.target))
+if isempty(coder.target)
     flag = true;
 else 
     flag = int32(1); %#ok<NASGU>

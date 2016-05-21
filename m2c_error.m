@@ -17,7 +17,7 @@ function m2c_error(varargin) %#codegen
 
 coder.inline('never');
 
-if isempty(coder.target))
+if isempty(coder.target)
     error(varargin{:});
 else
     if isequal(coder.target, 'mex')
