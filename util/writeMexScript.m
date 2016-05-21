@@ -17,10 +17,13 @@ if m2c_opts.withPetsc
     % PETSc for CC and add the include path.
     CC = ['CC=''''' m2c_opts.petscCC{1} '''''' ...
         ' CXX=''''' m2c_opts.petscCXX{1} ''''''];
-    CFLAGS = ['CFLAGS=''''' m2c_opts.petscCFLAGS{1} ...
-        ' -Wno-unused-variable -Wno-unused-function'''''  ...
-        ' CXXFLAGS=''''' m2c_opts.petscCXXFLAGS{1} ...
-        ' -Wno-unused-variable -Wno-unused-function'''''];
+    if m2c_opts.useCpp
+        CFLAGS = [' CXXFLAGS=''''' m2c_opts.petscCXXFLAGS{1} ...
+            ' -Wno-unused-variable -Wno-unused-function'''''];
+    else
+        CFLAGS = ['CFLAGS=''''' m2c_opts.petscCFLAGS{1} ...
+            ' -Wno-unused-variable -Wno-unused-function'''''];
+    end
 elseif m2c_opts.withMPI
     % If MPI is used, enforce using mpi compiler wrappers
     CC = ['CC=''''' m2c_opts.mpiCC{1} ''''' CXX=''''' m2c_opts.mpiCXX{1} ''''''];
@@ -55,12 +58,22 @@ switch m2c_opts.optLevel
         coptflags = '';
 end
 
-mexflags = [mexflags ' COPTIMFLAGS=''''' coptflags ''''''];
-if m2c_opts.debugInfo;
-    mexflags = [mexflags ' CDEBUGFLAGS=''''-g'''''];
+if m2c_opts.useCpp
+    mexflags = [mexflags ' CXXOPTIMFLAGS=''''' coptflags ''''''];
+    if m2c_opts.debugInfo;
+        mexflags = [mexflags ' CXXDEBUGFLAGS=''''-g'''''];
+    end
+else
+    mexflags = [mexflags ' COPTIMFLAGS=''''' coptflags ''''''];
+    if m2c_opts.debugInfo;
+        mexflags = [mexflags ' CDEBUGFLAGS=''''-g'''' '];
+    end
 end
 
-if ~isempty(m2c_opts.cflags)
+if ~isempty(m2c_opts.cflags) && m2c_opts.useCpp
+    % Overwrite all the C flags
+    mexflags = [mexflags ' CXXFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
+elseif ~isempty(m2c_opts.cflags)
     % Overwrite all the C flags
     mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
 end
