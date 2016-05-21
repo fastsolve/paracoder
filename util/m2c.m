@@ -532,7 +532,7 @@ for i=1:length(varargin)
     end
 end
 
-if func_index>=1 && exist(varargin{func_index}, 'file')
+if func_index>=1 && (exist(varargin{func_index}, 'file') || exist([varargin{func_index} '.m'], 'file'))
     func = varargin{func_index};
 else
     error('m2c:InvalidFileName', 'Function %s could not be found.', varargin{func_index});
