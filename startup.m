@@ -16,5 +16,6 @@ if ~exist('coder.p', 'file')
     if exist('octave_config_info', 'builtin')
         % If using Octave, add the Octave path
         addpath([pwd '/octave']);
+        more('off');
     end
 end

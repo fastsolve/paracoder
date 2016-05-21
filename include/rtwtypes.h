@@ -45,10 +45,11 @@ typedef int int32_T;
 typedef unsigned int uint32_T;
 #if !defined(_INT64_T) && defined(__WORDSIZE) && __WORDSIZE == 64
 typedef long int int64_T;
+typedef unsigned long int uint64_T;
 #elif !defined(_INT64_T)
 typedef long long int64_T;
-#endif
 typedef unsigned long long uint64_T;
+#endif
 
 typedef float real32_T;
 typedef double real64_T;
