@@ -310,8 +310,8 @@ static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
     mwSize  *dims=NULL;
     int      i;
 
-    if  (size[0]==0 && dim==1) {
-        dims = dims_buf; dims[0] = 0; dims[1] = 1; dim = 2;
+    if  (dim==1) {
+        dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
     }
     else if (sizeof(mwSize) == sizeof(*size))
         dims = (mwSize*)size;
@@ -375,8 +375,8 @@ static mxArray *create_struct_mxArray(int32_T dim, int32_T *size,
     mwSize  *dims=NULL;
     int      i;
 
-    if  (size[0]==0 && dim==1) {
-        dims = dims_buf; dims[0] = 0; dims[1] = 1; dim = 2;
+    if  (dim==1) {
+        dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
     }
     else if (sizeof(mwSize) == sizeof(*size))
         dims = (mwSize*)size;
@@ -418,8 +418,8 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
     }
 #endif
 
-    if  (dim==1 && emx->size[0]==0) {
-        dims = dims_buf; dims[0] = 0; dims[1] = 1; dim = 2;
+    if  (dim==1) {
+        dims = dims_buf; dims[0] = emx->size[0]; dims[1] = 1; dim = 2;
     }
     else if (sizeof(mwSize) == sizeof(*emx->size))
         dims = (mwSize*)emx->size;
