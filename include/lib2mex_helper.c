@@ -215,10 +215,18 @@ static void copy_mxArray_to_array(const mxArray *a, void *data,
 static void *prealloc_mxArray(mxArray **pa, mxClassID type, 
                                int32_T dim, mwSize *size) {
     mxArray *a=NULL;
+    mwSize   dims_buf[CGEN_MAXDIM];
+    mwSize  *dims=NULL;
+
+    if  (dim==1) {
+        dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
+    }
+    else
+        dims = (mwSize*)size;
 
     switch (type) {
     case mxLOGICAL_CLASS:
-        a = mxCreateLogicalArray(dim, size);
+        a = mxCreateLogicalArray(dim, dims);
         break;
     case mxDOUBLE_CLASS:
     case mxSINGLE_CLASS:
@@ -230,10 +238,10 @@ static void *prealloc_mxArray(mxArray **pa, mxClassID type,
     case mxUINT32_CLASS:
     case mxINT64_CLASS:
     case mxUINT64_CLASS:
-        a = mxCreateNumericArray(dim, size, type, mxREAL);
+        a = mxCreateNumericArray(dim, dims, type, mxREAL);
         break;
     case mxSTRUCT_CLASS:
-        a = mxCreateStructArray(dim, size, 0, NULL);
+        a = mxCreateStructArray(dim, dims, 0, NULL);
         break;
     case mxFUNCTION_CLASS:
         mxAssert(0, "mxFUNCTION_CLASS is not supported.");
@@ -251,44 +259,44 @@ static void *prealloc_mxArray(mxArray **pa, mxClassID type,
  *****************************************************************/
 static mxArray *copy_scalar_to_mxArray(void *s, mxClassID type) {
     mxArray *a = NULL;
-    const mwSize  one=1;
+    const mwSize  ones[2]={1,1};
 
     switch (type) {
     case mxLOGICAL_CLASS:
-        a = mxCreateLogicalArray(1, &one);
+        a = mxCreateLogicalArray(2, ones);
         *(boolean_T*)mxGetData(a) = *(boolean_T*)s;
         break;
     case mxCHAR_CLASS: {
-        a = mxCreateCharArray(1, &one);
+        a = mxCreateCharArray(2, ones);
         *(mxChar*)mxGetData(a) = *(char_T*)s;
         break;
     }
     case mxDOUBLE_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(real64_T*)mxGetData(a) = *(real64_T*)s;
         break;
     case mxSINGLE_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(real32_T*)mxGetData(a) = *(real32_T*)s;
         break;
     case mxINT8_CLASS:
     case mxUINT8_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(int8_T*)mxGetData(a) = *(int8_T*)s;
         break;
     case mxINT16_CLASS:
     case mxUINT16_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(uint16_T*)mxGetData(a) = *(uint16_T*)s;
         break;
     case mxINT32_CLASS:
     case mxUINT32_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(uint32_T*)mxGetData(a) = *(uint32_T*)s;
         break;
     case mxINT64_CLASS:
     case mxUINT64_CLASS:
-        a = mxCreateNumericArray(1, &one, type, mxREAL);
+        a = mxCreateNumericArray(2, ones, type, mxREAL);
         *(uint64_T*)mxGetData(a) = *(uint64_T*)s;
         break;
     case mxFUNCTION_CLASS:
