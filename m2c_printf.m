@@ -16,7 +16,7 @@ function m2c_printf(varargin) %#codegen
 
 coder.inline('never');
 
-if coder.target('MATLAB')
+if isempty(coder.target))
     fprintf(1, varargin{:});
 else
     if isequal(coder.target, 'mex')

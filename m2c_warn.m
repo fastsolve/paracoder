@@ -18,7 +18,7 @@ function m2c_warn(varargin) %#codegen
 
 coder.inline('never');
 
-if coder.target('MATLAB')
+if isempty(coder.target))
     warning(varargin{:});
 else   
     if isequal(coder.target, 'mex')
