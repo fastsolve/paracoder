@@ -426,11 +426,11 @@ if regen_c
 end
 
 %% Generate MATLAB scripts for mex
-if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
-    writeMexScript(func, cpath, m2c_opts);
-end
-
 if m2c_opts.genMex 
+    if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
+        writeMexScript(func, cpath, m2c_opts);
+    end
+
     run_mexcommand(cpath, func);
 elseif m2c_opts.verbose
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...

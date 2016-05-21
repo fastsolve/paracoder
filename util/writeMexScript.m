@@ -100,7 +100,7 @@ libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
 libs = strtrim(libs);
 
 if ~isempty(libs)
-    LINKLIBS = [' LINKLIBS=''''' libs ' $LINKLIBS '''''];
+    LINKLIBS = [' LINKLIBS=''''$LINKLIBS  ' libs ''''''];
 else
     LINKLIBS = '';
 end
