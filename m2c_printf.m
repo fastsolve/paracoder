@@ -20,7 +20,7 @@ if isempty(coder.target)
     fprintf(1, varargin{:});
 else
     if isequal(coder.target, 'mex')
-        cmd = 'mexPrint';
+        cmd = 'mexPrintf';
     else
         cmd = 'M2C_printf';
     end
