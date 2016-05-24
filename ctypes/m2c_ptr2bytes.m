@@ -1,6 +1,6 @@
 function [addr, sizepe] = m2c_ptr2bytes(cptr) %#codegen
 %m2c_ptr2bytes Convert the value of the pointer address stored in to a stream of bytes.
-%   [addr, len] = m2c_get_cstruct_field(ptr)
+%   [addr, len] = m2c_ptr2bytes(ptr)
 %
 % Note that addr is always a column vector of size 8-by-1. The
 % argument len stores the number of bytes in the pointer.
