@@ -426,15 +426,21 @@ if regen_c
 end
 
 %% Generate MATLAB scripts for mex
+if exist('octave_config_info', 'builtin')
+    mexbuild = [cpath  'oct_' func '.m'];
+else
+    mexbuild = [cpath  'mex_' func '.m'];
+end
 if m2c_opts.genMex 
-    if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', [cpath  'mex_' func '.m'])
+    if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', mexbuild)
         writeMexScript(func, cpath, m2c_opts);
     end
 
-    run_mexcommand(cpath, func);
+    clear(mexbuild);
+    if exist(mexbuild, 'file'); run(mexbuild); end
 elseif m2c_opts.verbose
     fprintf('To build the MEX file, use command (without quotes): "run %s".\n', ...
-        [cpath 'mex_' func '.m']);
+        mexbuild);
 end
 
 %% Generate MATLAB scripts for exe if genexe is true.
@@ -772,13 +778,6 @@ for i=1:length(names)
     end
 end
 
-end
-
-function run_mexcommand(cpath, func)
-command = [cpath 'mex_' func '.m'];
-
-clear(command);
-if exist(command, 'file'); run(command); end
 end
 
 function build_exe(cpath, func)

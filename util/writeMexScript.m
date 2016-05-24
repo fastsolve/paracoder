@@ -2,8 +2,15 @@ function writeMexScript(funcname, cpath, m2c_opts)
 % Generate a script for building the Mex file.
 
 % Nested function for writing out mex script
+
+if exist('octave_config_info', 'builtin')
+    prefix = 'oct_';
+else
+    prefix = 'mex_';
+end
+
 if ~isequal(cpath, '.')
-    outMfile = [cpath '/mex_' funcname '.m'];
+    outMfile = [cpath '/' prefix funcname '.m'];
 end
 clear(outMfile);
 
@@ -122,7 +129,8 @@ end
 % Place mex file in the same directory as the M file.
 filestr = sprintf('%s\n', ...
     ['% Build script for ' funcname], signature, '', ...
-    ['if exist(''isnewer'', ''file'') && ~isnewer([''' mexdir funcname '.'' mexext], ''mex_' funcname '.m'', ''' funcname '_mex.' m2c_opts.suf ''')'], ...
+    ['if exist(''isnewer'', ''file'') && ~isnewer([''' mexdir funcname ...
+    '.'' mexext], ''' prefix funcname '.m'', ''' funcname '_mex.' m2c_opts.suf ''')'], ...
     '    m2cdir = fileparts(which(''m2c_printf.m''));');
 
 filestr = sprintf('%s\n', filestr, ...

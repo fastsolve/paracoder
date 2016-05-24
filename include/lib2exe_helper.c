@@ -12,7 +12,7 @@ extern void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
 /* Read input file. Returns 0 if successful. */
 int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
     int  i;
-    const char *varname;
+    char varname[64];
     
     MATFile *pmat = matOpen(filename, "r");
     
@@ -22,20 +22,15 @@ int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
     }
     
     for (i=0; i<nrhs; ++i) {
-        prhs[i] = matGetNextVariable(pmat, &varname);
+        sprintf(varname, "input_%d", i+1);
+        prhs[i] = matGetVariable(pmat, varname);
         
         if (!prhs[i]) {
             fprintf(stderr, "There are only %d variables in input file %s. %d expected.\n", i, filename, nrhs);
             return(-1);
         }
     }
-    
-    /* Read in remaining varilables in the file */
-    while (matGetNextVariable(pmat, &varname)) {
-        fprintf(stderr, "Warning: Ignoring extra varilable %s in file %s\n",
-                varname, filename);
-    }
-    
+   
     if (matClose(pmat)) {
         fprintf(stderr, "Error closing file %s\n", filename);
         return(-1);
