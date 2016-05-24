@@ -6,7 +6,7 @@ function str_out = m2c_strcopy(str_in, wrap)
 
 coder.inline('always')
 
-if nargin==1 || ischar(str_in) || ~wrap
+if nargin==1 || ~ischar(wrap) && ~wrap
     str_out = str_in;
 else
     str = coder.opaque('const char *'); %#ok<NASGU>
