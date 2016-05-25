@@ -76,5 +76,5 @@ end
 
 function ptr = cast2ptr(type, data)
 ptr = coder.opaque(type);
-ptr = coder.ceval(type, coder.rref(data));
+ptr = coder.ceval(['(' type ')'], coder.rref(data));
 end
