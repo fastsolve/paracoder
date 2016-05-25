@@ -54,7 +54,7 @@ function mmex(varargin)
 %           by including this option on the command line. If the -g option
 %           appears without the -O option, optimization is disabled.
 %       -outdir <dirname>
-%           Not supported. Ignored with warning.
+%           Not supported. Use -output instead.
 %       -output <resultname>
 %           Create MEX-file named <resultname>. The appropriate MEX-file
 %           extension is automatically appended. Overrides MEX's default
@@ -146,10 +146,11 @@ while i<=nargin
     elseif isequal(varargin{i}, '-compatibleArrayDims') || ...
             isequal(varargin{i}, '-largeArrayDims')
         % Ignore without any warning
-    elseif isequal(varargin{i}, '-client') || isequal(varargin{i}, '-f') || ...
-            isequal(varargin{i}, '-outdir')
+    elseif isequal(varargin{i}, '-client') || isequal(varargin{i}, '-f')
         warning('Argument %s is not supported and will be ignored.', varargin{i});
         i = i + 1;
+    elseif isequal(varargin{i}, '-outdir')
+        error('Option -outdir is not supported. Please use -output instead.');
     elseif length(varargin{i})>=2 && isequal(varargin{i}(1:2), '-U')
         error('Argument -U is not supported.');
     elseif isequal(varargin{i}, '-setup')
