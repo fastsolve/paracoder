@@ -6,6 +6,8 @@ function str = m2c_int2str(val) %#codegen
 % Limitation: the output of this function cannot be used for 
 % concatenation with other strings.
 
+%#codegen -args {int32(0)}
+
 if isempty(coder.target)
     str = [num2str(int32(val)) char(0)];
 else
