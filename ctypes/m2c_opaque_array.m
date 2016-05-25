@@ -97,16 +97,15 @@ elseif ischar(varargin{2}) && isequal(varargin{2}, 'set')
             'Index %d is out of bound when setting an entry in m2c_opaque_array.\n', i);
     end
     
-    sizepe = int32(0); %#ok<NASGU>
-    sizepe = coder.eval('sizeof', basetype);
-    offset = int32(i-1) * sizepe;
-    
     % copy val into the ith entry
     if isstruct(varargin{4})
         val = varargin{4};
     else
         val = m2c_opaque_obj(basetype, varargin{4}, true);
     end
+    
+    sizepe = int32(fix(length(output.data)/output.nitems));
+    offset = int32(i-1) * sizepe;    
     output.data(offset+1:offset+sizepe) = val.data;
 elseif ischar(varargin{2}) && isequal(varargin{2}, 'get')
     % val = m2c_opaque_array(basedatatype, array, 'get', i)
@@ -118,8 +117,7 @@ elseif ischar(varargin{2}) && isequal(varargin{2}, 'get')
             'Index %d is out of bound when getting an entry in m2c_opaque_array.\n', i);
     end
     
-    sizepe = int32(0); %#ok<NASGU>
-    sizepe = coder.eval('sizeof', basetype);
+    sizepe = int32(fix(length(arr.data)/arr.nitems));
     offset = int32(i-1) * sizepe;
     
     output = m2c_opaque_obj(basetype, arr.data(offset+1:offset+n), true);
