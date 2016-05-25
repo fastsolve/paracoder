@@ -14,6 +14,7 @@ p.resize = @copy;
 p.nullcopy = @copy;
 
 p.opaque = @opaque;
+p.typeof = @copy;
 
 end
 

@@ -12,7 +12,12 @@ coder.inline('always');
 
 if isempty(coder.target)
     dir = fileparts(which('m2c_opaque_ptr_const.m'));
-    mex([dir '/m2c_opaque_ptr_const.c'], '-outdir', dir);
+    if exist('octave_config_info', 'builtin')
+        mex([dir '/m2c_opaque_ptr_const.c'], '-o', ...
+             [dir '/m2c_opaque_ptr_const.' mexext]);
+    else
+        mex([dir '/m2c_opaque_ptr_const.c'], '-outdir', dir);
+    end
     
     if nargin==0
         ptr = m2c_opaque_ptr_type;
