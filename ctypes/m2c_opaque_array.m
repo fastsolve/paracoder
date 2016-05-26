@@ -90,6 +90,11 @@ elseif nargin==2 || nargin==3 && isnumeric(varargin{1})
     end
 elseif (nargin==4 || nargin==5) && isnumeric(varargin{2}) && ...
         (ischar(varargin{3}) || varargin{3})
+    if ischar(varargin{3}) && ~isequal(varargin{3}, 'wrap')
+        m2c_error('m2c_opaque_array:WrongInput', ...
+            'When 3rd argument is string, it must be ''wrap''.\n');
+    end
+    
     % array = m2c_opaque_array(basedatatype, obj, n, 'wrap', [sizepe]) or
     % array = m2c_opaque_array(basedatatype, obj, n, true, [sizepe])
     if isstruct(varargin{1})
