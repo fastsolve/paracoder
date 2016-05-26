@@ -1,4 +1,4 @@
-function val = m2c_get_cstruct_field(s, field, type) %#codegen
+function val = m2c_get_cstruct_field(cstruct, field, type) %#codegen
 %m2c_get_cstruct_field obtains a field of a C struct by its name.
 %   val = m2c_get_cstruct_field(cstruct, field, type)
 %where type a MATLAB basic data type.
