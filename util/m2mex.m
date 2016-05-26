@@ -16,10 +16,10 @@ function m2mex(varargin)
 %           in debug mode.
 %     -v
 %           Verbose mode.
+%     -omp
+%           Enable support for OpenMP. It requires MOMP.
 %     -acc
-%           Enable MATLAB Coder's built-in support of OpenMP. This only 
-%           enables converting parfor in MATLAB into OpenMP code in C. 
-%           To use the full features of OpenMP, use m2c and MACC.
+%           Enable support for OpenACC. It requires MACC.
 %     -force
 %           Force to rebuild the mex function.
 %     -args {...}

@@ -17,7 +17,19 @@ clear(outMfile);
 mexflags = '';
 
 CC = '';
-CFLAGS = '';
+CFLAGS = '-Wno-unused-variable -Wno-unused-function';
+LDFLAGS = '';
+
+if m2c_opts.useCpp
+    varname_CFLAGS = 'CXXFLAGS';
+    varname_OPTIMFLAGS = 'CXXOPTIMFLAGS';    
+    varname_DEBUGFLAGS = 'CXXDEBUGFLAGS';    
+else
+    varname_CFLAGS = 'CFLAGS';
+    varname_OPTIMFLAGS = 'COPTIMFLAGS';    
+    varname_DEBUGFLAGS = 'CDEBUGFLAGS';    
+end
+
 
 if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
@@ -25,15 +37,21 @@ if m2c_opts.withPetsc
     CC = ['CC=''''' m2c_opts.petscCC{1} '''''' ...
         ' CXX=''''' m2c_opts.petscCXX{1} ''''''];
     if m2c_opts.useCpp
-        CFLAGS = [' CXXFLAGS=''''' m2c_opts.petscCXXFLAGS{1} ...
-            ' -Wno-unused-variable -Wno-unused-function'''''];
+        CFLAGS = [CFLAGS ' ' m2c_opts.petscCXXFLAGS{1}];
     else
-        CFLAGS = ['CFLAGS=''''' m2c_opts.petscCFLAGS{1} ...
-            ' -Wno-unused-variable -Wno-unused-function'''''];
+        CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1}];
     end
 elseif m2c_opts.withMPI
     % If MPI is used, enforce using mpi compiler wrappers
     CC = ['CC=''''' m2c_opts.mpiCC{1} ''''' CXX=''''' m2c_opts.mpiCXX{1} ''''''];
+elseif m2c_opts.withACC
+    % Try to locate pgcc, with support of OpenACC and OpenMP
+    [CBASE, CXXBASE, found] = locate_pgcc;
+    if ~found
+        error('Could not locate pgcc. Please disable openacc');
+    end
+    
+    CC = ['CC=''''' CBASE ''''' CXX=''''' CXXBASE ''''''];
 elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     % Try to locate gcc-mp, with support of OpenMP
     [CBASE, CXXBASE, found] = locate_gcc_mp;
@@ -45,15 +63,44 @@ elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     end
     
     CC = ['CC=''''' CBASE ''''' CXX=''''' CXXBASE ''''''];
+    LDFLAGS = [LDFLAGS ' -fopenmp -dynamiclib'];
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
+end
+
+if m2c_opts.withOMP
+    CFLAGS = [CFLAGS ' -fopenmp'];
+end
+
+if m2c_opts.withACC
+    % Currently only supports PGI compilers
+    CFLAGS = [CFLAGS ' -acc -fast -ta=nvidia:cc50,7.0'];
+    LDFLAGS = [LDFLAGS ' -acc -fast -ta=nvidia:cc50,7.0'];
+    if m2c_opts.debugInfo
+        CFLAGS = [CFLAGS ' -Minfo=accel'];
+    end
 end
 
 if ~isempty(CC)
     mexflags = [mexflags ' ' CC];
 end
-if ~isempty(CFLAGS)
-    mexflags = [mexflags ' ' CFLAGS];
+
+if ~isempty(m2c_opts.cppflags)
+    % Overwrite all the CPP flags
+    mexflags = [mexflags ' CPPFLAGS=''''' sprintf(' %s ', m2c_opts.cppflags{:}) ''''''];
+end
+
+if ~isempty(m2c_opts.cflags)
+    % Overwrite all the CFLAGS flags
+    mexflags = [mexflags ' ' varname_CFLAGS '=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
+elseif ~isempty(CFLAGS)
+    mexflags = [mexflags ' ' varname_CFLAGS '=''''' CFLAGS ''''''];
+end
+
+if ~isempty(m2c_opts.ldflags)
+    mexflags = [mexflags ' LDFLAGS=''''' sprintf(' %s ', m2c_opts.ldflags{:}) ''''''];
+elseif ~isempty(LDFLAGS)
+    mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
 end
 
 switch m2c_opts.optLevel
@@ -65,29 +112,9 @@ switch m2c_opts.optLevel
         coptflags = '';
 end
 
-if m2c_opts.useCpp
-    mexflags = [mexflags ' CXXOPTIMFLAGS=''''' coptflags ''''''];
-    if m2c_opts.debugInfo;
-        mexflags = [mexflags ' CXXDEBUGFLAGS=''''-g'''''];
-    end
-else
-    mexflags = [mexflags ' COPTIMFLAGS=''''' coptflags ''''''];
-    if m2c_opts.debugInfo;
-        mexflags = [mexflags ' CDEBUGFLAGS=''''-g'''' '];
-    end
-end
-
-if ~isempty(m2c_opts.cflags) && m2c_opts.useCpp
-    % Overwrite all the C flags
-    mexflags = [mexflags ' CXXFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
-elseif ~isempty(m2c_opts.cflags)
-    % Overwrite all the C flags
-    mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
-end
-
-if ~isempty(m2c_opts.cppflags)
-    % Overwrite all the CPP flags
-    mexflags = [mexflags ' CPPFLAGS=''''' sprintf(' %s ', m2c_opts.cppflags{:}) ''''''];
+mexflags = [mexflags ' ' varname_OPTIMFLAGS '=''''' coptflags ''''''];
+if m2c_opts.debugInfo;
+    mexflags = [mexflags ' ' varname_DEBUGFLAGS '=''''-g'''''];
 end
 
 if ~isempty(m2c_opts.mexflags)

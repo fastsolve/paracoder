@@ -146,6 +146,9 @@ function m2c(varargin)
 %           Each string can be a MATLAB expression. It overwrites the
 %           default flags set by -O?, -g, -gprof, -gcov and any supported
 %           external libraries.
+%     -ldflags {'flag1', 'flag2', ...}
+%           Specify additional flags for the linker for building the
+%           mex file or standalone executable.
 %     -mexflags {'flag1', 'flag2', ...}
 %           Specify flags for the mex command. It overwrites the flags
 %           assigned by -O?, -cc -cflags options. The argument
@@ -170,7 +173,7 @@ function m2c(varargin)
 %     -omp {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable support for OpenMP. The argument list is a cell array of
 %           character strings to be passed to the C compiler and linker.
-%           Each string can be a MATLAB expression. It requires MACC.
+%           Each string can be a MATLAB expression. It requires MOMP.
 %     -acc
 %     -acc {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable support for OpenACC. The argument list is a cell array of
@@ -295,14 +298,6 @@ else
 end
 
 % Determine whether to include omp.h
-if m2c_opts.withOMP
-    acc_header = '#include "omp.h"';
-elseif m2c_opts.withACC
-    acc_header = '#include "openacc.h"';
-else
-    acc_header = '';
-end
-
 if m2c_opts.withPetsc
     petsc_header = '#include "mpetsc.h"';
 else
@@ -380,7 +375,7 @@ if regen_c
     end
     
     co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode, ...
-        mpi_header, acc_header, petsc_header, '#include "m2c.h"');
+        mpi_header, petsc_header, '#include "m2c.h"');
     
     %% Run command
     if m2c_opts.verbose
@@ -497,6 +492,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'libs', [], ...
     'cppflags', [], ...
     'cflags', [], ...
+    'ldflags', [], ...
     'mexflags', [], ...
     'withMPI', false, ...
     'mpiCC', [], ...
@@ -637,7 +633,7 @@ while i<=last_index
             else
                 m2c_opts.(varargin{i}(2:end)) = {''};
             end
-        case {'-cc', '-libs', '-mexflags', '-cpppflags', '-cflags'}
+        case {'-cc', '-libs', '-mexflags', '-cpppflags', '-cflags', '-ldflags'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
                 i = i + 1;
