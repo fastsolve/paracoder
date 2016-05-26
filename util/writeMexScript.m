@@ -85,6 +85,11 @@ elseif ~isempty(m2c_opts.cflags)
     mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
 end
 
+if ~isempty(m2c_opts.cppflags)
+    % Overwrite all the CPP flags
+    mexflags = [mexflags ' CPPFLAGS=''''' sprintf(' %s ', m2c_opts.cppflags{:}) ''''''];
+end
+
 if ~isempty(m2c_opts.mexflags)
     % Overwrite mexflags
     mexflags = sprintf(' %s ', m2c_opts.mexflags{:});

@@ -134,13 +134,18 @@ function m2c(varargin)
 %           choice for both the mex file and the standalone executable.
 %           The cc command can be specified after it as a character
 %           string, or a MATLAB expression contained in a cell array.
+%     -cppflags {'flag1', 'flag2', ...}
+%           Specify additional flags for the C preprocessor for building. 
+%           The argument list is a cell array of character strings. E.g.,
+%           -cppflags {'-I/My/Include/Dir', '-DMACRO'}. Each string can be 
+%           a MATLAB expression.
 %     -cflags {'flag1', 'flag2', ...}
 %           Specify additional flags for the C compiler for building the
-%           mex file and the standalone executable. The argument list
-%           is a cell array of character strings. E.g.,
-%           -cflags {'-O3 -NDEBUG'}. Each string can be a MATLAB expression.
-%           It overwrites the default compiler flags set by -O?, -g, -gprof,
-%           -gcov and any supported external libraries.
+%           mex file or standalone executable. The argument list is a cell
+%           array of character strings. E.g., -cflags {'-O3', '-DNDEBUG'}.
+%           Each string can be a MATLAB expression. It overwrites the
+%           default flags set by -O?, -g, -gprof, -gcov and any supported
+%           external libraries.
 %     -mexflags {'flag1', 'flag2', ...}
 %           Specify flags for the mex command. It overwrites the flags
 %           assigned by -O?, -cc -cflags options. The argument
@@ -490,6 +495,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'timing', [], ...
     'cc', [], ...
     'libs', [], ...
+    'cppflags', [], ...
     'cflags', [], ...
     'mexflags', [], ...
     'withMPI', false, ...
@@ -631,7 +637,7 @@ while i<=last_index
             else
                 m2c_opts.(varargin{i}(2:end)) = {''};
             end
-        case {'-cc', '-libs', '-mexflags', '-cflags'}
+        case {'-cc', '-libs', '-mexflags', '-cpppflags', '-cflags'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
                 i = i + 1;
