@@ -195,6 +195,10 @@ for i=1:length(vars)
         [~,b] = check_struct_levels(vars(i).subfields);
         
         has_struct_arr = has_struct_arr || b;
+    elseif isequal(vars(i).type, 'char_T')
+        % declare a varialbe of primitive type
+        decl_basic = sprintf('%s\n    %-20s %s[%d];', decl_basic, ...
+            'char', vars(i).name, prod(vars(i).size));
     else
         % declare a varialbe of primitive type
         decl_basic = sprintf('%s\n    %-20s %s%s;', decl_basic, ...
@@ -340,7 +344,7 @@ for j=1:nlhs
             str, var.name, length(var.size));
     elseif ~isempty(var.subfields)
         str = preallocate_struct(str, var.name, var);
-    elseif ~isempty(var.modifier) && prod(var.size)>0
+    elseif ~isempty(var.modifier) && prod(var.size)>0 && ~isequal(var.type, 'char_T')
         str = sprintf(['%s\n    {mwSize l_size[] = {', ...
             regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
             '    *(void **)&%s = prealloc_mxArray((mxArray**)&plhs[%d], %s, %d, l_size); }'], ...
@@ -565,6 +569,11 @@ for j=1:nlhs
     elseif isempty(var.modifier)
         str = sprintf('%s\n    plhs[%d] = copy_scalar_to_mxArray(&%s, %s);', ...
             str, j-1, var.name, getMxClassID(var.basetype));
+    elseif isequal(var.type, 'char_T')
+        str = sprintf(['%s\n    {int32_T l_size[] = {', ...
+            regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
+            '    plhs[%d] = copy_array_to_mxArray(%s, mxCHAR_CLASS, %d, l_size); }'], ...
+            str, j-1, var.name, length(var.size));
     else
         str = sprintf('%s\n    /* Nothing to do for plhs[%d] */', str, j-1);
     end

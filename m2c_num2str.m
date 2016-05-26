@@ -11,7 +11,7 @@ if isempty(coder.target)
 else
     % We have to use uint8 in stead of char here because of bugs in
     % MATLAB Coder in MATLAB R2016a
-    t_str = coder.nullcopy(zeros(32, 1, 'uint8'));
+    t_str = coder.nullcopy(zeros(1, 32, 'uint8'));
     
     ptr = coder.opaque('char *');
     ptr = coder.ceval('(char *)', coder.wref(t_str));

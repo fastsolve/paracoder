@@ -123,7 +123,7 @@ vars = repmat(struct('name', '', 'type', '', 'basetype', '', 'structname', '', '
     'isconst', false, 'subfields', [], 'isemx', false, 'size', [], 'iindex', [], 'oindex', []), ncarg,1);
 
 for i=1:ncarg
-    toks = regexp(carglist{i}, '^(const\s+)?(unsigned\s+)?(\w+)\s*(\*\s*)*(\w+)(\[\d+\])*$', 'tokens');
+    toks = regexp(carglist{i}, '^(const\s+)?((unsigned|signed)\s+)?(\w+)\s*(\*\s*)*(\w+)(\[\d+\])*$', 'tokens');
     
     % Set variable name
     assert(~isempty(toks{1}{5}));
@@ -137,7 +137,7 @@ for i=1:ncarg
     
     % Set type and base type
     assert(~isempty(toks{1}{3}));
-    vars(i).type = map_basetype(toks{1}{2}, toks{1}{3});
+    vars(i).type = map_basetype(strtrim(toks{1}{2}), toks{1}{3});
     
     if strncmp(vars(i).type, 'emxArray_', 9) && ...
             ~isempty(strfind(basetypes, [' ' vars(i).type(10:end) ' ']))
@@ -383,35 +383,41 @@ str = [' boolean_T char_T real_T real64_T real32_T ' ...
     'int32_T uint32_T int8_T uint8_T int16_T uint16_T int64_T uint64_T '];
 end
 
-function str = map_basetype(unsigned, type)
-if ~isempty(unsigned)
-    switch type
-        case 'char'
-            str = 'uint8_T';
-        case 'short'
-            str = 'uint16_T';
-        case 'int'
-            str = 'uint32_T';
-        case 'long'
-            str = 'uint64_T';
-    end
-else
-    switch type
-        case 'char'
+function str = map_basetype(sign, type)
+
+switch type
+    case 'char'
+        if isempty(sign)                        
+            str = 'char_T';
+        elseif isequal(sign, 'signed')
             str = 'int8_T';
-        case 'short'
+        elseif isequal(sign, 'unsigned')
+            str = 'uint8_T';
+        end
+    case 'short'
+        if isempty(sign) || isequal(sign, 'signed')
             str = 'int16_T';
-        case 'int'
+        elseif isequal(sign, 'unsigned')
+            str = 'uint16_T';
+        end
+    case 'int'
+        if isempty(sign) || isequal(sign, 'signed')
             str = 'int32_T';
-        case 'long'
+        elseif isequal(sign, 'unsigned')
+            str = 'uint32_T';
+        end
+    case 'long'
+        if isempty(sign) || isequal(sign, 'signed')
             str = 'int64_T';
-        case 'float'
-            str = 'real32_T';
-        case 'double'
-            str = 'real64_T';
-        otherwise
-            str = type;
-    end
+        elseif isequal(sign, 'unsigned')
+            str = 'uint64_T';
+        end
+    case 'float'
+        str = 'real32_T';
+    case 'double'
+        str = 'real64_T';
+    otherwise
+        str = type;
 end
 end
     
