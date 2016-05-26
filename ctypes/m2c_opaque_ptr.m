@@ -80,6 +80,8 @@ ptr = coder.ceval('M2C_OFFSET_PTR', ptr, int32(n));
 end
 
 function ptr = cast2ptr(type, data)
+coder.inline('always');
+
 ptr = coder.opaque(type);
 ptr = coder.ceval(['(' type ')'], coder.rref(data));
 end

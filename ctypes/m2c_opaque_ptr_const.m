@@ -1,4 +1,4 @@
-function ptr = m2c_opaque_ptr_const( var, type, offset) %#codegen
+function ptr = m2c_opaque_ptr_const(var, type, offset) %#codegen
 % Creates an opaque object for a read-only pointer to a given variable,
 % to be passed to a C function. The function behaves differently within
 % MATLAB and in code generation.
