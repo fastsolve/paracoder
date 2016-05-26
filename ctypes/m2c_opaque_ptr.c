@@ -14,9 +14,8 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     mxArray *output, *field, *data;
-    const char *fields[] = {"data", "type", "nbytes", "parent", "offset"};
+    const char *fields[] = {"data", "type", "nbytes", "offset"};
     int offset = 0;
-    int saveparent=0;
     
     /* Check input and output arguments */
     if (nlhs>1)
@@ -48,23 +47,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
                 mxGetFieldNumber(prhs[0], fields[0])==0 &&
                 mxGetFieldNumber(prhs[0], fields[1])==1 &&
                 mxGetFieldNumber(prhs[0], fields[2])==2 &&
-                mxGetFieldNumber(prhs[0], fields[3])==3 &&
-                mxGetFieldNumber(prhs[0], fields[4])==4) {
-            /* Verify parent mxArray still has the same address */
-            void *data = mxGetData(mxGetFieldByNumber(prhs[0], 0, 3));
-            mxArray *parent = NULL;
-            int *poffset = (int *)mxGetData(mxGetFieldByNumber(prhs[0], 0, 4));
-            
-            if (data) parent = *(mxArray **)data;
-            if (parent && ((char *)mxGetData(parent))+*poffset !=
-                    *(char **)mxGetData(mxGetFieldByNumber(prhs[0], 0, 0)))
-                mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged",
-                        "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
+                mxGetFieldNumber(prhs[0], fields[3])==3) {
+            int *poffset = (int *)mxGetData(mxGetFieldByNumber(prhs[0], 0, 3));
             
             plhs[0] = mxDuplicateArray(prhs[0]);
             if (nrhs==3 && offset != *(int *)mxGetData(plhs[0])) {
                 *(char **)mxGetData(mxGetFieldByNumber(plhs[0], 0, 0)) += offset;
-                poffset = (int *)mxGetData(mxGetFieldByNumber(plhs[0], 0, 4));
+                poffset = (int *)mxGetData(mxGetFieldByNumber(plhs[0], 0, 3));
                 *poffset += offset;
             }
 #ifndef CONST_PTR
@@ -100,12 +89,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     else
         data = (mxArray *)prhs[0];
 
-#if !defined(CONST_PTR) && !defined(HAVE_OCTAVE)
-    saveparent = 1;
-#endif
-
     /* Create a new pointer object */
-    output = mxCreateStructMatrix(1, 1, 5, fields);
+    output = mxCreateStructMatrix(1, 1, 4, fields);
     
     field = mxCreateNumericMatrix(sizeof(void*), 1, mxUINT8_CLASS, mxREAL);
     *(char **)mxGetData(field) = ((char*)mxGetData(data))+offset;
@@ -121,13 +106,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     *(int *)mxGetData(field) = mxGetNumberOfElements(data)*mxGetElementSize(data);
     mxSetFieldByNumber(output, 0, 2,  field);
     
-    field = mxCreateNumericMatrix(sizeof(void*), 1, mxUINT8_CLASS, mxREAL);
-    *(void **)mxGetData(field) = saveparent ? (void *)data : (void *)NULL;
-    mxSetFieldByNumber(output, 0, 3,  field);
-    
     field = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
     *(int *)mxGetData(field) = offset;
-    mxSetFieldByNumber(output, 0, 4,  field);
+    mxSetFieldByNumber(output, 0, 3,  field);
     
     plhs[0] = output;
 }

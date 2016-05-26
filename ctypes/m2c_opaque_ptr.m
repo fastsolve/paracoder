@@ -44,17 +44,12 @@ end
 if nargin<2; type = 'void *'; end
 
 ptr = coder.opaque(type);
-if isstruct(var) && isfield(var, 'parent') && isfield(var, 'offset')
+if isstruct(var) && isfield(var, 'offset')
     ptr = castdata(type, var.data);
 
-    % Verify parent mxArray still has the same address
-    parent = castdata('mxArray *', var.parent);
-    m2c_chk_opaque_ptr(ptr, parent, var.offset);
     if (nargin<4 || ~varargin{1}) && length(var.type)>6 && isequal(var.type(1:6),'const ')
         m2c_warn('m2c_opaque_ptr:ConstPtr', 'Discarding the const modifier of an m2c_opaque_ptr.');
     end    
-elseif isstruct(var) && isfield(var, 'data') && isequal(class(var.data), 'uint8')
-    ptr = cast2ptr(type, var.data);
 elseif isnumeric( var)
     if nargin>1
         ptr = coder.ceval( ['(' type ')'], coder.rref(var));
@@ -77,11 +72,4 @@ function ptr = m2c_offset_ptr(ptr, n) %#codegen
 coder.inline('always');
 
 ptr = coder.ceval('M2C_OFFSET_PTR', ptr, int32(n));
-end
-
-function ptr = cast2ptr(type, data)
-coder.inline('always');
-
-ptr = coder.opaque(type);
-ptr = coder.ceval(['(' type ')'], coder.rref(data));
 end

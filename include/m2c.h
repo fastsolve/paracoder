@@ -81,25 +81,8 @@ extern double M2C_wtime();
 #define M2C_BEGIN_REGION()            {
 #define M2C_END_REGION()              }
 
-typedef int int32_triple[3];
-typedef int int32_double[2];
-
-#ifdef MATLAB_MEX_FILE
-#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset)                         \
-if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \
-        mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \
-        "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
-#else
-/* Issue formatted error message with corresponding error identifier */
-#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset)
-#endif
-
 #ifndef struct_emxArray__common
 #define struct_emxArray__common
-
-#ifndef ONCUDA
-# define ONCUDA (255U)
-#endif
 
 struct emxArray__common
 {
