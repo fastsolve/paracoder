@@ -9,18 +9,20 @@ coder.inline('always');
 
 if isnumeric(arg1)
     if isnumeric(arg2) || isempty(coder.target)
-        b = arg1 == arg2;
+        t_arg2 = arg2;
     else
-        b = false;
-        b = coder.ceval('M2C_ISEQUAL_NUM', arg1, arg2);
+        t_arg2 = cast(0, class(arg1));
+        t_arg2 = coder.ceval(' ', arg2);
     end
+    b = arg1 == t_arg2;
 elseif islogical(arg1)
     if islogical(arg2) || isempty(coder.target)
-        b = arg1 == (arg2~=0);
+        t_arg2 = arg2;
     else
-        b = false;
-        b = coder.ceval('M2C_ISEQUAL_BOOL', arg1, arg2);
+        t_arg2 = false;
+        t_arg2 = coder.ceval('(double)', arg2);
     end
+    b = arg1 == (t_arg2~=0);
 elseif ischar(arg1)
     if ischar(arg2) || isempty(coder.target)
         b = isequal(arg1, arg2);

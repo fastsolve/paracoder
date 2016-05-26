@@ -78,8 +78,6 @@ extern double M2C_wtime();
 #define M2C_OFFSET_PTR(ptr,offset)    ((char *)(ptr))+(offset)
 #define M2C_GET_FIELD(s,field)        (s).field
 #define M2C_GET_FIELD_IND(s,field)    (s)->field
-#define M2C_ISEQUAL_NUM(arg1,arg2)    ((arg1)==(arg2))
-#define M2C_ISEQUAL_BOOL(arg1,arg2)   (!(arg1)==!(arg2))
 #define M2C_BEGIN_REGION()            {
 #define M2C_END_REGION()              }
 
