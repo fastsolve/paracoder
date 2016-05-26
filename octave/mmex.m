@@ -181,6 +181,8 @@ end
 if ~isempty(defs.CXXFLAGS) || ~isempty(defs.CXXOPTIMFLAGS) || ~isempty(defs.CXXDEBUGFLAGS) 
     macros = [macros 'export CXXFLAGS=''' strtrim(defs.CXXFLAGS) ' ' ...
         strtrim(defs.CXXOPTIMFLAGS) ' ' strtrim(defs.CXXDEBUGFLAGS) '''; '];
+elseif ~isempty(defs.CFLAGS)
+    macros = [macros 'export CXXFLAGS=''' strtrim(defs.CFLAGS) '''; '];
 end
 
 if ~isempty(defs.CXX)
