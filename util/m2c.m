@@ -60,7 +60,7 @@ function m2c(varargin)
 %     -cktop
 %           By default, m2c does not regenerated C code if it already exist.
 %           Use this optoin to request m2c to check the dependecies of the
-%           top-level M file and and regenerate C code. This is much faster, 
+%           top-level M file and and regenerate C code. This is much faster,
 %           than -ckdep, so it should be the default mode for most code development.
 %     -force
 %           Force the regeneration of C code and recompilation.
@@ -431,11 +431,11 @@ if exist('octave_config_info', 'builtin')
 else
     mexbuild = [cpath  'mex_' func '.m'];
 end
-if m2c_opts.genMex 
+if m2c_opts.genMex
     if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', mexbuild)
         writeMexScript(func, cpath, m2c_opts);
     end
-
+    
     clear(mexbuild);
     if exist(mexbuild, 'file'); run(mexbuild); end
 elseif m2c_opts.verbose
@@ -495,6 +495,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'withMPI', false, ...
     'mpiCC', [], ...
     'mpiCXX', [], ...
+    'mpiInc', [], ...
     'mpiLibs', [], ...
     'withOMP', false, ...
     'ompLibs', [], ...
@@ -694,11 +695,11 @@ while i<=last_index
             m2c_opts.petscCC = {PCC};
             m2c_opts.petscCXX = {CXX};
             m2c_opts.petscCFLAGS = {CFLAGS};
-            m2c_opts.petscCXXFLAGS = {CXXFLAGS};            
+            m2c_opts.petscCXXFLAGS = {CXXFLAGS};
             
-            mpetscInc = [fileparts(which('mptSolve.m')), '/include'];
+            mpetscInc = [fileparts(which('startup_mpetsc.m')), '/include'];
             m2c_opts.petscInc = {[INC ' -I' mpetscInc]};
-
+            
             if ismac; concat = ','; else concat = '='; end
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib', ...
                 ' -Wl,-rpath' concat m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
@@ -727,6 +728,9 @@ while i<=last_index
                 m2c_opts.mpiCC = {'mpicc'};
                 m2c_opts.mpiCXX = {'mpicc'};
             end
+            
+            mpiInc = [fileparts(which('startup_mmpi.m')), '/include'];
+            m2c_opts.mpiInc = {['-I' mpiInc]};
         case {'-omp', '-acc'}
             m2c_opts.(['with' upper(varargin{i}(2:end))])= true;
             if i<last_index && varargin{i+1}(1) == '{'
@@ -776,6 +780,11 @@ for i=1:length(names)
     if isempty(m2c_opts.(names{i})) && ~ischar(m2c_opts.(names{i}))
         m2c_opts.(names{i}) = {};
     end
+end
+
+if exist('octave_config_info', 'builtin')
+    % When running in octave, always skip codegen
+    m2c_opts.skipcg = true;
 end
 
 end

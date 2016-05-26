@@ -72,6 +72,10 @@ if m2c_opts.withPetsc
     % Append petscInc to cflags
     cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
 end
+if m2c_opts.withMPI
+    % Append mpiInc to cflags
+    cflags = [cflags sprintf(' %s ', m2c_opts.mpiInc{1})];
+end
 
 if m2c_opts.verbose; cflags = ['-v ' cflags]; end
 
