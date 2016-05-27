@@ -5,13 +5,19 @@
 #ifndef __M2MEX_H__
 #define __M2MEX_H__
 
-#define M2C_OFFSET_PTR(a,b)    ((char *)a)+(b)
-#define M2C_BEGIN_REGION()     {
-#define M2C_END_REGION()       }
+#define M2C_OFFSET_PTR(ptr,offset)    ((ptr)+(offset))
+#define M2C_GET_FIELD(s,field)        (s).field
+#define M2C_GET_FIELD_IND(s,field)    (s)->field
+#define M2C_BEGIN_REGION()            {
+#define M2C_END_REGION()              }
+#define M2C_INTDIV(a,b)               ((int)(a) / (int)(b))
 
-#define M2C_CHK_OPAQUE_PTR(ptr,parent,offset) \
-        if ((parent) && (ptr) != ((char*)mxGetData(parent))+(offset)) \
-        mexErrMsgIdAndTxt("opaque_ptr:ParentObjectChanged", \
-        "The parent mxArray has changed. Avoid changing a MATLAB variable when dereferenced by an opaque_ptr.");
+#ifndef M2C_DEBUG
+#ifdef NDEBUG
+#define M2C_DEBUG  0
+#else
+#define M2C_DEBUG  1
+#endif
+#endif
 
 #endif
