@@ -80,6 +80,7 @@ extern double M2C_wtime();
 #define M2C_GET_FIELD_IND(s,field)    (s)->field
 #define M2C_BEGIN_REGION()            {
 #define M2C_END_REGION()              }
+#define M2C_INTDIV(a,b)               ((int)(a) / (int)(b))
 
 #ifndef struct_emxArray__common
 #define struct_emxArray__common
