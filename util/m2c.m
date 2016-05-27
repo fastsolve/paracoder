@@ -179,13 +179,6 @@ function m2c(varargin)
 %           Enable support for OpenACC. The argument list is a cell array of
 %           character strings to be passed to the C compiler and linker.
 %           Each string can be a MATLAB expression. It requires MACC.
-%     -petsc
-%     -petsc 'petsc-directory'
-%     -petsc {'expression'}
-%           Enable support for PETSc. The root directory of PETSc can be
-%           specified as a character string, or a MATLAB expression
-%           contained in a cell array. The default path can be extracted
-%           from the environment variables PETSC_DIR and PETSC_ARCH.
 %     -blas
 %     -blas {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable BLAS and link with the CBLAS library specified in
@@ -193,6 +186,14 @@ function m2c(varargin)
 %           to be passed to the C compiler and linker. Each string can be
 %           a MATLAB expression. If the cell array is empty, then the
 %           MATLAB built-in BLAS library will be used.
+%     -cuda or -cublas
+%     -cuda 'cuda-directory' or -cublas 'cuda-directory'
+%     -cuda {'expression'} or -cublas {'expression'}
+%           Enable CUDA BLAS and link with the cuBLAS library specified in
+%           the list. The root directory of CUDA can be specified as a
+%           character string, or a MATLAB expression contained in a cell
+%           array. The default path can be extracted from the environment
+%           variables CUDA_PATH.
 %     -lapack
 %     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable LAPACKE and link with the LAPACK library specified in
@@ -200,6 +201,13 @@ function m2c(varargin)
 %           to be passed to the C compiler and linker. Each string can be
 %           a MATLAB expression. If the cell array is empty, then the
 %           MATLAB built-in LAPACK library will be used.
+%     -petsc
+%     -petsc 'petsc-directory'
+%     -petsc {'expression'}
+%           Enable support for PETSc. The root directory of PETSc can be
+%           specified as a character string, or a MATLAB expression
+%           contained in a cell array. The default path can be extracted
+%           from the environment variables PETSC_DIR and PETSC_ARCH.
 %     -efence
 %     -efence {'-Ldir1', '-llib1', '-llib2', ...}
 %           Link the standalone executable with electric-fence for
@@ -514,6 +522,10 @@ m2c_opts = struct('codegenArgs', '', ...
     'blasLibs', [], ...
     'withLapack', false, ...
     'lapackLibs', [], ...
+    'withCuda', false, ...
+    'cudaDir', [], ...
+    'cudaInc', [], ...
+    'cudaLibs', [], ...
     'withPetsc', false, ...
     'petscDir', [], ...
     'petscCC', [], ...
@@ -666,6 +678,27 @@ while i<=last_index
                 m2c_opts.blasLibs = {'-lmwblas'};
             end
             m2c_opts.withBlas = true;
+        case {'-cublas', '-cuda'}
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.cudaDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.cudaDir = varargin(i+1);
+                i = i + 1;
+            else
+                if ~isempty(getenv('CUDA_PATH'))
+                    m2c_opts.cudaDir = {getenv('CUDA_PATH')};
+                elseif ismac && exist('/Developer/NVIDIA/CUDA-7.5', 'dir')
+                    m2c_opts.cudaDir = '/Developer/NVIDIA/CUDA-7.5';
+                else
+                    error('m2c:cuda_dir', ...
+                        ['Root directory of CUDA must be given after the ' ...
+                        '-cuda flag or be specified by environment variable CUDA_PATH.']);
+                end
+            end
+            m2c_opts.withCuda = true;
+            m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir '/include']};
+            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir '/lib'], '-lcublas'};
         case '-lapack'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.lapackLibs = eval(varargin{i+1});
@@ -674,7 +707,7 @@ while i<=last_index
                 m2c_opts.lapackLibs = varargin(i+1);
                 i = i + 1;
             elseif ismac
-                m2c_opts.blaskLibs = {'-llapack', '-lblas'};
+                m2c_opts.lapackLibs = {'-llapack', '-lblas'};
             else
                 m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
             end

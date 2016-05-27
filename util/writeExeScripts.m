@@ -103,6 +103,9 @@ end
 if m2c_opts.withBlas
     cppflags = [cppflags ' -DM2C_BLAS=1 '];
 end
+if m2c_opts.withCuda
+    cppflags = [cppflags ' -DM2C_CUBLAS=1 '];
+end
 if m2c_opts.withOMP
     cppflags = [cppflags ' -DM2C_OPENMP '];
 end
@@ -113,6 +116,10 @@ end
 if m2c_opts.withPetsc
     % Append petscInc to cflags
     cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
+end
+if m2c_opts.withCuda
+    % Append petscInc to cflags
+    cflags = [cflags sprintf(' %s ', m2c_opts.cudaInc{1})];
 end
 if m2c_opts.withMPI
     % Append mpiInc to cflags
@@ -127,6 +134,9 @@ if m2c_opts.withLapack
     libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
 elseif m2c_opts.withBlas
     libs = [libs sprintf(' %s ', m2c_opts.blasLibs{:})];
+end
+if m2c_opts.withCuda
+    libs = [libs sprintf(' %s ', m2c_opts.cudaLibs{:})];
 end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
