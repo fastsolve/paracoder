@@ -146,7 +146,7 @@ changed = ~isequal(strin, str);
 end
 
 function fb = kernel_funcbody
-fb = '{(?:[^}][^\n]*\n)*\n#pragma kernel\n(?:[^}][^\n]*\n)*\n*}';
+fb = '{(?:[^}][^\n]*\n)*\n#pragma m2c kernel\n(?:[^}][^\n]*\n)*\n*}';
 end
 
 function expr = funccall(func)
@@ -164,7 +164,7 @@ basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
 [kernels, prototype] = regexp(str, kernel, 'match', 'tokens');
 
 for i=1:length(kernels)
-    newfunc = regexprep(kernels{i}, '\n#pragma kernel', '');
+    newfunc = regexprep(kernels{i}, '\n#pragma m2c kernel', '');
     
     funcdecl = regexp(str, ['\s+static\s+\w+\s+' prototype{i}{1} '\s*\([^\)]*\);'], 'match', 'once');
     %% Process each kernel function
@@ -190,9 +190,9 @@ for i=1:length(kernels)
             
             if ~isempty(arg)
                 newfuncdecl = regexprep(newfuncdecl, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *' arg{2} '$1']);
+                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *restrict ' arg{2} '$1']);
                 newargs = regexprep(newargs, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *' arg{2} '$1']);
+                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *restrict ' arg{2} '$1']);
                 newfunc = regexprep(newfunc, [arg{2} '->\s*data'], arg{2});
                 
                 append(k) = true;
