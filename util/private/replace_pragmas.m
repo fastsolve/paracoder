@@ -124,13 +124,22 @@ end
 str = regexprep(str, '#{[^\n]+\n#}[^\n]+', '  {}');
 
 region = ['(\n)#{([\w\s]*)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-    '((\n|#pragma [^{}][^\n]+\n|[^#\n]+\n)+)#}([\w\s]*)\(\s*\)[^\n]*'];
+    '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
+    '#}([\w\s]*)\(\s*\)[^\n]*'];
 while ~isempty(regexp(str, region, 'once'))
     str = regexprep(str, region, ...
         '$1$4M2C_BEGIN_REGION(/*omp $2*/)$3$4$5$4M2C_END_REGION(/*omp $6*/)$1');
 end
 
 str = optimize_kernel_functions(str);
+
+% Add ifdef around "#pragma acc ..."
+str = regexprep(str, '(\n+)(\s*#pragma acc [^\n]+)', ...
+    '$1#if defined(M2C_OPENACC)\n$2\n#endif');
+
+% Add ifdef around "#pragma omp ..."
+str = regexprep(str, '(\n+)(\s*#pragma omp [^\n]+)', ...
+    '$1#if defined(M2C_OPENMP)\n$2\n#endif');
 
 %% Change whether the file has changed
 changed = ~isequal(strin, str);

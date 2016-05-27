@@ -17,19 +17,16 @@ clear(outMfile);
 mexflags = '';
 
 CC = '';
-CFLAGS = '-Wno-unused-variable -Wno-unused-function';
+CFLAGS = '';
 LDFLAGS = '';
 
 if m2c_opts.useCpp
     varname_CFLAGS = 'CXXFLAGS';
     varname_OPTIMFLAGS = 'CXXOPTIMFLAGS';    
-    varname_DEBUGFLAGS = 'CXXDEBUGFLAGS';    
 else
     varname_CFLAGS = 'CFLAGS';
     varname_OPTIMFLAGS = 'COPTIMFLAGS';    
-    varname_DEBUGFLAGS = 'CDEBUGFLAGS';    
 end
-
 
 if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
@@ -49,6 +46,10 @@ elseif m2c_opts.withACC
     [CBASE, CXXBASE, found] = locate_pgcc;
     if ~found
         error('Could not locate pgcc. Please disable openacc');
+    elseif ismac
+        error('%s\n', ...
+            'PGI compiler does not support building dynamic libraries on Mac.', ...
+            'Please disable OpenACC when building the mex function on Mac.');
     end
     
     CC = ['CC=''''' CBASE ''''' CXX=''''' CXXBASE ''''''];
@@ -63,19 +64,27 @@ elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
     end
     
     CC = ['CC=''''' CBASE ''''' CXX=''''' CXXBASE ''''''];
-    LDFLAGS = [LDFLAGS ' -fopenmp -dynamiclib'];
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
 end
 
-if m2c_opts.withOMP
-    CFLAGS = [CFLAGS ' -fopenmp'];
+if ~m2c_opts.withACC
+    if m2c_opts.withOMP
+        CFLAGS = [CFLAGS ' -fopenmp'];
+        LDFLAGS = [LDFLAGS ' -fopenmp'];
+    end
+    if ismac
+        LDFLAGS = [LDFLAGS ' -dynamiclib'];
+    end
+    CFLAGS = [CFLAGS ' -Wno-unused-variable -Wno-unused-function'];
+else
+    LDFLAGS = [LDFLAGS ' -dynamiclib'];
 end
 
 if m2c_opts.withACC
     % Currently only supports PGI compilers
-    CFLAGS = [CFLAGS ' -acc -fast -ta=nvidia:cc50,7.0'];
-    LDFLAGS = [LDFLAGS ' -acc -fast -ta=nvidia:cc50,7.0'];
+    CFLAGS = [CFLAGS ' -acc -fast -ta=nvidia:cc30'];
+    LDFLAGS = [LDFLAGS ' -acc -fast -ta=nvidia:cc30'];
     if m2c_opts.debugInfo
         CFLAGS = [CFLAGS ' -Minfo=accel'];
     end
@@ -113,13 +122,21 @@ switch m2c_opts.optLevel
 end
 
 if m2c_opts.withBlas
-    coptflags = [coptflags ' -DM2C_BLAS=1'];
+    coptflags = [coptflags ' -DM2C_BLAS=1 '];
+end
+if m2c_opts.withOMP
+    coptflags = [coptflags ' -DM2C_OPENMP '];
+end
+if m2c_opts.withACC
+    coptflags = [coptflags ' -DM2C_OPENACC '];
 end
 
-mexflags = [mexflags ' ' varname_OPTIMFLAGS '=''''' coptflags ''''''];
-if m2c_opts.debugInfo;
-    mexflags = [mexflags ' ' varname_DEBUGFLAGS '=''''-g'''''];
+if m2c_opts.debugInfo && m2c_opts.verbose
+    coptflags = [coptflags ' -g -v'];
+elseif m2c_opts.debugInfo
+    coptflags = [coptflags ' -g'];
 end
+mexflags = [mexflags ' ' varname_OPTIMFLAGS '=''''' coptflags ''''''];
 
 if ~isempty(m2c_opts.mexflags)
     % Overwrite mexflags

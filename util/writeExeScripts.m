@@ -23,6 +23,18 @@ elseif m2c_opts.withMPI
     else
         CC = ['CC=''''' m2c_opts.mpiCC{1} ''''''];
     end
+elseif m2c_opts.withACC
+    % Try to locate pgcc, with support of OpenACC and OpenMP
+    [CBASE, CXXBASE, found] = locate_pgcc;
+    if ~found
+        error('Could not locate pgcc. Please disable openacc');
+    end
+    
+    if m2c_opts.useCpp
+        CC = CXXBASE;
+    else
+        CC = CBASE;
+    end
 elseif isempty(m2c_opts.cc)
     if m2c_opts.useCpp
         CC = 'g++';
@@ -49,11 +61,26 @@ end
 
 switch m2c_opts.optLevel
     case '0',
-        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1 -g -Wall -Wno-unused-function'];
+        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1 -g'];
     case {'1','2','3'}
-        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0 -g -Wall -Wno-unused-function'];
+        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0 -g'];
     otherwise
-        cflags = '-g -Wall -Wunused-function';
+        cflags = '-g';
+end
+
+if ~m2c_opts.withACC
+    if m2c_opts.withOMP
+        cflags = [cflags ' -fopenmp'];
+    end
+    cflags = [cflags '  -Wall -Wno-unused-variable -Wno-unused-function'];
+end
+
+if m2c_opts.withACC
+    % Currently only supports PGI compilers
+    cflags = [cflags ' -acc -fast -ta=nvidia:cc30'];
+    if m2c_opts.debugInfo
+        cflags = [cflags ' -Minfo=accel'];
+    end
 end
 
 if ~isempty(m2c_opts.gprof)
@@ -74,7 +101,13 @@ else
     cppflags = '';
 end
 if m2c_opts.withBlas
-    cppflags = [cppflags ' -DM2C_BLAS=1'];
+    cppflags = [cppflags ' -DM2C_BLAS=1 '];
+end
+if m2c_opts.withOMP
+    cppflags = [cppflags ' -DM2C_OPENMP '];
+end
+if m2c_opts.withACC
+    cppflags = [cppflags ' -DM2C_OPENACC '];
 end
 
 if m2c_opts.withPetsc

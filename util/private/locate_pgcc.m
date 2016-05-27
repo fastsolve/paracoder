@@ -32,6 +32,17 @@ else
     found = true;
 end
 
+if ismac
+    [~, macver] = system('sw_vers -productVersion');
+    macver = strtrim(macver);
+    ind = strfind(macver, '.');
+    opts = [' -Wl,-macosx_version_min,' macver(1:ind(2)-1)];
+else
+    opts = '';
+end
+
 CXX = strrep(CC, 'pgcc', 'pgc++');
+CC = [CC opts];
+CXX = [CXX opts];
 
 end

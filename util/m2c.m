@@ -304,7 +304,7 @@ else
     mpi_header = '';
 end
 
-% Determine whether to include omp.h
+% Determine whether to include petsc.h
 if m2c_opts.withPetsc
     petsc_header = '#include "mpetsc.h"';
 else
@@ -361,11 +361,11 @@ if regen_c
         catch; end
         try co_cfg.MultiInstanceCode = true;
         catch; end
-        try co_cfg.GenerateComments = m2c_opts.debugInfo && ~m2c_opts.withACC && ~m2c_opts.withOMP;
+        try co_cfg.GenerateComments = m2c_opts.debugInfo;
         catch; end
         try co_cfg.MATLABFcnDesc = m2c_opts.debugInfo;
         catch; end
-        try co_cfg.MATLABSourceComments = m2c_opts.debugInfo && ~m2c_opts.withACC && ~m2c_opts.withOMP;
+        try co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
         catch; end
         try co_cfg.PassStructByReference = true;
         catch; end
@@ -661,7 +661,7 @@ while i<=last_index
                 m2c_opts.blaskLibs = varargin(i+1);
                 i = i + 1;
             elseif ismac
-                m2c_opts.blasLibs = {'-L/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A', '-lBLAS'};
+                m2c_opts.blasLibs = {'-lblas'};
             else
                 m2c_opts.blasLibs = {'-lmwblas'};
             end
@@ -674,7 +674,7 @@ while i<=last_index
                 m2c_opts.lapackLibs = varargin(i+1);
                 i = i + 1;
             elseif ismac
-                m2c_opts.blaskLibs = {'-L/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A', '-lLAPACK', '-lBLAS'};
+                m2c_opts.blaskLibs = {'-llapack', '-lblas'};
             else
                 m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
             end
