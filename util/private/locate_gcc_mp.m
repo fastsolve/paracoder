@@ -22,6 +22,8 @@ if status
         CC = commands{1};
         found = true;
     end
+else
+    found = true;
 end
 
 CXX = strrep(CC, 'gcc-mp', 'g++-mp');
