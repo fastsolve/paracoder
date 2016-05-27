@@ -75,7 +75,7 @@ extern void M2C_warn(const char * id, const char * msg, ...);
 
 extern double M2C_wtime();
 
-#define M2C_OFFSET_PTR(ptr,offset)    ((char *)(ptr))+(offset)
+#define M2C_OFFSET_PTR(ptr,offset)    ((ptr)+(offset))
 #define M2C_GET_FIELD(s,field)        (s).field
 #define M2C_GET_FIELD_IND(s,field)    (s)->field
 #define M2C_BEGIN_REGION()            {

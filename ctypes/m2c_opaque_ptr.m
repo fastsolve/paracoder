@@ -60,7 +60,7 @@ else
     ptr = var;
 end
 
-if nargin==3 && offset~=0
+if nargin>=3 && offset~=0
     ptr = m2c_offset_ptr(ptr, int32(offset));
 end
 end
