@@ -73,6 +73,9 @@ if ~isempty(m2c_opts.cppflags)
 else
     cppflags = '';
 end
+if m2c_opts.withBlas
+    cppflags = [cppflags ' -DM2C_BLAS=1'];
+end
 
 if m2c_opts.withPetsc
     % Append petscInc to cflags
@@ -87,7 +90,11 @@ if m2c_opts.verbose; cflags = ['-v ' cflags]; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
 libs = [libs sprintf(' %s ', m2c_opts.efenceLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
+if m2c_opts.withLapack
+    libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
+elseif m2c_opts.withBlas
+    libs = [libs sprintf(' %s ', m2c_opts.blasLibs{:})];
+end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];

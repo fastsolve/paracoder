@@ -186,6 +186,13 @@ function m2c(varargin)
 %           specified as a character string, or a MATLAB expression
 %           contained in a cell array. The default path can be extracted
 %           from the environment variables PETSC_DIR and PETSC_ARCH.
+%     -blas
+%     -blas {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable BLAS and link with the CBLAS library specified in
+%           the list. The argument list is a cell array of character strings
+%           to be passed to the C compiler and linker. Each string can be
+%           a MATLAB expression. If the cell array is empty, then the
+%           MATLAB built-in BLAS library will be used.
 %     -lapack
 %     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable LAPACKE and link with the LAPACK library specified in
@@ -354,11 +361,11 @@ if regen_c
         catch; end
         try co_cfg.MultiInstanceCode = true;
         catch; end
-        try co_cfg.GenerateComments = m2c_opts.debugInfo;
+        try co_cfg.GenerateComments = m2c_opts.debugInfo && ~m2c_opts.withACC && ~m2c_opts.withOMP;
         catch; end
         try co_cfg.MATLABFcnDesc = m2c_opts.debugInfo;
         catch; end
-        try co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
+        try co_cfg.MATLABSourceComments = m2c_opts.debugInfo && ~m2c_opts.withACC && ~m2c_opts.withOMP;
         catch; end
         try co_cfg.PassStructByReference = true;
         catch; end
@@ -503,6 +510,8 @@ m2c_opts = struct('codegenArgs', '', ...
     'ompLibs', [], ...
     'withACC', false, ...
     'accLibs', [], ...
+    'withBlas', false, ...
+    'blasLibs', [], ...
     'withLapack', false, ...
     'lapackLibs', [], ...
     'withPetsc', false, ...
@@ -633,7 +642,7 @@ while i<=last_index
             else
                 m2c_opts.(varargin{i}(2:end)) = {''};
             end
-        case {'-cc', '-libs', '-mexflags', '-cpppflags', '-cflags', '-ldflags'}
+        case {'-cc', '-libs', '-mexflags', '-cppflags', '-cflags', '-ldflags'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
                 i = i + 1;
@@ -644,6 +653,19 @@ while i<=last_index
                 error('m2c:wrong_argument', ...
                     'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
             end
+        case '-blas'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.blaskLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.blaskLibs = varargin(i+1);
+                i = i + 1;
+            elseif ismac
+                m2c_opts.blasLibs = {'-L/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A', '-lBLAS'};
+            else
+                m2c_opts.blasLibs = {'-lmwblas'};
+            end
+            m2c_opts.withBlas = true;
         case '-lapack'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.lapackLibs = eval(varargin{i+1});
@@ -651,6 +673,8 @@ while i<=last_index
             elseif i<last_index && varargin{i+1}(1) ~= '-'
                 m2c_opts.lapackLibs = varargin(i+1);
                 i = i + 1;
+            elseif ismac
+                m2c_opts.blaskLibs = {'-L/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A', '-lLAPACK', '-lBLAS'};
             else
                 m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
             end

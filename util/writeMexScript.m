@@ -87,7 +87,7 @@ end
 
 if ~isempty(m2c_opts.cppflags)
     % Overwrite all the CPP flags
-    mexflags = [mexflags ' CPPFLAGS=''''' sprintf(' %s ', m2c_opts.cppflags{:}) ''''''];
+    mexflags = [mexflags ' ' sprintf(' %s ', m2c_opts.cppflags{:})];
 end
 
 if ~isempty(m2c_opts.cflags)
@@ -112,6 +112,10 @@ switch m2c_opts.optLevel
         coptflags = '';
 end
 
+if m2c_opts.withBlas
+    coptflags = [coptflags ' -DM2C_BLAS=1'];
+end
+
 mexflags = [mexflags ' ' varname_OPTIMFLAGS '=''''' coptflags ''''''];
 if m2c_opts.debugInfo;
     mexflags = [mexflags ' ' varname_DEBUGFLAGS '=''''-g'''''];
@@ -134,7 +138,11 @@ if m2c_opts.verbose; mexflags = [mexflags ' -v']; end
 if m2c_opts.quiet; mexflags = [mexflags ' -silent']; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
-libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
+if m2c_opts.withLapack
+    libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
+elseif m2c_opts.withBlas
+    libs = [libs sprintf(' %s ', m2c_opts.blasLibs{:})];
+end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
