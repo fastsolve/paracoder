@@ -1,16 +1,16 @@
-function type = m2c_real32mat(maxrow, maxcol, varrow, varcol) %#codegen
-% Specifies a real32 (single-precision) matrix.
-%    m2c_real32mat specifies a variable-size matrix.
+function type = m2c_singlemat(maxrow, maxcol, varrow, varcol) %#codegen
+% Specifies a single (single-precision) matrix.
+%    m2c_singlemat specifies a variable-size matrix.
 %
-%    m2c_real32mat(m, n) specifies fixed-size m-by-n matrix when m and n 
+%    m2c_singlemat(m, n) specifies fixed-size m-by-n matrix when m and n 
 %    are both constants. Use inf for either m or n to specify a
 %    variable dimension without upper bound.
 %
-%    m2c_real32mat(m, n, varrow, varcol) specifies variable-size m-by-n
+%    m2c_singlemat(m, n, varrow, varcol) specifies variable-size m-by-n
 %    with upper bound of sizes. Set varrow and varcol to false if
 %    the row or column has varible sizes, respectively.
 %
-% See also m2c_real32row, m2c_real32col, m2c_introw, m2c_intcol, m2c_string
+% See also m2c_singlevec, m2c_doublemat, m2c_doublevec, m2c_string
 
 if nargin==0
     type = coder.typeof(single(0), [inf, inf]);
