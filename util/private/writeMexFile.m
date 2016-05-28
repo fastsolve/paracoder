@@ -629,7 +629,7 @@ for k=1:length(var.subfields)
             substr, indent, mx, index, k-1, [prefix var.name], sub, sf, getMxClassID(var.subfields(k).basetype));
     else
         sz = var.subfields(k).size;
-        sz_str = sprintf(', %d', var.size); sz_str = sz_str(3:end);
+        sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
         
         substr = sprintf(['%s\n%s    {int32_T _size[] = {%s};\n' ...
             '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
