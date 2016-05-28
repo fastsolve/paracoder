@@ -698,7 +698,7 @@ while i<=last_index
             end
             m2c_opts.withCuda = true;
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir '/include']};
-            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir '/lib'], '-lcublas'};
+            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir '/lib'], '-lcublas -lcudart'};
         case '-lapack'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.lapackLibs = eval(varargin{i+1});
