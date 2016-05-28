@@ -1,6 +1,6 @@
 function type = m2c_realmat(maxrow, maxcol, varrow, varcol) %#codegen
-% Specifies an real matrix.
-%    m2c_realmat specifies a variable-size matrix without upper bound.
+% Specifies a real (double-precision) matrix.
+%    m2c_realmat specifies a variable-size matrix.
 %
 %    m2c_realmat(m, n) specifies fixed-size m-by-n matrix when m and n 
 %    are both constants. Use inf for either m or n to specify a

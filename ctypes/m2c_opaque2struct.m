@@ -23,15 +23,15 @@ end
 
 function size = sizeof(val) %#codegen
 
-if strcmp(class(val), 'double') || ...
-        strcmp(class(val), 'int64') || strcmp(class(val), 'uint64')
+if isa(val, 'double') || ...
+        isa(val, 'int64') || isa(val, 'uint64')
     size = int32(8) * numel(val);
-elseif strcmp(class(val), 'float') || ...
-        strcmp(class(val), 'int32') || strcmp(class(val), 'uint32')
+elseif isa(val, 'float') || ...
+        isa(val, 'int32') || isa(val, 'uint32')
     size = int32(4) * numel(val);
-elseif strcmp(class(val), 'int16') || strcmp(class(val), 'uint16')
+elseif isa(val, 'int16') || isa(val, 'uint16')
     size = int32(2) * numel(val);
-elseif strcmp(class(val), 'int8') || strcmp(class(val), 'uint8')
+elseif isa(val, 'int8') || isa(val, 'uint8')
     size = numel(val);
 else
     m2c_error('Unsupported data type');

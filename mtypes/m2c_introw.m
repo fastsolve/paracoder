@@ -1,13 +1,12 @@
 function type = m2c_introw(maxlen, vardim) %#codegen
 % Specifies an integer (int32) row vector.
-%    m2c_introw() specifies a variable length row vector without upper bound.
+%    m2c_introw() specifies a variable length row vector.
 %
-%    m2c_introw(n) or m2c_introw(n, false) specifies a fixed-length 
-%        row vector with up to n numbers, where n must be a known constant 
-%        at compile time.
+%    m2c_introw(c) or m2c_introw(c, false) specifies a fixed-length 
+%        row vector with up to c numbers, where c must be a constant.
 %
-%    m2c_introw(n, true) specifies a variable-length integer row vector 
-%         with n numbers, where n must be a known constant at compile time.
+%    m2c_introw(c, true) specifies a variable-length integer row vector 
+%         with c numbers, where c must be a constant at compile time.
 %
 % See also m2c_realmat, m2c_realrow, m2c_realcol, m2c_intcol, m2c_string
 

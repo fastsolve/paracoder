@@ -1,4 +1,4 @@
-function obj = castdata(type, data) %#codegen
+function obj = m2c_castptr(type, data) %#codegen
 %CASTDATA  cast data into an opaque object
 %    obj = castdata(type, data)
 

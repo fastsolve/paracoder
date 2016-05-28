@@ -62,7 +62,7 @@ for i=1:length(list_files)
     for j=length(s):-1:1
         if s(j)=='/'; s(1:j) = []; break; end
     end
-    command = [command ' -c ' f ' -o ' s];
+    command = [command ' -c ' f ' -o ' s]; %#ok<AGROW>
 
     disp(command);
     system(command);

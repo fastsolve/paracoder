@@ -14,7 +14,7 @@ sizepe = coder.ceval('sizeof', coder.opaque('ctype','void *'));
 ptr = coder.opaque('char *', 'NULL');
 ptr = coder.ceval('(char *)', coder.rref(cptr));
 for i=int32(1):sizepe
-    obj.data(i) = coder.ceval('*', ptr);
+    addr(i) = coder.ceval('*', ptr);
     ptr = m2c_offset_ptr(ptr, int32(1));
 end
 end
