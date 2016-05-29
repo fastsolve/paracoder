@@ -10,7 +10,7 @@ function type = m2c_singlemat(maxrow, maxcol, varrow, varcol) %#codegen
 %    with upper bound of sizes. Set varrow and varcol to false if
 %    the row or column has varible sizes, respectively.
 %
-% See also m2c_singlevec, m2c_doublemat, m2c_doublevec, m2c_string
+% See also m2c_singlevec, m2c_mat, m2c_vec, m2c_string
 
 if nargin==0
     type = coder.typeof(single(0), [inf, inf]);

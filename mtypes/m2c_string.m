@@ -9,7 +9,7 @@ function type = m2c_string(maxlen, vardim) %#codegen
 %    m2c_string(n, false) specifies a variable-length string with n
 %        characters, where n must be a known constant at compile time.
 %
-% See also m2c_doublemat, m2c_doublevec, m2c_intmat, m2c_intvec
+% See also m2c_mat, m2c_vec, m2c_intmat, m2c_intvec
 
 if nargin==0 || maxlen==inf
     type = coder.typeof(char(0), [1, inf]);
