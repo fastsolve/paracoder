@@ -16,9 +16,11 @@ if isempty(mfile)
 end
 
 if ~exist(hfile, 'file') ||  ~exist(tyfile, 'file')
-    error('Please call codegen (using m2c) before calling lib2mex.');
+    error('m2c:parse_cgfile', 'Could not locate header file %s.\n', hfile);
 elseif ~exist(htmlfile, 'file')
-    error('Cannot run code generator.');
+    error('m2c:parse_cgfile', ['Cannot locate codegen report for function %s.' ...
+        'Probably function name was misspelled in the M file.'], ...
+        funcname);
 end
 
 %% Read in M-file
