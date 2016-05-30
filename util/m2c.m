@@ -135,9 +135,9 @@ function m2c(varargin)
 %           The cc command can be specified after it as a character
 %           string, or a MATLAB expression contained in a cell array.
 %     -cppflags {'flag1', 'flag2', ...}
-%           Specify additional flags for the C preprocessor for building. 
+%           Specify additional flags for the C preprocessor for building.
 %           The argument list is a cell array of character strings. E.g.,
-%           -cppflags {'-I/My/Include/Dir', '-DMACRO'}. Each string can be 
+%           -cppflags {'-I/My/Include/Dir', '-DMACRO'}. Each string can be
 %           a MATLAB expression.
 %     -cflags {'flag1', 'flag2', ...}
 %           Specify additional flags for the C compiler for building the
@@ -186,14 +186,16 @@ function m2c(varargin)
 %           to be passed to the C compiler and linker. Each string can be
 %           a MATLAB expression. If the cell array is empty, then the
 %           MATLAB built-in BLAS library will be used.
-%     -cuda or -cublas
-%     -cuda 'cuda-directory' or -cublas 'cuda-directory'
-%     -cuda {'expression'} or -cublas {'expression'}
-%           Enable CUDA BLAS and link with the cuBLAS library specified in
-%           the list. The root directory of CUDA can be specified as a
-%           character string, or a MATLAB expression contained in a cell
-%           array. The default path can be extracted from the environment
-%           variables CUDA_PATH.
+%     -cuda
+%     -cuda 'cuda-directory'
+%     -cuda {'expression'}
+%           Enable CUDA and link with the cuBLAS and cuSparse. The root
+%           directory of CUDA can be specified as a character string
+%           or expression contained in a cell array, or be specified by
+%           the environment variables CUDA_PATH or by adding nvcc to your
+%           path. Note that if CUDA is available within MATLAB (when 
+%           MATLAB Parallel Toolbox is installed), it will link with 
+%           the CUDA libraries distributed with MATLAB.
 %     -lapack
 %     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
 %           Enable LAPACKE and link with the LAPACK library specified in
@@ -590,7 +592,7 @@ while i<=last_index
                 m2c_opts.([varargin{i}(2:4) 'Dir']) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.([varargin{i}(2:4) 'Dir']) = varargin(i+1);
+                m2c_opts.([varargin{i}(2:4) 'Dir']) = {varargin(i+1)};
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
@@ -619,7 +621,7 @@ while i<=last_index
                 m2c_opts.timing = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.timing = varargin(i+1);
+                m2c_opts.timing = {varargin(i+1)};
                 i = i + 1;
             else
                 m2c_opts.timing = {''};
@@ -629,7 +631,7 @@ while i<=last_index
                 m2c_opts.api = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.api = varargin(i+1);
+                m2c_opts.api = {varargin(i+1)};
                 i = i + 1;
             else
                 m2c_opts.api = {''};
@@ -639,7 +641,7 @@ while i<=last_index
                 m2c_opts.efenceLibs = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.efenceLibs = varargin(i+1);
+                m2c_opts.efenceLibs = {varargin(i+1)};
                 i = i + 1;
             elseif isfield(defaultValues, varargin{i}(2:end))
                 m2c_opts.efenceLibs = {'-lefence'};
@@ -649,7 +651,7 @@ while i<=last_index
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.(varargin{i}(2:end)) = varargin(i+1);
+                m2c_opts.(varargin{i}(2:end)) = {varargin(i+1)};
                 i = i + 1;
             else
                 m2c_opts.(varargin{i}(2:end)) = {''};
@@ -659,7 +661,7 @@ while i<=last_index
                 m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.(varargin{i}(2:end)) = varargin(i+1);
+                m2c_opts.(varargin{i}(2:end)) = {varargin(i+1)};
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
@@ -670,7 +672,7 @@ while i<=last_index
                 m2c_opts.blaskLibs = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.blaskLibs = varargin(i+1);
+                m2c_opts.blaskLibs = {varargin(i+1)};
                 i = i + 1;
             elseif ismac
                 m2c_opts.blasLibs = {'-lblas'};
@@ -678,12 +680,12 @@ while i<=last_index
                 m2c_opts.blasLibs = {'-lmwblas'};
             end
             m2c_opts.withBlas = true;
-        case {'-cublas', '-cuda'}
+        case '-cuda'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.cudaDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.cudaDir = varargin(i+1);
+                m2c_opts.cudaDir = {varargin(i+1)};
                 i = i + 1;
             else
                 if ~isempty(getenv('CUDA_PATH'))
@@ -697,14 +699,17 @@ while i<=last_index
                 end
             end
             m2c_opts.withCuda = true;
-            m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir '/include']};
-            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir '/lib'], '-lcublas -lcudart'};
+            m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
+            % Prefer CUDA libraries installed within MATLAB root
+            m2c_opts.cudaLibs = {['-L' matlabroot '/' lower(computer) '/bin'], ...
+                ['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
+                '-lcusparse', '-lcudart'}; % -lcusolver
         case '-lapack'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.lapackLibs = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.lapackLibs = varargin(i+1);
+                m2c_opts.lapackLibs = {varargin(i+1)};
                 i = i + 1;
             elseif ismac
                 m2c_opts.lapackLibs = {'-llapack', '-lblas'};
@@ -717,7 +722,7 @@ while i<=last_index
                 m2c_opts.petscDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.petscDir = varargin(i+1);
+                m2c_opts.petscDir = {varargin(i+1)};
                 i = i + 1;
             else
                 if ~isempty(getenv('PETSC_DIR')) && ~isempty(getenv('PETSC_ARCH'))
@@ -769,7 +774,7 @@ while i<=last_index
                 m2c_opts.mpiLibs = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.mpiLibs = varargin(i+1);
+                m2c_opts.mpiLibs = {varargin(i+1)};
                 i = i + 1;
             else
                 m2c_opts.mpiLibs = {''};
@@ -796,7 +801,7 @@ while i<=last_index
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = varargin(i+1);
+                m2c_opts.([varargin{i}(2:end) 'Libs']) = {varargin(i+1)};
                 i = i + 1;
             else
                 m2c_opts.([varargin{i}(2:end) 'Libs']) = {''};
@@ -806,7 +811,7 @@ while i<=last_index
                 m2c_opts.codegenConfig = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.codegenConfig = varargin(i+1);
+                m2c_opts.codegenConfig = {varargin(i+1)};
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
