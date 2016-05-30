@@ -1,12 +1,10 @@
 function ptr = m2c_opaque_ptr_const(var, type, offset) %#codegen
-% Creates an opaque object for a read-only pointer to a given variable,
-% to be passed to a C function. The function behaves differently within
-% MATLAB and in code generation.
+% Creates a read-only pointer to the given variable, to be passed to a C function.
 %
-% The only difference between this function and m2c_opaque_ptr is that it
-% does not unshare the objects, so it can lead to better memory efficiency.
+% The only difference between this function and m2c_opaque_ptr is that
+% it uses 'const char *' instead of 'char *' as the default type.
 %
-% See also m2c_opaque_obj, m2c_opaque_array, m2c_opaque_ptr
+% See m2c_opaque_ptr for more detail.
 
 coder.inline('always');
 
@@ -14,7 +12,7 @@ if isempty(coder.target)
     dir = fileparts(which('m2c_opaque_ptr_const.m'));
     if exist('octave_config_info', 'builtin')
         mex([dir '/m2c_opaque_ptr_const.c'], '-o', ...
-             [dir '/m2c_opaque_ptr_const.' mexext]);
+            [dir '/m2c_opaque_ptr_const.' mexext]);
     else
         mex([dir '/m2c_opaque_ptr_const.c'], '-outdir', dir);
     end
@@ -29,7 +27,7 @@ if isempty(coder.target)
     end
 end
 
-if nargin<2; type = 'void *'; end
+if nargin<2; type = 'const char *'; end
 if nargin<3; offset = int32(0); end
 
 ptr = m2c_opaque_ptr(var, type, offset, true);

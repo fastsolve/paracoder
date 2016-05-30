@@ -7,15 +7,16 @@
 #include "string.h"
 
 #if !defined(CONST_PTR)
-#define TYPESTR "void *"
+#define TYPESTR "char *"
 #else
-#define TYPESTR "const void *"
+#define TYPESTR "const char *"
 #endif
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     mxArray *output, *field, *data;
     const char *fields[] = {"data", "type", "nbytes", "offset"};
     int offset = 0;
+    char type[128];
     
     /* Check input and output arguments */
     if (nlhs>1)
@@ -39,27 +40,37 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         offset = (int)(*(double *)mxGetData(prhs[2]));
     else if (nrhs==3)
         mexErrMsgIdAndTxt("opaque_ptr:WrongInputType",
-                "The second argument (offset) must be int32 or double.");
+                "The third argument (offset) must be int32 or double.");
+    
+    if (offset) {
+        mxGetString(prhs[1], type, 127);
+        if (!strstr(type, "char")) {
+            mexErrMsgIdAndTxt("opaque_ptr:PresetNonzeroOffset",
+                    "You can only preset offset for 'char *' or 'const char *'.");
+        }
+    }
     
     /* Copy pointer object */
     if (mxGetClassID(prhs[0])==mxSTRUCT_CLASS) {
-        if (mxGetNumberOfFields(prhs[0]) == 5 &&
+        if (mxGetNumberOfFields(prhs[0]) == 4 &&
                 mxGetFieldNumber(prhs[0], fields[0])==0 &&
                 mxGetFieldNumber(prhs[0], fields[1])==1 &&
                 mxGetFieldNumber(prhs[0], fields[2])==2 &&
                 mxGetFieldNumber(prhs[0], fields[3])==3) {
-            int *poffset = (int *)mxGetData(mxGetFieldByNumber(prhs[0], 0, 3));
             
             plhs[0] = mxDuplicateArray(prhs[0]);
-            if (nrhs==3 && offset != *(int *)mxGetData(plhs[0])) {
-                *(char **)mxGetData(mxGetFieldByNumber(plhs[0], 0, 0)) += offset;
-                poffset = (int *)mxGetData(mxGetFieldByNumber(plhs[0], 0, 3));
-                *poffset += offset;
+            if (nrhs>=2) {
+                /* Overwrite the type name */
+                mxDestroyArray(mxGetFieldByNumber(plhs[0], 0, 1));
+                mxSetFieldByNumber(plhs[0], 0, 1, mxDuplicateArray(prhs[1]));
+            }
+            if (nrhs==3) {
+                /* Overwrite offset */
+                int *poffset = (int *)mxGetData(mxGetFieldByNumber(plhs[0], 0, 3));
+                *poffset = offset;
             }
 #ifndef CONST_PTR
             {
-                char type[128];
-
                 field = mxGetFieldByNumber(plhs[0], 0, 1);
                 mxGetString(field, type, 127);
                 if (strncmp(type, "const ", 6)==0) {
@@ -71,15 +82,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 #endif
             return;
         }
-        else if (mxGetNumberOfFields(prhs[0]) == 3 &&
-                mxGetFieldNumber(prhs[0], fields[0])==0 &&
-                mxGetFieldNumber(prhs[0], fields[1])==1 &&
-                mxGetFieldNumber(prhs[0], fields[2])==2) {
-            data = mxGetFieldByNumber(prhs[0], 0, 0);
-        }
         else {
             mexErrMsgIdAndTxt("opaque_ptr:NonNumericArrays",
-                              "opaque_ptr takes only numeric array, opaque_obj, or opaque_ptr as input.");
+                              "opaque_ptr takes only numeric array or opaque_ptr as input.");
         }
     }
     else if (!mxIsNumeric(prhs[0])) {
@@ -92,8 +97,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     /* Create a new pointer object */
     output = mxCreateStructMatrix(1, 1, 4, fields);
     
-    field = mxCreateNumericMatrix(sizeof(void*), 1, mxUINT8_CLASS, mxREAL);
-    *(char **)mxGetData(field) = ((char*)mxGetData(data))+offset;
+    field = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+    *(char **)mxGetData(field) = (char*)mxGetData(data);
     mxSetFieldByNumber(output, 0, 0,  field);
     
     if (nrhs>=2)
