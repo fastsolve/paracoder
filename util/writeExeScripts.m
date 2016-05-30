@@ -104,7 +104,7 @@ if m2c_opts.withBlas
     cppflags = [cppflags ' -DM2C_BLAS=1 '];
 end
 if m2c_opts.withCuda
-    cppflags = [cppflags ' -DM2C_CUBLAS=1 '];
+    cppflags = [cppflags ' -DM2C_CUDA=1 '];
 end
 if m2c_opts.withOMP
     cppflags = [cppflags ' -DM2C_OPENMP '];

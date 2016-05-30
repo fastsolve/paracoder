@@ -125,7 +125,7 @@ if m2c_opts.withBlas
     coptflags = [coptflags ' -DM2C_BLAS=1 '];
 end
 if m2c_opts.withCuda
-    coptflags = [coptflags ' -DM2C_CUBLAS=1 '];
+    coptflags = [coptflags ' -DM2C_CUDA=1 '];
 end
 if m2c_opts.withOMP
     coptflags = [coptflags ' -DM2C_OPENMP '];
