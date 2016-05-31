@@ -15,11 +15,11 @@ narginchk(1,2);
 
 if nargin<2; offset = int32(0); end
 
-ptr = struct('data', uint64(0), 'type', obj.type, ...
+ptr = struct('data', m2c_csize_t(0), 'type', obj.type, ...
     'nbytes', int32(0), 'offset', int32(offset));
 
 if isempty(coder.target)
-    ptr.data = typecast(obj.data, 'uint64');
+    ptr.data = typecast(obj.data, class(uint64(0)));
 else
-    ptr.data = castdata('uint64_T', obj.data);
+    ptr.data = m2c_castdata('size_t', obj.data);
 end

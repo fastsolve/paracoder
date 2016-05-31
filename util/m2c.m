@@ -66,6 +66,8 @@ function m2c(varargin)
 %           Force the regeneration of C code and recompilation.
 %     -skipcg
 %           Skip calling codegen, even if -force, -ckdep, or -cktop is specified.
+%     -example
+%           Generate example main file.
 % OPTIMIZATION
 %     -O0
 %           Disable function inlining for MATLAB Coder and pass the -O0
@@ -113,7 +115,8 @@ function m2c(varargin)
 % DEBUGGING
 %     -g
 %           Preserve MATLAB code info in C code and also generate source-level
-%           debug information when compiling C.
+%           debug information when compiling C. This will also enable runtime 
+%           error checking when generating executables without gprof.
 %     -ddd
 %     -ddd 'ddd command'
 %     -ddd {'expression'}
@@ -353,7 +356,6 @@ if regen_c
         co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
         co_cfg.FilePartitionMethod = 'SingleFile';
         
-        co_cfg.GenerateMakefile = false;
         co_cfg.GenCodeOnly = true;
         co_cfg.GenerateReport = true;
         co_cfg.InitFltsAndDblsToZero = false;
@@ -379,6 +381,23 @@ if regen_c
         catch; end
         try co_cfg.PassStructByReference = true;
         catch; end
+        try co_cfg.RuntimeChecks = m2c_opts.debugInfo && m2c_opts.genExe && isempty(m2c_opts.gprof); % Enable RuntimeChekcs
+        catch; end
+        if ~m2c_opts.exampleMain
+            co_cfg.GenerateExampleMain = 'DoNotGenerate';
+        else
+            co_cfg.GenerateExampleMain = 'GenerateCodeOnly';
+        end
+        co_cfg.GenerateMakefile = false;
+        try co_cfg.TargetLangStandard = 'C99 (ISO)'; % Set C99 standard
+        catch; end
+        if m2c_opts.withCuda || m2c_opts.withMPI
+            % To support CUDA or MPI pointers, we must use the bulit-in
+            % definition of uint_64 for portability.
+            co_cfg.DataTypeReplacement = 'CoderTypeDefs';
+        else
+            co_cfg.DataTypeReplacement = 'CBuiltIn';
+        end
         
         if m2c_opts.withLapack
             try co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
@@ -438,7 +457,6 @@ if regen_c
     writeREADME(func, cpath, m2c_opts.genExe);
     
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
-    if exist([cpath 'examples'], 'dir'); rmdir([cpath 'examples'], 's'); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
 end
 
@@ -553,7 +571,7 @@ m2c_opts = struct('codegenArgs', '', ...
     'ckdep', false, ...
     'cktop', false, ...
     'skipcg', false, ...
-    'gen64', false);
+    'exampleMain', false);
 
 % Locate -args in the argument
 func_index = length(varargin);
@@ -583,6 +601,8 @@ while i<=last_index
             m2c_opts.cktop = true;
         case '-skipcg'
             m2c_opts.skipcg = true;
+        case '-example'
+            m2c_opts.exampleMain = true;
         case '-mex'
             m2c_opts.genMex = true;
         case '-exe'
@@ -691,7 +711,7 @@ while i<=last_index
                 if ~isempty(getenv('CUDA_PATH'))
                     m2c_opts.cudaDir = {getenv('CUDA_PATH')};
                 elseif ismac && exist('/Developer/NVIDIA/CUDA-7.5', 'dir')
-                    m2c_opts.cudaDir = '/Developer/NVIDIA/CUDA-7.5';
+                    m2c_opts.cudaDir = {'/Developer/NVIDIA/CUDA-7.5'};
                 else
                     error('m2c:cuda_dir', ...
                         ['Root directory of CUDA must be given after the ' ...
@@ -700,9 +720,7 @@ while i<=last_index
             end
             m2c_opts.withCuda = true;
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
-            % Prefer CUDA libraries installed within MATLAB root
-            m2c_opts.cudaLibs = {['-L' matlabroot '/' lower(computer) '/bin'], ...
-                ['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
+            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
                 '-lcusparse', '-lcudart'}; % -lcusolver
         case '-lapack'
             if i<last_index && varargin{i+1}(1) == '{'
@@ -823,9 +841,6 @@ while i<=last_index
             m2c_opts.quiet = true;
         case '-m'
             warning('Option -m is suppresed.');
-        case '-64'
-            m2c_opts.gen64 = true;
-            warning('Option -64 is suppresed and no longer supported.');
         case '-c++'
             m2c_opts.useCpp = true;
             warning('Option -c++ is suppresed and no longer supported.');

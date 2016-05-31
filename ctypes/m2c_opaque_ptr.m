@@ -52,7 +52,7 @@ if nargin<2; type = 'char *'; end
 
 ptr = coder.opaque(type);
 if isstruct(var) && isfield(var, 'offset')
-    ptr = castdata(type, var.data);
+    ptr = m2c_castdata(type, var.data);
     
     if (nargin<4 || ~varargin{1}) && length(var.type)>6 && isequal(var.type(1:6),'const ')
         m2c_warn('m2c_opaque_ptr:ConstPtr', 'Discarding the const modifier of an m2c_opaque_ptr.');

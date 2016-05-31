@@ -43,7 +43,7 @@ if nargin<3 || islogical(wrap) && ~wrap
         obj = arg;
         return;
     else
-        obj = castdata(type, arg.data);
+        obj = m2c_castdata(type, arg.data);
         return;
     end
 elseif ischar(wrap) || islogical(wrap)
