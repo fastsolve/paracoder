@@ -13,7 +13,6 @@ function m2c_printf(varargin) %#codegen
 %
 % SEE ALSO: m2c_error, m2c_warn
 
-
 coder.inline('never');
 
 if isempty(coder.target)
@@ -22,6 +21,7 @@ else
     if isequal(coder.target, 'mex')
         cmd = 'mexPrintf';
     else
+        coder.cinclude('m2c.h');
         cmd = 'M2C_printf';
     end
     assert(nargin>=1);

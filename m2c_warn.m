@@ -15,7 +15,6 @@ function m2c_warn(varargin) %#codegen
 %
 % SEE ALSO: m2c_print, m2c_error
 
-
 coder.inline('never');
 
 if isempty(coder.target)
@@ -24,9 +23,9 @@ else
     if isequal(coder.target, 'mex')
         cmd = 'mexWarnMsgIdAndTxt';
     else
+        coder.cinclude('m2c.h');
         cmd = 'M2C_warn';
     end
-    
     
     if nargin==1 || ischar(varargin{1}) && ~ischar(varargin{2})
         fmt = coder.opaque('const char *', ['"' varargin{1} '"']);

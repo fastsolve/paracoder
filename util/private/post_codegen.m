@@ -11,29 +11,33 @@ hfile_str = readFile(h_filename);
 ctype_filename = [cfilename(1:ks(end)-1), '_types.h'];
 ctypes_str = readFile(ctype_filename);
 
+% Check whether the C file includes m2c.h
+usem2c = ~isempty(regexp(cfile_str, '\n#include "m2c.h"', 'once'));
+
 cfile_str_orig = cfile_str;
+
+basictype = '(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)';
 
 % Remove declaration of emxEnsureCapacity
 cfile_str = regexprep(cfile_str, 'static\s+void\s+emxEnsureCapacity\s*\([^,\)]+,[^,\)]+,[^,\)]+\);\n', '');
-cfile_str = regexprep(cfile_str, ['(static\s+)?void\s+emxEnsureCapacity\s*\([^,\)]+,[^,\)]+,[^,\)]+\)\s*' funcbody ], '');
-
-basictype = '(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)';
+cfile_str = regexprep(cfile_str, ['(static\s+)?void\s+' ...
+    'emxEnsureCapacity\s*\([^,\)]+,[^,\)]+,[^,\)]+\)\s*' funcbody ], '');
 
 % Remove declaration of emxInit_basictype and emxFree_basictype for basic types
 tokens = regexp(ctypes_str, ['struct\s+emxArray_(' basictype ')'], 'tokens');
 for i=1:length(tokens)
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxInit_' ...
-        tokens{i}{1} '\([^,\)]+,[^,\)]+\);\n'], '');   
+        tokens{i}{1} '\([^,\)]+,[^,\)]+\);\n'], '');
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxInit_' ...
-        tokens{i}{1} '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');   
-
+        tokens{i}{1} '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
+    
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxFree_' ...
         tokens{i}{1} '\([^,\)]+\);\n'], '');
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxFree_' ...
-        tokens{i}{1} '\([^,\)]+\)\s*' funcbody], '');   
+        tokens{i}{1} '\([^,\)]+\)\s*' funcbody], '');
 end
 
-% Remove declaration of emxCreate_basictype, emxCreateND_basictype, 
+% Remove declaration of emxCreate_basictype, emxCreateND_basictype,
 % and emxCreateWrapperND_basictype, emxDestroyArray_basictype
 cfile_str = regexprep(cfile_str, ['emxArray_\w+\s+\*emxCreate_' basictype ...
     '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
@@ -47,7 +51,7 @@ cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_' basictype ...
     '\([^,\)]+\)\s*' funcbody], '');
 
 
-% Remove declaration of emxCreate_struct, emxCreateND_struct, 
+% Remove declaration of emxCreate_struct, emxCreateND_struct,
 % and emxCreateWrapperND_struct, emxDestroyArray_struct
 cfile_str = regexprep(cfile_str, ['emxArray_(\w+)\s+\*emxCreate_\w+\s*' ...
     '\([^,\)]+,[^,\)]+\)\s*{[^}]+\s+(\w*emxInit_\w+)\s*\([^\)]+\);(?:[^}][^\n]*\n)+}'], ...
@@ -69,7 +73,14 @@ cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_(\w+)\s*' ...
 cfile_str = regexprep(cfile_str, ['#ifndef\s+struct_emxArray__common\s+'...
     '#define\s+struct_emxArray__common\s+struct\s+emxArray__common\s+{[^}]+};\s+' ...
     '#endif\s+#ifndef\s+typedef_emxArray__common\s+#define\s+typedef_emxArray__common\s+' ...
-    'typedef\s+struct\s+emxArray__common\s+emxArray__common;\s+#endif\n'], '');
+    'typedef\s+struct\s+emxArray__common\s+' ...
+    'emxArray__common;\s+#endif\n'], '');
+
+% Add '#include "m2c.h"' if needed
+if ~usem2c && length(cfile_str) ~= length(cfile_str_orig)
+    cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '.h"\n)'], ...
+        '$1$2#include "m2c.h"\n');
+end
 
 % Omit declaration of variable references.
 cfile_str = regexprep(cfile_str, '\n#ref\([^\)]+\);', '');
@@ -85,7 +96,7 @@ for i=1:length(m2c_opts.api)
         cfile_str, api_decl);
     
     cfile_str = change_api_definition(m2c_opts.api{i}, cfile_str);
-    fprintf('M2C: Moved API function %s into header file\n', m2c_opts.api{i});    
+    fprintf('M2C: Moved API function %s into header file\n', m2c_opts.api{i});
 end
 
 changed = ~isempty(api_decl);
@@ -108,7 +119,7 @@ if changed
         
         % Move type definitions
         fprintf('M2C: API functions involves structures. Moved type definitions into header file %s_types.h\n', func);
-
+        
         if ~isempty(type_def)
             ctypes_str = strrep(ctypes_str, ...
                 sprintf('\n#endif\n\n/* End of code generation'), ...
@@ -121,9 +132,9 @@ if changed
         % Move emxInit_ and emxFree_ of public data types into the header file
         [cfile_str, hfile_str] = move_emx_decl(cfile_str, hfile_str, public_types);
     end
-
+    
     writeFile(h_filename, hfile_str);
-    changed = true;        
+    changed = true;
 end
 
 % Remove two consecutive empty lines
@@ -254,10 +265,10 @@ if isempty(decl)
 else
     % Remove it from C file
     cfile = strrep(cfile, decl, '');
-
+    
     % replace static by extern
     new_decl = [decl(1), 'extern', decl(8:end)];
-
+    
     % Add the declaration to the header file
     hfile = [hfile, new_decl];
 end
@@ -276,11 +287,11 @@ if isempty(defs)
         'whether the function is used and is marked as coder.inline(''never'').'], func);
 else
     new_def = regexprep(defs, pat, '$1$2');
-
+    
     spaces = repmat(' ', 1, length(defs)-length(new_def));
     % Remove spaces
     new_def = strrep(new_def, [defs(1) spaces], defs(1));
-
+    
     % Add the declaration to the header file
     cfile = strrep(cfile, defs, new_def);
 end
@@ -293,11 +304,11 @@ function [cfile, type_def] = move_type_decl(cfile)
 pat = '\n\/\* Type Definitions \*\/\n.+\n\/\* Function Declarations \*\/\n';
 type_def = regexp(cfile, pat, 'match', 'once');
 
-if ~isempty(type_def)    
+if ~isempty(type_def)
     % Remove it from C file
     cfile = strrep(cfile, type_def, ...
-        sprintf('\n%s', '/* Function Declarations */', ''));        
-   
+        sprintf('\n%s', '/* Function Declarations */', ''));
+    
     type_def = type_def(25:end-30);
 end
 end
@@ -316,7 +327,7 @@ for i=1:length(emx_API)
     [cfile_str, emx_decl] = move_api_declaration(func, cfile_str, emx_decl);
     
     cfile_str = change_api_definition(func, cfile_str);
-    fprintf('M2C: Moved helper function %s into header file\n', func);    
+    fprintf('M2C: Moved helper function %s into header file\n', func);
 end
 
 hfile_str = strrep(hfile_str, ...

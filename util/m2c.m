@@ -17,29 +17,54 @@ function m2c(varargin)
 %
 %  The options for m2c have several groups, defined as follows:
 %
-% CODE GENERATION
-%     -inline
-%           Enable function inlining in MATLAB Coder. This is the default
-%           with -O1, -O2 and -O3, and it overwrites the value set by -O0.
-%     -no-inline
-%           Disable function inlining in MATLAB Coder. This is the default
-%            with -O0, and it overwrites the value set by -O1, -O2, and -O3.
+% COMPILATION WORKFLOW
+%     -mex
+%     -mex 'relative_path_to_m_file'
+%     -mex {'relative_path_to_m_file'}
+%           By default, m2c only generates the C code. This options requests
+%           m2c to build the mex function in addition to generating the C files.
+%           By default, the mex file will be saved in the same directory
+%           as the M file. If a parameter is given, it saves the mex file
+%           to the specified directory, which should be a path relative to
+%           the M file (such as 'mex'). 
+%     -exe
+%     -exe 'relative_path_to_m_file'
+%     -exe {'relative_path_to_m_file'}
+%           Generate a MATLAB script for running the exe file from within
+%           MATLAB for debugging in place of the M-file (for Linux and Mac).
+%           By default, the exe file will be saved in the same directory 
+%           as the M file. If a parameter is given, it saves the exe file
+%           to the specified directory, which should be a path relative to
+%           the M file (such as 'exe').
+%     -cktop
+%           By default, m2c does not regenerated C code if it already exist.
+%           Use this optoin to request m2c to check the dependecies of the
+%           top-level M file and and regenerate C code. This is much faster,
+%           than -ckdep, so it should be the default mode for most code development.
+%     -ckdep
+%           Use this optoin to request m2c to check the dependecies of the
+%           M file and and regenerate C code if any dependence is newer.
+%           This can be slow compared to -cktop, so it should be only if
+%           you do not want to use -force.
+%     -force
+%           Force the regeneration of C code and recompilation.
+%     -skipcg
+%           Skip code generation and only perform recompilation, even if
+%           -force, -ckdep, or -cktop is specified.
+%
+% CODE GENERATION OPTIONS
 %     -no-inf
 %     -noinf
 %           Disable support of NonFinite (inf and nan). It produces faster codes.
 %           This is the default.
 %     -inf
 %           Enable support of NonFinite (inf and nan). It produces slower codes.
-%     -config 'objname'
-%     -config {'expression'}
-%           Use the given coder.CodeConfig object for codegen. The argument
-%           is a string contained a variable or function name that evaluates
-%           to a coder.CodeConfig object in the MATLAB base workspace.
-%           When this option is specified, code generation is forced.
-%           If string is contained in a cell array, then the string can
-%           be a MATLAB expression that evaluates to a character string.
-%           This overwrites the default values used by m2c, except that the
-%           headers for MPI, OpenMP etc. are appended to the given CustomSourceCode.
+%     -typedefs
+%           M2c uses the C built-in type names by default. This option requests
+%           code generation to use the numeric types defined by Coder instead
+%           of using the C built-in type names. This is the default if
+%           write
+%           is enabled for better portability.
 %     -api
 %     -api 'func'
 %     -api {'expression1, 'expression2', ...}
@@ -51,87 +76,21 @@ function m2c(varargin)
 %           in the M code. Note that the top-level function is automatically
 %           an API function and need not be listed. This argument can be
 %           repeated, and then the functions will be concatenated.
-%     -ckdep
-%           By default, m2c does not regenerated C code if it already exist.
-%           Use this optoin to request m2c to check the dependecies of the
-%           M file and and regenerate C code if any dependence is newer.
-%           This can be slow, so it should be only if you do not want to
-%           use -force.
-%     -cktop
-%           By default, m2c does not regenerated C code if it already exist.
-%           Use this optoin to request m2c to check the dependecies of the
-%           top-level M file and and regenerate C code. This is much faster,
-%           than -ckdep, so it should be the default mode for most code development.
-%     -force
-%           Force the regeneration of C code and recompilation.
-%     -skipcg
-%           Skip calling codegen, even if -force, -ckdep, or -cktop is specified.
-%     -example
+%     -example 
 %           Generate example main file.
-% OPTIMIZATION
-%     -O0
-%           Disable function inlining for MATLAB Coder and pass the -O0
-%           compiler option to the C compiler to disable all optimizations.
-%     -O1
-%           Enable function inlining for MATLAB Coder and pass the -O1
-%           compiler option to the C compiler to enable basic optimization.
-%     -O
-%     -O2
-%           Enable function inlining for MATLAB Coder and also pass the -O2
-%           compiler option to the C compiler to enable nearly all supported
-%           optimizations that do not involve a space-speed tradeoff.
-%     -O3
-%           Enable function inlining for MATLAB Coder and also pass the -O3
-%           compiler option to the C compiler to enable all supported
-%           optimizations, including loop unrolling and function inlining.
+%     -config 'objname'
+%     -config {'expression'}
+%           Use the given coder.CodeConfig object for codegen. The argument
+%           is a string contained a variable or function name that evaluates
+%           to a coder.CodeConfig object in the MATLAB base workspace.
+%           When this option is specified, code generation is forced.
+%           If string is contained in a cell array, then the string can
+%           be a MATLAB expression that evaluates to a character string.
+%           This overwrites the default values used by m2c, except that the
+%           headers for MPI, OpenMP etc. are appended to the given CustomSourceCode.
 %
-% PROFILING AND INSTRUMENTATION
-%     -time
-%     -time 'func'
-%     -time {'expression1, 'expression2', ...} [Not yet implemented]
-%           List of functions for timing. The argument list may be the name
-%           of a single function or a cell array of expressions that
-%           evaluate to the names of the functions to be timed. These
-%           functions must not be inlined. This can be ensured by
-%           adding coder.inline('never') in the M fiile. If no function is
-%           given after -time, then the top-level function will be timed.
-%           This argument can be repeated, and then the functions will
-%           be concatenated.
-%     -gprof
-%     -gprof 'gprof command'
-%     -gprof {'expression'}
-%           Compile standalone code with profiling support and generate
-%           a script to process results from gprof (Linux only).
-%           The gprof command can be specified after it as a character
-%           string, or a MATLAB expression contained in a cell array.
-%     -gcov
-%     -gcov 'gcov command'
-%     -gcov {'expression'}
-%           Compile standalone code with profiling support and generate
-%           a script to process results from gcov (Linux and Mac).
-%           The gcov command can be specified after it as a character
-%           string, or a MATLAB expression contained in a cell array.
-%
-% DEBUGGING
-%     -g
-%           Preserve MATLAB code info in C code and also generate source-level
-%           debug information when compiling C. This will also enable runtime 
-%           error checking when generating executables without gprof.
-%     -ddd
-%     -ddd 'ddd command'
-%     -ddd {'expression'}
-%           Generate a script for running the standalone executable in ddd.
-%           The ddd command can be specified after it as a character
-%           string, or a MATLAB expression contained in a cell array.
-%     -valgrind
-%     -valgrind 'valgrind command'
-%     -valgrind {'expression'}
-%           Generate a script for running the standalone executable in valgrind.
-%           The valgrind command can be specified after it as a character
-%           string, or a MATLAB expression contained in a cell array.
-%
-% BUILD CUSTOMIZATION
-%     -cc 'c-compiler command'
+% COMPILER CUSTOMIZATION
+%     -cc 'cc command'
 %     -cc {'expression'}
 %           Specify the C compiler. It overwrites the default complier
 %           choice for both the mex file and the standalone executable.
@@ -166,46 +125,100 @@ function m2c(varargin)
 %           a MATLAB expression. They will be listed before the libraries
 %           required by the supported external libraries.
 %
-% SUPPORTED EXTERNAL LIBRARIES
-%     -mpi
-%     -mpi {'-Ldir1', '-llib1', '-llib2', ...}
-%           Enable support for MPI. The argument list is a cell array of
-%           character strings to be passed to the C compiler and linker.
-%           Each string can be a MATLAB expression. It requires MMPI.
-%     -omp
-%     -omp {'-Ldir1', '-llib1', '-llib2', ...}
-%           Enable support for OpenMP. The argument list is a cell array of
-%           character strings to be passed to the C compiler and linker.
-%           Each string can be a MATLAB expression. It requires MOMP.
-%     -acc
-%     -acc {'-Ldir1', '-llib1', '-llib2', ...}
-%           Enable support for OpenACC. The argument list is a cell array of
-%           character strings to be passed to the C compiler and linker.
-%           Each string can be a MATLAB expression. It requires MACC.
-%     -blas
-%     -blas {'-Ldir1', '-llib1', '-llib2', ...}
-%           Enable BLAS and link with the CBLAS library specified in
-%           the list. The argument list is a cell array of character strings
-%           to be passed to the C compiler and linker. Each string can be
-%           a MATLAB expression. If the cell array is empty, then the
-%           MATLAB built-in BLAS library will be used.
+% OPTIMIZATION
+%     -O0
+%           Disable function inlining for MATLAB Coder and pass the -O0
+%           compiler option to the C compiler to disable all optimizations.
+%     -O1
+%           Enable function inlining for MATLAB Coder and pass the -O1
+%           compiler option to the C compiler to enable basic optimization.
+%     -O
+%     -O2
+%           Enable function inlining for MATLAB Coder and also pass the -O2
+%           compiler option to the C compiler to enable nearly all supported
+%           optimizations that do not involve a space-speed tradeoff.
+%     -O3
+%           Enable function inlining for MATLAB Coder and also pass the -O3
+%           compiler option to the C compiler to enable all supported
+%           optimizations, including loop unrolling and function inlining.
+%     -inline
+%           Enable function inlining in MATLAB Coder. This is the default
+%           with -O1, -O2 and -O3, and it overwrites the value set by -O0.
+%     -no-inline
+%           Disable function inlining in MATLAB Coder. This is the default
+%            with -O0, and it overwrites the value set by -O1, -O2, and -O3.
+%
+% DEBUGGING
+%     -g
+%           Preserve MATLAB code info in C code and also generate source-level
+%           debug information when compiling C.
+%     -ddd
+%     -ddd 'ddd command'
+%     -ddd {'expression'}
+%           Generate a script for running the standalone executable in ddd.
+%           The ddd command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
+%     -valgrind
+%     -valgrind 'valgrind command'
+%     -valgrind {'expression'}
+%           Generate a script for running the standalone executable in valgrind.
+%           The valgrind command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
+%     -chkmem
+%           Generate code for runtime error checking of buffer overflow.
+%           This is enabled automatically by -ddd and -valgrind. It also
+%           enables -g.
+%
+% PROFILING AND INSTRUMENTATION
+%     -time
+%     -time 'func'
+%     -time {'expression1, 'expression2', ...} [Not yet implemented]
+%           List of functions for timing. The argument list may be the name
+%           of a single function or a cell array of expressions that
+%           evaluate to the names of the functions to be timed. These
+%           functions must not be inlined. This can be ensured by
+%           adding coder.inline('never') in the M fiile. If no function is
+%           given after -time, then the top-level function will be timed.
+%           This argument can be repeated, and then the functions will
+%           be concatenated.
+%     -gprof
+%     -gprof 'gprof command'
+%     -gprof {'expression'}
+%           Compile standalone code with profiling support and generate
+%           a script to process results from gprof (Linux only).
+%           The gprof command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
+%     -gcov
+%     -gcov 'gcov command'
+%     -gcov {'expression'}
+%           Compile standalone code with profiling support and generate
+%           a script to process results from gcov (Linux and Mac).
+%           The gcov command can be specified after it as a character
+%           string, or a MATLAB expression contained in a cell array.
+%
+% SUPPORTED MATH LIBRARIES
+%     -mkl (or -mkl-seq)
+%     -mkl-iomp (or -mkl-omp}
+%     -mkl 'mkl-directory'
+%     -mkl {'expression'}
+%           Enable Intel MKL and link with its BLAS and sparse BLAS libraries.
+%           The root directory of MKL can be specified as a character string
+%           or expression contained in a cell array, or be specified by
+%           the environment variables MKLROOT. By befault, -mkl specifies
+%           linking with the sequential version of MKL. Use -mkl-iomp to
+%           link with multithreaded MKL library with Intel OpenMP. Note that
+%           this might conflict with GCC's OpenMP library, so it should
+%           not be used with -omp when compiling with a non-Intel compiler.
 %     -cuda
 %     -cuda 'cuda-directory'
 %     -cuda {'expression'}
-%           Enable CUDA and link with the cuBLAS and cuSparse. The root
-%           directory of CUDA can be specified as a character string
+%           Enable CUDA Toolkit and link with cuBLAS and cuSparse. The 
+%           root directory of CUDA can be specified as a character string
 %           or expression contained in a cell array, or be specified by
 %           the environment variables CUDA_PATH or by adding nvcc to your
 %           path. Note that if CUDA is available within MATLAB (when 
 %           MATLAB Parallel Toolbox is installed), it will link with 
 %           the CUDA libraries distributed with MATLAB.
-%     -lapack
-%     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
-%           Enable LAPACKE and link with the LAPACK library specified in
-%           the list. The argument list is a cell array of character strings
-%           to be passed to the C compiler and linker. Each string can be
-%           a MATLAB expression. If the cell array is empty, then the
-%           MATLAB built-in LAPACK library will be used.
 %     -petsc
 %     -petsc 'petsc-directory'
 %     -petsc {'expression'}
@@ -213,29 +226,43 @@ function m2c(varargin)
 %           specified as a character string, or a MATLAB expression
 %           contained in a cell array. The default path can be extracted
 %           from the environment variables PETSC_DIR and PETSC_ARCH.
-%     -efence
-%     -efence {'-Ldir1', '-llib1', '-llib2', ...}
-%           Link the standalone executable with electric-fence for
-%           debugging memory errors. The argument list is a cell array of
-%           character string to be passed to the linker, such as
-%  	        -efence {'-L/usr/local/lib', '-lefence'}. Each string can be
-%           a MATLAB expression. It is most useful in conjunction with
-%           a debugger, such as ddd, for debugging segmentation faults.
+%     -blas
+%     -blas {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable BLAS and link with the CBLAS library specified in
+%           the list. The argument list is a cell array of character strings
+%           to be passed to the C compiler and linker. Each string can be
+%           a MATLAB expression. If the cell array is empty, then the
+%           MATLAB built-in BLAS library will be used. This option is
+%           omitted if -mkl is specified.
+%     -lapack
+%     -lapack {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable LAPACKE and link with the LAPACK library specified in
+%           the list. The argument list is a cell array of character strings
+%           to be passed to the C compiler and linker. Each string can be
+%           a MATLAB expression. If the cell array is empty, then the
+%           MATLAB built-in LAPACK library will be used.
+%
+% PARALLEL PROGRAMMING
+%     -omp
+%     -omp {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable support for OpenMP. The argument list is a cell array of
+%           character strings to be passed to the C compiler and linker.
+%           Each string can be a MATLAB expression. It requires MOMP and a
+%           compiler that supports OpenMP.
+%     -acc
+%     -acc {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable support for OpenACC. The argument list is a cell array of
+%           character strings to be passed to the C compiler and linker.
+%           Each string can be a MATLAB expression. It requires MOMP and a
+%           compiler that supports OpenACC.
+%     -mpi
+%     -mpi {'-Ldir1', '-llib1', '-llib2', ...}
+%           Enable support for MPI. The argument list is a cell array of
+%           character strings to be passed to the C compiler and linker.
+%           Each string can be a MATLAB expression. It requires MMPI.
+%           This is not needed when -petsc is specified.
 %
 % MISCELLANEOUS
-%     -mex
-%           Build the mex command in addition to generating the C files.
-%     -mexdir {'relative_path_to_m_file'}
-%           Save the mex file to the directory given by the path relative
-%           to the M file. By default, the mex files will be saved in the
-%           same directory as the M file.
-%     -exe
-%           Generate a MATLAB script for running the exe file from within
-%           MATLAB for debugging in place of the M-file (Linux and Mac).
-%     -exedir {'relative_path_to_m_file'}
-%           Save the exe file into the directory given by the path relative
-%           to the M file. By default, the exe fileswill be saved in the
-%           same directory as the M file.
 %     -v
 %           Verbose mode.
 %     -q
@@ -310,20 +337,6 @@ if isempty(m2c_opts.codegenArgs) || ~isequal(m2c_opts.codegenArgs(1:5), -args)
     m2c_opts.codegenArgs = [extract_codegen_args(mfile) ' ' m2c_opts.codegenArgs];
 end
 
-% Determine whether to include mpi.h
-if m2c_opts.withMPI
-    mpi_header = '#include "mpi.h"';
-else
-    mpi_header = '';
-end
-
-% Determine whether to include petsc.h
-if m2c_opts.withPetsc
-    petsc_header = '#include "mpetsc.h"';
-else
-    petsc_header = '';
-end
-
 regen_c = ~m2c_opts.skipcg && (m2c_opts.force || ~exist([cpath  func '.c'], 'file') || ...
     ~exist([cpath  func '_mex.c'], 'file') || ...
     ~ckSignature(m2c_opts, 'codegen', [cpath  func '_mex.c']) || ...
@@ -358,7 +371,7 @@ if regen_c
         
         co_cfg.GenCodeOnly = true;
         co_cfg.GenerateReport = true;
-        co_cfg.InitFltsAndDblsToZero = false;
+        co_cfg.InitFltsAndDblsToZero = true;
         co_cfg.SupportNonFinite = m2c_opts.enableInf;
         
         if m2c_opts.useCpp
@@ -381,8 +394,8 @@ if regen_c
         catch; end
         try co_cfg.PassStructByReference = true;
         catch; end
-        try co_cfg.RuntimeChecks = m2c_opts.debugInfo && m2c_opts.genExe && isempty(m2c_opts.gprof); % Enable RuntimeChekcs
-        catch; end
+        try co_cfg.RuntimeChecks = m2c_opts.chkMem || m2co_pts.ddd || m2co_pts.valgrind;
+        catch; end        
         if ~m2c_opts.exampleMain
             co_cfg.GenerateExampleMain = 'DoNotGenerate';
         else
@@ -391,9 +404,10 @@ if regen_c
         co_cfg.GenerateMakefile = false;
         try co_cfg.TargetLangStandard = 'C99 (ISO)'; % Set C99 standard
         catch; end
-        if m2c_opts.withCuda || m2c_opts.withMPI
-            % To support CUDA or MPI pointers, we must use the bulit-in
-            % definition of uint_64 for portability.
+        if m2c_opts.typedefs || m2c_opts.withCuda
+            % To support CUDA pointers, we need to use the bulit-in definition
+            % of uint_64 for compatability with M.S. Windows, because MATLAB
+            % Coder uses "unsigned long" for "uint64" in code generation.
             co_cfg.DataTypeReplacement = 'CoderTypeDefs';
         else
             co_cfg.DataTypeReplacement = 'CBuiltIn';
@@ -410,8 +424,7 @@ if regen_c
         warning('C++ code generation is not supported. Use at your own risk.');
     end
     
-    co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode, ...
-        mpi_header, petsc_header, '#include "m2c.h"');
+    co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode);
     
     %% Run command
     if m2c_opts.verbose
@@ -518,9 +531,11 @@ end
 m2c_opts = struct('codegenArgs', '', ...
     'codegenConfig', [], ...
     'debugInfo', false, ...
+    'chkMem', false, ...
     'enableInline', [], ...
     'optLevel', '0', ...
     'enableInf', false, ...
+    'typedefs', false, ...
     'api', [], ...
     'timing', [], ...
     'cc', [], ...
@@ -542,6 +557,10 @@ m2c_opts = struct('codegenArgs', '', ...
     'blasLibs', [], ...
     'withLapack', false, ...
     'lapackLibs', [], ...
+    'withMKL', false, ...
+    'mklDir', [], ...
+    'mklInc', [], ...
+    'mklLibs', [], ...
     'withCuda', false, ...
     'cudaDir', [], ...
     'cudaInc', [], ...
@@ -558,7 +577,6 @@ m2c_opts = struct('codegenArgs', '', ...
     'gcov', [], ...
     'valgrind', [], ...
     'ddd', [], ...
-    'efenceLibs', [], ...
     'genMex', false, ...
     'mexDir', [], ...
     'genExe', false, ...
@@ -592,7 +610,8 @@ m2c_opts.codegenArgs = strtrim(sprintf(' %s', varargin{func_index+1:end}));
 i = 1;
 last_index = func_index-1;
 while i<=last_index
-    switch varargin{i}
+    opt = varargin{i};
+    switch opt
         case '-force'
             m2c_opts.force = true;
         case '-ckdep'
@@ -605,20 +624,26 @@ while i<=last_index
             m2c_opts.exampleMain = true;
         case '-mex'
             m2c_opts.genMex = true;
-        case '-exe'
-            m2c_opts.genExe = true;
-        case {'-mexdir', '-exedir'}
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.([varargin{i}(2:4) 'Dir']) = eval(varargin{i+1});
+                m2c_opts.mexDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.([varargin{i}(2:4) 'Dir']) = {varargin(i+1)};
+                m2c_opts.mexDir = varargin(i+1);
                 i = i + 1;
-            else
-                error('m2c:wrong_argument', ...
-                    'Argument %s requires a cell-array argument after it.', varargin{i});
+            end
+        case '-exe'
+            m2c_opts.genExe = true;
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.exeDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.exeDir = varargin(i+1);
+                i = i + 1;
             end
         case '-g'
+            m2c_opts.debugInfo = true;
+        case '-chkmem'
+            m2c_opts.chkMem = true;
             m2c_opts.debugInfo = true;
         case '-O0'
             m2c_opts.optLevel = '0';
@@ -636,12 +661,14 @@ while i<=last_index
             m2c_opts.enableInf = false;
         case '-inf'
             m2c_opts.enableInf = true;
+        case '-typedefs'
+            m2c_opts.typedefs = true;
         case '-time'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.timing = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.timing = {varargin(i+1)};
+                m2c_opts.timing = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.timing = {''};
@@ -651,61 +678,38 @@ while i<=last_index
                 m2c_opts.api = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.api = {varargin(i+1)};
+                m2c_opts.api = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.api = {''};
             end
-        case '-efence'
-            if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.efenceLibs = eval(varargin{i+1});
-                i = i + 1;
-            elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.efenceLibs = {varargin(i+1)};
-                i = i + 1;
-            elseif isfield(defaultValues, varargin{i}(2:end))
-                m2c_opts.efenceLibs = {'-lefence'};
-            end
         case {'-valgrind', '-ddd', '-gprof', '-gcov'}
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
+                m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.(varargin{i}(2:end)) = {varargin(i+1)};
+                m2c_opts.(opt(2:end)) = varargin(i+1);
                 i = i + 1;
             else
-                m2c_opts.(varargin{i}(2:end)) = {''};
+                m2c_opts.(opt(2:end)) = {''};
             end
         case {'-cc', '-libs', '-mexflags', '-cppflags', '-cflags', '-ldflags'}
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.(varargin{i}(2:end)) = eval(varargin{i+1});
+                m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.(varargin{i}(2:end)) = {varargin(i+1)};
+                m2c_opts.(opt(2:end)) = varargin(i+1);
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
-                    'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
+                    'Argument %s requires a cell-array argument after it. Ignored', opt);
             end
-        case '-blas'
-            if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.blaskLibs = eval(varargin{i+1});
-                i = i + 1;
-            elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.blaskLibs = {varargin(i+1)};
-                i = i + 1;
-            elseif ismac
-                m2c_opts.blasLibs = {'-lblas'};
-            else
-                m2c_opts.blasLibs = {'-lmwblas'};
-            end
-            m2c_opts.withBlas = true;
         case '-cuda'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.cudaDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.cudaDir = {varargin(i+1)};
+                m2c_opts.cudaDir = varargin(i+1);
                 i = i + 1;
             else
                 if ~isempty(getenv('CUDA_PATH'))
@@ -722,25 +726,49 @@ while i<=last_index
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
             m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
                 '-lcusparse', '-lcudart'}; % -lcusolver
-        case '-lapack'
+        case {'-mkl', 'mkl-seq', '-mkl-iomp', '-mkl-omp'}
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.lapackLibs = eval(varargin{i+1});
+                m2c_opts.mklDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.lapackLibs = {varargin(i+1)};
+                m2c_opts.mklDir = varargin(i+1);
                 i = i + 1;
-            elseif ismac
-                m2c_opts.lapackLibs = {'-llapack', '-lblas'};
             else
-                m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
+                if ~isempty(getenv('MKLROOT'))
+                    m2c_opts.mklDir = {getenv('MKLROOT')};
+                elseif isunix && exist('/opt/intel/mkl', 'dir')
+                    m2c_opts.mklDir = {'/opt/intel/mkl'};
+                else
+                    error('m2c:mkl_dir', ...
+                        ['Root directory of MKL must be given after the ' ...
+                        '-mkl flag or be specified by environment variable MKLROOT. \n' ...
+                        'Intel MKL and TBB can be downloaded for free at ' ...
+                        'https://software.intel.com/en-us/articles/free_mkl\n']);
+                end
             end
-            m2c_opts.withLapack = true;
+            
+            if m2c_opts.mklDir{1}(end)=='/' || m2c_opts.mklDir{1}(end)=='\' 
+                m2c_opts.mklDir{1}(end) = [];
+            end
+            m2c_opts.withMKL = true + ~isempty(strfind(opt, 'omp'));
+            m2c_opts.mklInc = {['-I' m2c_opts.mklDir{1} '/include']};
+            if ismac; concat = ','; else concat = '='; end
+            m2c_opts.mklLibs = {['-L' m2c_opts.mklDir{1} '/lib', ...
+                ' -Wl,-rpath' concat m2c_opts.mklDir{1} '/lib'], ...
+                '-lmkl_intel_lp64', '-lmkl_core'};
+            if isequal(opt, '-mkl-iomp')
+                m2c_opts.mklLibs = [m2c_opts.mklLibs, ['-L' fileparts(m2c_opts.mklDir{1}) '/lib'], ...
+                    [' -Wl,-rpath' concat fileparts(m2c_opts.mklDir{1}) '/lib'], ...
+                    '-lmkl_intel_thread', '-liomp5'];
+            else
+                m2c_opts.mklLibs = [m2c_opts.mklLibs, '-lmkl_sequential'];
+            end
         case '-petsc'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.petscDir = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.petscDir = {varargin(i+1)};
+                m2c_opts.petscDir = varargin(i+1);
                 i = i + 1;
             else
                 if ~isempty(getenv('PETSC_DIR')) && ~isempty(getenv('PETSC_ARCH'))
@@ -786,13 +814,50 @@ while i<=last_index
             m2c_opts.petscLibs = {['-L' m2c_opts.petscDir{1} '/lib', ...
                 ' -Wl,-rpath' concat m2c_opts.petscDir{1} '/lib'], '-lpetsc'};
             m2c_opts.withPetsc = true;
+        case '-blas'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.blaskLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.blaskLibs = varargin(i+1);
+                i = i + 1;
+            elseif ismac
+                m2c_opts.blasLibs = {'-lblas'};
+            else
+                m2c_opts.blasLibs = {'-lmwblas'};
+            end
+            m2c_opts.withBlas = true;
+        case '-lapack'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.lapackLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.lapackLibs = varargin(i+1);
+                i = i + 1;
+            elseif ismac
+                m2c_opts.lapackLibs = {'-llapack', '-lblas'};
+            else
+                m2c_opts.lapackLibs = {'-lmwlapack', '-lmwblas'};
+            end
+            m2c_opts.withLapack = true;
+        case {'-omp', '-acc'}
+            m2c_opts.(['with' upper(opt(2:end))])= true;
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.([opt(2:end) 'Libs']) = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index && varargin{i+1}(1) ~= '-'
+                m2c_opts.([opt(2:end) 'Libs']) = varargin(i+1);
+                i = i + 1;
+            else
+                m2c_opts.([opt(2:end) 'Libs']) = {''};
+            end
         case {'-mpi'}
             m2c_opts.withMPI= true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.mpiLibs = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.mpiLibs = {varargin(i+1)};
+                m2c_opts.mpiLibs = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.mpiLibs = {''};
@@ -813,27 +878,16 @@ while i<=last_index
             
             mpiInc = [fileparts(which('startup_mmpi.m')), '/include'];
             m2c_opts.mpiInc = {['-I' mpiInc]};
-        case {'-omp', '-acc'}
-            m2c_opts.(['with' upper(varargin{i}(2:end))])= true;
-            if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = eval(varargin{i+1});
-                i = i + 1;
-            elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = {varargin(i+1)};
-                i = i + 1;
-            else
-                m2c_opts.([varargin{i}(2:end) 'Libs']) = {''};
-            end
         case '-config'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.codegenConfig = eval(varargin{i+1});
                 i = i + 1;
             elseif i<last_index && varargin{i+1}(1) ~= '-'
-                m2c_opts.codegenConfig = {varargin(i+1)};
+                m2c_opts.codegenConfig = varargin(i+1);
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
-                    'Argument %s requires a cell-array argument after it. Ignored', varargin{i});
+                    'Argument %s requires a cell-array argument after it. Ignored', opt);
             end
         case '-v'
             m2c_opts.verbose = true;
@@ -849,7 +903,7 @@ while i<=last_index
             return;
         otherwise
             error('m2c:wrong_argument', ...
-                'Unrecognized argument %s.', varargin{i});
+                'Unrecognized argument %s.', opt);
     end
     i = i +1;
 end
@@ -866,6 +920,18 @@ if exist('octave_config_info', 'builtin')
     m2c_opts.skipcg = true;
 end
 
+if m2c_opts.withOMP && m2c_opts.withMKL>1 && isempty(m2c_opts.cc)
+    fprintf(1, ['You are using OpenMP together with Intel OpenMP in MKL.\n', ...
+        'This may cause conflicts! See https://software.intel.com/en-us/articles/recommended-settings', ...
+        '-for-calling-intelr-mkl-routines-from-multi-threaded-applications for recommended settings.\n', ...
+        'To disable this message, explicitly use -cc to specify an Intel compiler.']);
+end
+
+if m2c_opts.withMKL
+    % When using MKL, diable BLAS and its libraries
+    m2c_opts.withBlas = false;
+    m2c_opts.blasLibs = {};
+end
 end
 
 function build_exe(cpath, func)

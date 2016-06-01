@@ -4,6 +4,9 @@ function val = m2c_get_cstruct_field(cstruct, field, type) %#codegen
 %where type a MATLAB basic data type.
 
 coder.inline('always');
+if coder.target('rtw')
+    coder.cinclude('m2c.h');
+end
 
 val = cast(0, type);
 val = coder.ceval('M2C_GET_FIELD', cstruct, coder.opaque('NOTYPE', field));

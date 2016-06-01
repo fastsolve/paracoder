@@ -23,6 +23,7 @@ else
     if isequal(coder.target, 'mex')
         cmd = 'mexErrMsgIdAndTxt';
     else
+        coder.cinclude('m2c.h');
         cmd = 'M2C_error';
     end
     
