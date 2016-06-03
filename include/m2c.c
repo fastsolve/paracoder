@@ -3,157 +3,341 @@
  */
 
 #include "rtwtypes.h"
+
+/* Always define an non-inlined versino of emxEnsureCapacity to
+ * avoid linking errors */
+#if INLINE_ENSURE_CAPACITY
+#undef INLINE_ENSURE_CAPACITY
+#endif
+#define INLINE_ENSURE_CAPACITY  0
+
 #include "m2c.h"
 
-define_emxEnsureCapacity
+void m2cExpandCapacity(emxArray__common *emxArray, int32_T oldNumel,
+                       int32_T newNumel, int32_T elementSize)
+{
+    int32_T n;
+    void *newData;
+    
+    if (emxArray->allocatedSize==0)
+        n = newNumel;
+    else {
+        n = emxArray->allocatedSize;
+        if (n < 16) {
+            n = 16;
+        }
+        while (n < newNumel) {
+            /* Double size each time to minimize number of reallocation. */
+            n <<= 1;
+        }
+    }
+    
+    newData = calloc((uint32_T)n, (uint32_T)elementSize);
+    if (emxArray->data != NULL) {
+        memcpy(newData, emxArray->data, (uint32_T)(elementSize * oldNumel));
+        if (emxArray->canFreeData) {
+            free(emxArray->data);
+        }
+    }
+    
+    emxArray->data = newData;
+    emxArray->allocatedSize = n;
+    emxArray->canFreeData = TRUE;
+}
+
+void emxEnsureCapacity(emxArray__common *emxArray, int32_T oldNumel,
+        int32_T elementSize) {
+    int32_T i;
+    int32_T newNumel = emxArray->size[0];
+    for (i = emxArray->numDimensions-1; i >= 1 ; i--) {
+        newNumel *= emxArray->size[i];
+    }
+    if (newNumel > emxArray->allocatedSize)
+        m2cExpandCapacity(emxArray, oldNumel, newNumel, elementSize);
+}
+
+#define define_emxInit(emxInit, emxtype) \
+void emxInit(emxArray_##emxtype **pEmxArray, int32_T numDimensions) \
+{ \
+    emxArray_##emxtype *emxArray; \
+    int32_T i; \
+    *pEmxArray = (emxArray_##emxtype *)malloc(sizeof(emxArray_##emxtype)); \
+    emxArray = *pEmxArray; \
+    emxArray->data = NULL; \
+    emxArray->numDimensions = numDimensions; \
+    emxArray->size = (int32_T *)malloc((uint32_T)(sizeof(int32_T) * numDimensions)); \
+    emxArray->allocatedSize = 0; \
+    emxArray->canFreeData = TRUE; \
+    for (i = 0; i < numDimensions; i++) { \
+        emxArray->size[i] = 0; \
+    } \
+}
+
+/* Define emxFree for standard data types */
+#define define_emxFree(emxFree, emxtype) \
+void emxFree(emxArray_##emxtype **pEmxArray) \
+{ \
+    if (*pEmxArray != (emxArray_##emxtype *)NULL) { \
+        if ((*pEmxArray)->canFreeData) { \
+            free((void *)(*pEmxArray)->data); \
+        } \
+        \
+        free((void *)(*pEmxArray)->size); \
+        free((void *)*pEmxArray); \
+        *pEmxArray = (emxArray_##emxtype *)NULL; \
+    } \
+}
+
+
+#define define_emxCreate(emxInit, emxtype) \
+emxArray_##emxtype *emxCreate_##emxtype(int32_T rows, int32_T cols) \
+{ \
+    emxArray_##emxtype *emx; \
+    int32_T numEl; \
+    emxInit(&emx, 2); \
+    emx->size[0] = rows; \
+    emx->size[1] = cols; \
+    numEl = rows*cols; \
+    *(void **)&emx->data = calloc((uint32_T)numEl, sizeof(*emx->data)); \
+    emx->numDimensions = 2; \
+    emx->allocatedSize = numEl; \
+    return emx; \
+}
+
+#define define_emxFreeStruct(emxFree, emxtype) \
+void emxFree(emxArray_##emxtype **pEmxArray) \
+{ \
+    int32_T numEl; \
+    int32_T i; \
+    if (*pEmxArray != (emxArray_##emxtype*)NULL) { \
+        numEl = 1; \
+        for (i = 0; i < (*pEmxArray)->numDimensions; i++) { \
+            numEl *= (*pEmxArray)->size[i]; \
+        } \
+        \
+        for (i = 0; i < numEl; i++) { \
+            emxFreeStruct_##emxtype(&(*pEmxArray)->data[i]); \
+        } \
+        \
+        if ((*pEmxArray)->canFreeData) { \
+            free((void *)(*pEmxArray)->data); \
+        } \
+        \
+        free((void *)(*pEmxArray)->size); \
+        free((void *)*pEmxArray); \
+        *pEmxArray = (emxArray_##emxtype *)NULL; \
+    } \
+}
+
+#define define_emxCreateND(emxInit, emxtype) \
+emxArray_##emxtype *emxCreateND_##emxtype(int32_T numDimensions, int32_T *size)  \
+{ \
+    emxArray_##emxtype *emx; \
+    int32_T numEl; \
+    int32_T i; \
+    emxInit(&emx, numDimensions); \
+    numEl = 1; \
+    for (i = 0; i < numDimensions; i++) { \
+        numEl *= size[i]; \
+        emx->size[i] = size[i]; \
+    } \
+    \
+    *(void **)&emx->data = calloc((uint32_T)numEl, sizeof(*emx->data)); \
+    emx->numDimensions = numDimensions; \
+    emx->allocatedSize = numEl; \
+    return emx; \
+}
+
+
+#define define_emxCreateWrapper(emxInit, emxtype, type) \
+emxArray_##emxtype *emxCreateWrapper_##emxtype(type *data, int32_T rows, int32_T cols) \
+{ \
+    emxArray_##emxtype *emx; \
+    emxInit(&emx, 2); \
+    emx->size[0] = rows; \
+    emx->size[1] = cols; \
+    \
+    emx->data = data; \
+    emx->numDimensions = 2; \
+    emx->allocatedSize = rows*cols; \
+    emx->canFreeData = FALSE; \
+    return emx; \
+}
+
+#define define_emxCreateWrapperND(emxInit, emxtype, type) \
+emxArray_##emxtype *emxCreateWrapperND_##emxtype(type *data, int32_T numDimensions, \
+        int32_T *size) \
+{ \
+    emxArray_##emxtype *emx; \
+    int32_T numEl; \
+    int32_T i; \
+    emxInit(&emx, numDimensions); \
+    numEl = 1; \
+    for (i = 0; i < numDimensions; i++) { \
+        numEl *= size[i]; \
+        emx->size[i] = size[i]; \
+    } \
+    \
+    emx->data = data; \
+    emx->numDimensions = numDimensions; \
+    emx->allocatedSize = numEl; \
+    emx->canFreeData = FALSE; \
+    return emx; \
+}
+
+#define define_emxDestroyArray(emxFree, type) \
+void emxDestroyArray_##type(emxArray_##type *emxArray) \
+{ \
+    emxFree(&emxArray); \
+}
         
 #ifdef struct_emxArray_boolean_T
-        define_emxInit( emxInit_boolean_T, boolean_T)
-        define_emxFree( emxFree_boolean_T, boolean_T)
+        define_emxInit(emxInit_boolean_T, boolean_T)
+        define_emxFree(emxFree_boolean_T, boolean_T)
         
-        define_emxCreate( emxInit_boolean_T, boolean_T)
-        define_emxCreateND( emxInit_boolean_T, boolean_T)
-        define_emxCreateWrapper( emxInit_boolean_T, boolean_T, boolean_T)
-        define_emxCreateWrapperND( emxInit_boolean_T, boolean_T, boolean_T)
-        define_emxDestroyArray( emxFree_boolean_T, boolean_T)
+        define_emxCreate(emxInit_boolean_T, boolean_T)
+        define_emxCreateND(emxInit_boolean_T, boolean_T)
+        define_emxCreateWrapper(emxInit_boolean_T, boolean_T, boolean_T)
+        define_emxCreateWrapperND(emxInit_boolean_T, boolean_T, boolean_T)
+        define_emxDestroyArray(emxFree_boolean_T, boolean_T)
 #endif
         
         
 #ifdef struct_emxArray_char_T
-        define_emxInit( emxInit_char_T, char_T)
-        define_emxFree( emxFree_char_T, char_T)
+        define_emxInit(emxInit_char_T, char_T)
+        define_emxFree(emxFree_char_T, char_T)
         
-        define_emxCreate( emxInit_char_T, char_T)
-        define_emxCreateND( emxInit_char_T, char_T)
-        define_emxCreateWrapper( emxInit_char_T, char_T, char_T)
-        define_emxCreateWrapperND( emxInit_char_T, char_T, char_T)
-        define_emxDestroyArray( emxFree_char_T, char_T)
+        define_emxCreate(emxInit_char_T, char_T)
+        define_emxCreateND(emxInit_char_T, char_T)
+        define_emxCreateWrapper(emxInit_char_T, char_T, char_T)
+        define_emxCreateWrapperND(emxInit_char_T, char_T, char_T)
+        define_emxDestroyArray(emxFree_char_T, char_T)
 #endif
         
 #ifdef struct_emxArray_int8_T
-        define_emxInit( emxInit_int8_T, int8_T)
-        define_emxFree( emxFree_int8_T, int8_T)
+        define_emxInit(emxInit_int8_T, int8_T)
+        define_emxFree(emxFree_int8_T, int8_T)
         
-        define_emxCreate( emxInit_int8_T, int8_T)
-        define_emxCreateND( emxInit_int8_T, int8_T)
-        define_emxCreateWrapper( emxInit_int8_T, int8_T, int8_T)
-        define_emxCreateWrapperND( emxInit_int8_T, int8_T, int8_T)
-        define_emxDestroyArray( emxFree_int8_T, int8_T)
+        define_emxCreate(emxInit_int8_T, int8_T)
+        define_emxCreateND(emxInit_int8_T, int8_T)
+        define_emxCreateWrapper(emxInit_int8_T, int8_T, int8_T)
+        define_emxCreateWrapperND(emxInit_int8_T, int8_T, int8_T)
+        define_emxDestroyArray(emxFree_int8_T, int8_T)
 #endif
         
 #ifdef struct_emxArray_int16_T
-        define_emxInit( emxInit_int16_T, int16_T)
-        define_emxFree( emxFree_int16_T, int16_T)
+        define_emxInit(emxInit_int16_T, int16_T)
+        define_emxFree(emxFree_int16_T, int16_T)
         
-        define_emxCreate( emxInit_int16_T, int16_T)
-        define_emxCreateND( emxInit_int16_T, int16_T)
-        define_emxCreateWrapper( emxInit_int16_T, int16_T, int16_T)
-        define_emxCreateWrapperND( emxInit_int16_T, int16_T, int16_T)
-        define_emxDestroyArray( emxFree_int16_T, int16_T)
+        define_emxCreate(emxInit_int16_T, int16_T)
+        define_emxCreateND(emxInit_int16_T, int16_T)
+        define_emxCreateWrapper(emxInit_int16_T, int16_T, int16_T)
+        define_emxCreateWrapperND(emxInit_int16_T, int16_T, int16_T)
+        define_emxDestroyArray(emxFree_int16_T, int16_T)
 #endif
         
 #ifdef struct_emxArray_int32_T
-        define_emxInit( emxInit_int32_T, int32_T)
-        define_emxFree( emxFree_int32_T, int32_T)
+        define_emxInit(emxInit_int32_T, int32_T)
+        define_emxFree(emxFree_int32_T, int32_T)
         
-        define_emxCreate( emxInit_int32_T, int32_T)
-        define_emxCreateND( emxInit_int32_T, int32_T)
-        define_emxCreateWrapper( emxInit_int32_T, int32_T, int32_T)
-        define_emxCreateWrapperND( emxInit_int32_T, int32_T, int32_T)
-        define_emxDestroyArray( emxFree_int32_T, int32_T)
+        define_emxCreate(emxInit_int32_T, int32_T)
+        define_emxCreateND(emxInit_int32_T, int32_T)
+        define_emxCreateWrapper(emxInit_int32_T, int32_T, int32_T)
+        define_emxCreateWrapperND(emxInit_int32_T, int32_T, int32_T)
+        define_emxDestroyArray(emxFree_int32_T, int32_T)
 #endif
         
 #ifdef struct_emxArray_int64_T
-        define_emxInit( emxInit_int64_T, int64_T)
-        define_emxFree( emxFree_int64_T, int64_T)
+        define_emxInit(emxInit_int64_T, int64_T)
+        define_emxFree(emxFree_int64_T, int64_T)
         
-        define_emxCreate( emxInit_int64_T, int64_T)
-        define_emxCreateND( emxInit_int64_T, int64_T)
-        define_emxCreateWrapper( emxInit_int64_T, int64_T, int64_T)
-        define_emxCreateWrapperND( emxInit_int64_T, int64_T, int64_T)
-        define_emxDestroyArray( emxFree_int64_T, int64_T)
+        define_emxCreate(emxInit_int64_T, int64_T)
+        define_emxCreateND(emxInit_int64_T, int64_T)
+        define_emxCreateWrapper(emxInit_int64_T, int64_T, int64_T)
+        define_emxCreateWrapperND(emxInit_int64_T, int64_T, int64_T)
+        define_emxDestroyArray(emxFree_int64_T, int64_T)
 #endif
         
 #ifdef struct_emxArray_uint8_T
-        define_emxInit( emxInit_uint8_T, uint8_T)
-        define_emxFree( emxFree_uint8_T, uint8_T)
+        define_emxInit(emxInit_uint8_T, uint8_T)
+        define_emxFree(emxFree_uint8_T, uint8_T)
         
-        define_emxCreate( emxInit_uint8_T, uint8_T)
-        define_emxCreateND( emxInit_uint8_T, uint8_T)
-        define_emxCreateWrapper( emxInit_uint8_T, uint8_T, uint8_T)
-        define_emxCreateWrapperND( emxInit_uint8_T, uint8_T, uint8_T)
-        define_emxDestroyArray( emxFree_uint8_T, uint8_T)
+        define_emxCreate(emxInit_uint8_T, uint8_T)
+        define_emxCreateND(emxInit_uint8_T, uint8_T)
+        define_emxCreateWrapper(emxInit_uint8_T, uint8_T, uint8_T)
+        define_emxCreateWrapperND(emxInit_uint8_T, uint8_T, uint8_T)
+        define_emxDestroyArray(emxFree_uint8_T, uint8_T)
 #endif
         
 #ifdef struct_emxArray_uint16_T
-        define_emxInit( emxInit_uint16_T, uint16_T)
-        define_emxFree( emxFree_uint16_T, uint16_T)
+        define_emxInit(emxInit_uint16_T, uint16_T)
+        define_emxFree(emxFree_uint16_T, uint16_T)
         
-        define_emxCreate( emxInit_uint16_T, uint16_T)
-        define_emxCreateND( emxInit_uint16_T, uint16_T)
-        define_emxCreateWrapper( emxInit_uint16_T, uint16_T, uint16_T)
-        define_emxCreateWrapperND( emxInit_uint16_T, uint16_T, uint16_T)
-        define_emxDestroyArray( emxFree_uint16_T, uint16_T)
+        define_emxCreate(emxInit_uint16_T, uint16_T)
+        define_emxCreateND(emxInit_uint16_T, uint16_T)
+        define_emxCreateWrapper(emxInit_uint16_T, uint16_T, uint16_T)
+        define_emxCreateWrapperND(emxInit_uint16_T, uint16_T, uint16_T)
+        define_emxDestroyArray(emxFree_uint16_T, uint16_T)
 #endif
         
 #ifdef struct_emxArray_uint32_T
-        define_emxInit( emxInit_uint32_T, uint32_T)
-        define_emxFree( emxFree_uint32_T, uint32_T)
+        define_emxInit(emxInit_uint32_T, uint32_T)
+        define_emxFree(emxFree_uint32_T, uint32_T)
         
-        define_emxCreate( emxInit_uint32_T, uint32_T)
-        define_emxCreateND( emxInit_uint32_T, uint32_T)
-        define_emxCreateWrapper( emxInit_uint32_T, uint32_T, uint32_T)
-        define_emxCreateWrapperND( emxInit_uint32_T, uint32_T, uint32_T)
-        define_emxDestroyArray( emxFree_uint32_T, uint32_T)
+        define_emxCreate(emxInit_uint32_T, uint32_T)
+        define_emxCreateND(emxInit_uint32_T, uint32_T)
+        define_emxCreateWrapper(emxInit_uint32_T, uint32_T, uint32_T)
+        define_emxCreateWrapperND(emxInit_uint32_T, uint32_T, uint32_T)
+        define_emxDestroyArray(emxFree_uint32_T, uint32_T)
 #endif
         
 #ifdef struct_emxArray_uint64_T
-        define_emxInit( emxInit_uint64_T, uint64_T)
-        define_emxFree( emxFree_uint64_T, uint64_T)
+        define_emxInit(emxInit_uint64_T, uint64_T)
+        define_emxFree(emxFree_uint64_T, uint64_T)
         
-        define_emxCreate( emxInit_uint64_T, uint64_T)
-        define_emxCreateND( emxInit_uint64_T, uint64_T)
-        define_emxCreateWrapper( emxInit_uint64_T, uint64_T, uint64_T)
-        define_emxCreateWrapperND( emxInit_uint64_T, uint64_T, uint64_T)
-        define_emxDestroyArray( emxFree_uint64_T, uint64_T)
+        define_emxCreate(emxInit_uint64_T, uint64_T)
+        define_emxCreateND(emxInit_uint64_T, uint64_T)
+        define_emxCreateWrapper(emxInit_uint64_T, uint64_T, uint64_T)
+        define_emxCreateWrapperND(emxInit_uint64_T, uint64_T, uint64_T)
+        define_emxDestroyArray(emxFree_uint64_T, uint64_T)
 #endif
         
 #ifdef struct_emxArray_real_T
-        define_emxInit( emxInit_real_T, real_T)
-        define_emxFree( emxFree_real_T, real_T)
+        define_emxInit(emxInit_real_T, real_T)
+        define_emxFree(emxFree_real_T, real_T)
         
-        define_emxCreate( emxInit_real_T, real_T)
-        define_emxCreateND( emxInit_real_T, real_T)
-        define_emxCreateWrapper( emxInit_real_T, real_T, real_T)
-        define_emxCreateWrapperND( emxInit_real_T, real_T, real_T)
-        define_emxDestroyArray( emxFree_real_T, real_T)
+        define_emxCreate(emxInit_real_T, real_T)
+        define_emxCreateND(emxInit_real_T, real_T)
+        define_emxCreateWrapper(emxInit_real_T, real_T, real_T)
+        define_emxCreateWrapperND(emxInit_real_T, real_T, real_T)
+        define_emxDestroyArray(emxFree_real_T, real_T)
 #endif
         
 #ifdef struct_emxArray_real32_T
-        define_emxInit( emxInit_real32_T, real32_T)
-        define_emxFree( emxFree_real32_T, real32_T)
+        define_emxInit(emxInit_real32_T, real32_T)
+        define_emxFree(emxFree_real32_T, real32_T)
         
-        define_emxCreate( emxInit_real32_T, real32_T)
-        define_emxCreateND( emxInit_real32_T, real32_T)
-        define_emxCreateWrapper( emxInit_real32_T, real32_T, real32_T)
-        define_emxCreateWrapperND( emxInit_real32_T, real32_T, real32_T)
-        define_emxDestroyArray( emxFree_real32_T, real32_T)
+        define_emxCreate(emxInit_real32_T, real32_T)
+        define_emxCreateND(emxInit_real32_T, real32_T)
+        define_emxCreateWrapper(emxInit_real32_T, real32_T, real32_T)
+        define_emxCreateWrapperND(emxInit_real32_T, real32_T, real32_T)
+        define_emxDestroyArray(emxFree_real32_T, real32_T)
 #endif
         
 #ifdef struct_emxArray_real64_T
-        define_emxInit( emxInit_real64_T, real64_T)
-        define_emxFree( emxFree_real64_T, real64_T)
+        define_emxInit(emxInit_real64_T, real64_T)
+        define_emxFree(emxFree_real64_T, real64_T)
         
-        define_emxCreate( emxInit_real64_T, real64_T)
-        define_emxCreateND( emxInit_real64_T, real64_T)
-        define_emxCreateWrapper( emxInit_real64_T, real64_T, real64_T)
-        define_emxCreateWrapperND( emxInit_real64_T, real64_T, real64_T)
-        define_emxDestroyArray( emxFree_real64_T, real64_T)
+        define_emxCreate(emxInit_real64_T, real64_T)
+        define_emxCreateND(emxInit_real64_T, real64_T)
+        define_emxCreateWrapper(emxInit_real64_T, real64_T, real64_T)
+        define_emxCreateWrapperND(emxInit_real64_T, real64_T, real64_T)
+        define_emxDestroyArray(emxFree_real64_T, real64_T)
 #endif
         
 #include <time.h>
         
-#if defined( __GNUC__)
+#if defined(__GNUC__)
 #include <sys/time.h>
 #else
         
