@@ -1,4 +1,4 @@
-function [str, changed] = replace_pragmas(str)
+function [str, changed] = replace_pragmas(str, m2c_opts)
 %replace_pragmas
 %  This is a plugin for post_codegen.
 
@@ -28,7 +28,7 @@ end
 
 % Process atomic directive
 %(\s[\+\-\*\/])(\s([^;]+)
-pat = '(\n#pragma omp atomic;\s+)([^;=]+\s)=(\s[^;=]+;)';
+pat = '(\n#pragma momp atomic;\s+)([^;=]+\s)=(\s[^;=]+;)';
 while ~isempty(regexp(str, pat, 'once'))
     [tokens, substr] = regexp(str, pat, 'tokens', 'match', 'once');
     lhs = regexprep(tokens{2}, '\s', '');
@@ -47,14 +47,14 @@ while true
     bbegin = '\n#{[\w\s]*\(\s*\)[^\n]*';
     pragcont = '\n#\+\+[^\n]*';
     changed = false;
-
+    
     % Move statements between  #{ and "#pragma ++" to in front of #{
     pat = ['(' bbegin ';)(' statement ')+(' pragcont ')'];
     while ~isempty(regexp(str, pat, 'once'))
         str = regexprep(str, pat, '$2$1$3');
         changed = true;
     end
-
+    
     % Switch statements #{ and "#++"
     pat = ['(' bbegin ')\s*(' pragcont ')'];
     while ~isempty(regexp(str, pat, 'once'))
@@ -88,15 +88,15 @@ for i=1:length(pragmas)
     str = strrep(str, pragmas{i}{1}, regexprep(pragmas{i}{1}, '&', ''));
 end
 
-% Switch statements "#pragma omp for" and #{
-pragfor = '\n#pragma omp\s+(parallel\s+)?for[^\n]*';
+% Switch statements "#pragma momp for" and #{
+pragfor = '\n#pragma momp\s+(parallel\s+)?for[^\n]*';
 bbegin = '\n#{[\w\s]*\(\s*\)[^\n]*';
 pat = ['(' pragfor ')\s*(' bbegin ')'];
 while ~isempty(regexp(str, pat, 'once'))
     str = regexprep(str, pat, '$2$1 ');
 end
 
-% Switch simple statements between "#pragma omp [parallel] for" and "for"
+% Switch simple statements between "#pragma momp [parallel] for" and "for"
 simplestatements = '(\n|\n[^#{}\n][^\n{}]*)';
 forbegin = '\n\s+for\s*\(';
 pat = ['(' pragfor ')(' simplestatements ')+(' forbegin ')'];
@@ -104,7 +104,7 @@ while ~isempty(regexp(str, pat, 'once'))
     str = regexprep(str, pat, '$2$1$3');
 end
 
-% Fix the condition in for for-oops
+% Fix the condition in for-loops
 var = '\s*\w+\s*';
 part1 =  ['(' pragfor forbegin '[^;]+;' var ')'];
 part2 = ['(' var ')'];
@@ -123,23 +123,32 @@ end
 % Process begin_region and end_region
 str = regexprep(str, '#{[^\n]+\n#}[^\n]+', '  {}');
 
-region = ['(\n)#{([\w\s]*)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-    '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-    '#}([\w\s]*)\(\s*\)[^\n]*'];
-while ~isempty(regexp(str, region, 'once'))
-    str = regexprep(str, region, ...
-        '$1$4M2C_BEGIN_REGION(/*omp $2*/)$3$4$5$4M2C_END_REGION(/*omp $6*/)$1');
+if m2c_opts.enableInline
+    region = ['(\n)#{([\w\s]*)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
+        '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
+        '#}([\w\s]*)\(\s*\)[^\n]*'];
+    while ~isempty(regexp(str, region, 'once'))
+        str = regexprep(str, region, ...
+            '$1$4M2C_BEGIN_REGION(/*omp $2*/)$3$4$5$4M2C_END_REGION(/*omp $6*/)$1');
+    end
+    
+    % Add ifdef around "#pragma macc ..."
+    str = regexprep(str, '(\n+)(\s*#pragma) macc ([^\n]+)', ...
+        '$1#if defined(M2C_OPENACC)\n$2 acc $3\n#endif');
+    
+    % Add ifdef around "#pragma momp ..."
+    str = regexprep(str, '(\n+)(\s*#pragma) momp ([^\n]+)', ...
+        '$1#if defined(M2C_OPENMP)\n$2 omp $3\n#endif');
+else
+    % Remove all m2c pragmas
+    str = regexprep(str, '\n#\+\+[^\n]*\n', '');
+    str = regexprep(str, '\n#{[\w\s]*\(\s*\)[^\n]*\n', '');
+    str = regexprep(str, '\n#}[\w\s]*\(\s*\)[^\n]*\n', '');
+    str = regexprep(str, '\n\s*#pragma macc [^\n]+\n', '');
+    str = regexprep(str, '\n\s*#pragma momp [^\n]+\n', '');
 end
 
 str = optimize_kernel_functions(str);
-
-% Add ifdef around "#pragma acc ..."
-str = regexprep(str, '(\n+)(\s*#pragma acc [^\n]+)', ...
-    '$1#if defined(M2C_OPENACC)\n$2\n#endif');
-
-% Add ifdef around "#pragma omp ..."
-str = regexprep(str, '(\n+)(\s*#pragma omp [^\n]+)', ...
-    '$1#if defined(M2C_OPENMP)\n$2\n#endif');
 
 %% Change whether the file has changed
 changed = ~isequal(strin, str);
@@ -223,7 +232,7 @@ for i=1:length(kernels)
                     newcall = sprintf('%s%s', newcall, args{j});
                 end
             end
-
+            
             str = strrep(str, call, newcall);
         end
     end
@@ -237,7 +246,7 @@ function [call, prefix, args] = parsefunccall(call, func)
 
 % Removed ');' at the end
 call = regexprep(call, ')\s*;', '');
-prefix = regexp(call, ['.*[^\w]' func '\s*\('], 'match'); 
+prefix = regexp(call, ['.*[^\w]' func '\s*\('], 'match');
 prefix = prefix{1};
 
 args = strtrim(textscan(strrep(call, sprintf('\n'), ' '), ...
@@ -247,7 +256,7 @@ args = args{1};
 args{1} = regexprep(args{1}, ['.*[^\w]?' func '\s*\((.+)'], '$1');
 
 % check whether there are '(' in the args
-i=1; 
+i=1;
 while i<length(args)
     % Merge arguments if parentheses do not match
     if length(strfind(args{i}, '(')) < length(strfind(args{i}, ')'))
@@ -256,5 +265,4 @@ while i<length(args)
     end
     i = i + 1;
 end
-
 end
