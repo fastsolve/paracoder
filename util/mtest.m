@@ -161,7 +161,14 @@ end
 if ~strcmp(name__(end-1:end), '.m')
     name__ = [name__ '.m'];
 end
+if exist('./test', 'dir')
+    addpath('./test');
+    path_changed = true;
+else
+    path_changed = false;
+end
 file__ = which (name__);
+if path_changed; rmpath('./test'); end
 
 if (isempty (file__))
     if (grabdemo__)
@@ -178,7 +185,6 @@ if (isempty (file__))
     end
     return;
 end
-
 %% grab the test code from the file
 body__ = extract_test_code (file__);
 
