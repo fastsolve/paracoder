@@ -4,6 +4,7 @@ function p = coder
 p.target = '';
 
 p.extrinsic = @nullfunc;
+p.cinclude = @nullfunc;
 p.varsize = @nullfunc;
 p.inline = @nullfunc;
 p.allowpcode = @nullfunc;
