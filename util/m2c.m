@@ -3,18 +3,21 @@ function m2c(varargin)
 %    for building the C code into a MEX file or a standalone executable.
 %
 % Usage:
-%    m2c <options> matlabFunc [-args {...}]
-%    m2c <options> -lib {'mfile1', 'mfile2', ..., 'mfilen'}
-%    m2c <options> -dll {'mfile1', 'mfile2', ..., 'mfilen'}
+%   m2c <options> topLevelFunc [-args {...}]
+%   m2c <options> -lib topLevelFunc1 topLevelFunc2 ... topLevelFuncN
+%   m2c <options> -dll topLevelFunc1 topLevelFunc2 ... topLevelFuncN
 %
-%  matlabFunc can be the function name or file name of the top-level
+%  topLevelFunc can be the function name or file name of the top-level
 %  function to be converted into C.
 %
 %  -args {...}
-%      Specifies the data types of the MATLAB function using the same format
-%      as codegen. If given, it must appear right after matlabFunc.
+%      Specifies the data types of the MATLAB function using the same
+%      format as codegen. If given, it must appear right after matlabFunc.
 %      If not present, the argument specification will be extracted from
 %      the M file from the first comment block started with %#codegen.
+%
+%  -lib and -dll allows you to build a static or dynamic library from a
+%  list of MATLAB functions specified by the -api option.
 %
 %  The options for m2c have several groups, defined as follows:
 %
@@ -35,25 +38,49 @@ function m2c(varargin)
 %           as the M file. If a parameter is given, it saves the exe file
 %           to the specified directory, which should be a path relative to
 %           the M file (such as 'exe').
-%     -lib       (Not yet implemented)
-%     -lib {'mfile1', 'mfile2', ..., 'mfilen'}
-%           Generate C code from the list of files and build a static
-%           library. Each file must have its own codegen argument 
-%           specification within the M file. 
-%     -dll       (Not yet implemented)
-%     -dll {'mfile1', 'mfile2', ..., 'mfilen'}
-%           Generate C code from the list of files and build a shared
-%           library. 
+%     -lib
+%     -lib {'rootdir'}
+%           Generate wrapper C files and a makefile for building a static
+%           library from a list fo M files. Additional API functions with 
+%           the M files can be specified using the -api optoins.
+%           The default output directory is codegen/lib, and the generated 
+%           C codes are in their own subdirectories. If an argument is 
+%           specified, then all the generated C code will be copied to the
+%           <rootdir>/src subdirectory before post-processing, the main
+%           header file will be in <rootdir>/include, and the library
+%           will be in <rootdir>/lib. The library is named lib<basename>.a,
+%           where the basename is the last part of the rootdir. If rootdir
+%           is not specified, the base name is the current directory name.
+%     -dll
+%     -dll {'rootdir'}
+%           This is the same as -lib, except that it will generate a
+%           dynamic instead of static library. The suffix is .so, .dylib,
+%           and .dll on Linux, Mac, and Windows, respectively. The options
+%           -lib and -dll can be used simultaneously. If rootdir is 
+%           specified more than once, the last one is effective.
+%     -api
+%     -api {'expression1, 'expression2', ...}
+%           Specifies additional API functions in addition to the top-level
+%           functions and include their declarations in the header file.
+%           The argument list is a cell array of MATLAB regular expressions.
+%           An API function must not be inlined. This can be ensured by
+%           adding coder.inline('never') in the M code. Note that the
+%           top-level function is automatically an API function and need
+%           not be listed. This argument can be give after each top-level,
+%           to make the list specific for each M file.
+%     -globals {'g1', init1, 'g2', init2, ..., 'gN', initN}
+%           Specify names and initial values for global variables in MATLAB.
+%           Use coder.Constant(val) to specify a constant value.
 % COMPILATION DEPENDENCY
 %     -cktop
-%           By default, m2c does not regenerated C code if it already exist.
-%           Use this optoin to request m2c to check the dependecies of the
-%           top-level M file and and regenerate C code. This is much faster,
-%           than -ckdep, so it should be the default mode for most code development.
+%           By default, m2c does not regenerate C code if it already exists.
+%           Use this option to request m2c to check the dependencies of the
+%           top-level M file and regenerate C code. This is much faster
+%           than -ckdep, so it should be the default mode during code development.
 %     -ckdep
-%           Use this optoin to request m2c to check the dependecies of the
-%           M file and and regenerate C code if any dependence is newer.
-%           This can be slow compared to -cktop, so it should be only if
+%           Use this option to request m2c to check the dependencies of the
+%           M file and regenerate C code if any dependence is newer.
+%           This can be slow compared to -cktop, so it should be used only if
 %           you do not want to use -force.
 %     -force
 %           Force the regeneration of C code and recompilation.
@@ -69,29 +96,23 @@ function m2c(varargin)
 %     -inf
 %           Enable support of NonFinite (inf and nan). It produces slower codes.
 %     -inline
-%           Enable function inlining in MATLAB Coder. This is the default.
-%           It can be overwritten by explicitly specifying -no-inline.
+%           Enable function inlining in MATLAB Coder. This is the default
+%           when -O, -O1, -O2, or -O3 is specified. It can be overwritten
+%           by explicitly specifying -no-inline.
 %     -no-inline
-%           Disable function inlining in MATLAB Coder.
+%           Disable function inlining in MATLAB Coder. This is the default
+%           when -O0 is specified.
 %     -typeRep
 %           M2c uses the C built-in type names by default. This option requests
 %           code generation to use the numeric types defined by Coder instead
 %           of using the C built-in type names. This is the default if
-%           write
-%           is enabled for better portability.
-%     -addpath {'dir1', 'dir2', ..., 'dirn'}
+%           -cuda is enabled for better portability.
+%     -addpath {'dir1', 'dir2', ..., 'dirN'}
 %           Add the directory to the beginning of the search path for M files
 %           during code generation.
-%     -api
-%     -api {'expression1, 'expression2', ...}
-%           Request m2c to generate API code to the list of functions and
-%           include them in the header file. The argument list may be the
-%           name of a single function or a cell array of MATLAB expressions
-%           that evaluate to the names of the functions. An API function must
-%           not be inlined, which can be ensured by adding coder.inline('never')
-%           in the M code. Note that the top-level function is automatically
-%           an API function and need not be listed. This argument can be
-%           repeated, and then the functions will be concatenated.
+%     -outdir {'dir'}
+%           Specifies the output directory of the generated C code for the
+%           top-level MATLAB function.
 %     -example
 %           Generate example main file.
 %     -config {'expression'}
@@ -142,25 +163,25 @@ function m2c(varargin)
 %     -O0
 %           Disable function inlining and variable reuse for MATLAB Coder,
 %           and pass -O0 to the C compiler to disable all optimizations,
-%           including all OpenMP pragma.
+%           including all OpenMP pragmas.
 %     -O1
 %           Enable function inlining for MATLAB Coder and pass the -O1
 %           compiler option to the C compiler to enable basic optimization.
+%           This is the default behavior if -O? is not specified.
 %     -O
 %     -O2
-%           Enable inlining for MATLAB Coder and pass -O2 to the C compiler
-%           to enable nearly all supported optimizations that do not
-%           involve a space-speed tradeoff.
+%           Enable inlining and and in addition allow MATLAB Coder to reuse
+%           variable names freely. Ths generates C code is less readable,
+%           but it may use less momory and enable better performance. It
+%           passes -O2 to the C compiler to enable nearly all supported
+%           optimizations that do not involve a space-speed tradeoff.
 %     -O3
-%           Enable inlining and set DynamicMemoryAllocation to thresholding
-%           in code generation. Pass -O3 to the C compiler to enable all
-%           supported optimizations, including loop unrolling and function
-%           inlining.
-%     -O4
-%           Enable inlining and thresholding, and in addition allow MATLAB
-%           Coder to reuse variable names freely. It also passes -O3 to
-%           the C compiler. Ths generates unreadable C code, and it may not
-%           deliver better performance than -O3, but may use less momory.
+%           Enable level-2 optimizaiton, and also set DynamicMemoryAllocation
+%           to thresholding. It can be useful for generating codes for
+%           kernel functions that require a variable-size buffer with a
+%           known constant upper bound. However, it makes the code less
+%           readable. It also pass -O3 to the C compiler to enable all
+%           optimizations, including loop unrolling and function inlining.
 % DEBUGGING
 %     -g
 %           Preserve MATLAB code info in C code and also generate
@@ -300,6 +321,8 @@ function m2c(varargin)
 %
 % See also compile, m2mex, codegen.
 
+% TODO: Implement support for -lib, -dll, -global
+
 [m2c_opts, matlabFunc] = proc_options(varargin{:});
 
 if isempty(m2c_opts)
@@ -402,7 +425,7 @@ if regen_c
             co_cfg.GenerateExampleMain = 'GenerateCodeOnly';
         end
         co_cfg.GenerateMakefile = false;
-        co_cfg.TargetLangStandard = 'C99 (ISO)'; % Set C99 standard
+        co_cfg.TargetLangStandard = 'C89/C90 (ANSI)';
         if m2c_opts.typeRep || m2c_opts.withCuda
             % To support CUDA pointers, we need to use the bulit-in definition
             % of uint_64 for compatability with M.S. Windows, because MATLAB
@@ -534,10 +557,11 @@ m2c_opts = struct('codegenArgs', [], ...
     'enableInf', false, ...
     'presVars', '', ...
     'dynMem', '', ...
-    'optimLevel', 0, ...
+    'optimLevel', 1, ...
     'typeRep', false, ...
     'addpath', '', ...
     'api', '', ...
+    'globals', '', ...
     'timing', '', ...
     'cppflags', '', ...
     'libs', '', ...
@@ -582,6 +606,9 @@ m2c_opts = struct('codegenArgs', [], ...
     'mexDir', '', ...
     'genExe', false, ...
     'exeDir', '', ...
+    'genLib', false, ...
+    'genDll', false, ...
+    'libRoot', '', ...
     'useCpp', false, ...
     'verbose', false, ...
     'quiet', false, ...
@@ -647,18 +674,26 @@ while i<=last_index
         case '-chkmem'
             m2c_opts.chkMem = true;
             m2c_opts.debugInfo = true;
-        case '-O'
-            m2c_opts.optimLevel = 2;
-        case {'-O0'}
-            m2c_opts.optimLevel = str2double(opt(3));
+        case '-O0'
+            m2c_opts.optimLevel = 0;
+            m2c_opts.enableInline = false;
             m2c_opts.presVars = 'All';
-        case {'-O1', '-O2'}
-            m2c_opts.optimLevel = str2double(opt(3));
+            m2c_opts.dynMem = 'AllVariableSizeArrays';
+        case '-O1'
+            % For code generation, this is the default behavior if -O? is
+            % not specified.
+            m2c_opts.optimLevel = 1;
+            m2c_opts.enableInline = true;
+            m2c_opts.presVars = 'UserNames';
+            m2c_opts.dynMem = 'AllVariableSizeArrays';
+        case {'-O', '-O2'}
+            m2c_opts.optimLevel = 2;
+            m2c_opts.enableInline = true;
+            m2c_opts.presVars = 'None';
+            m2c_opts.dynMem = 'AllVariableSizeArrays';
         case '-O3'
             m2c_opts.optimLevel = 3;
-            m2c_opts.dynMem = 'Threshold';
-        case '-O4'
-            m2c_opts.optimLevel = 4;
+            m2c_opts.enableInline = true;
             m2c_opts.presVars = 'None';
             m2c_opts.dynMem = 'Threshold';
         case '-inline'
@@ -685,6 +720,16 @@ while i<=last_index
             else
                 m2c_opts.api = {''};
             end
+        case '-globals'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.globals = eval(varargin{i+1});
+                i = i + 1;
+            else
+                error('m2c:wrong_argument', ...
+                    'Argument -globals requires a cell-array argument after it.\n');
+            end
+            % TODO
+            warning('Support for ''-globals'' is not yet implemented.');
         case {'-valgrind', '-ddd', '-gprof', '-gcov'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
@@ -692,6 +737,16 @@ while i<=last_index
             else
                 m2c_opts.(opt(2:end)) = {''};
             end
+        case {'-lib', '-dll'}
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.libRoot = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+                m2c_opts.libRoot = varargin(i+1);
+                i = i + 1;
+            end
+            % TODO
+            warning('Support for ''-lib'' and ''-dll'' is not yet implemented.');
         case {'-cc', '-mexflags', '-cflags', '-ldflags'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});

@@ -1,5 +1,8 @@
 function writeMexFile(funcname, mpath, cpath, m2c_opts)
 
+% TODO: Implement support for varargin, varargout, cell arrays, complex
+%       numbers, global variables, and function pointers.
+
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
 
 % Write out _mex file
@@ -821,4 +824,3 @@ else
     str = sprintf('%s\n%s', str, substr);
 end
 end
-

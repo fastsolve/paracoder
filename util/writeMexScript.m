@@ -112,15 +112,10 @@ elseif ~isempty(LDFLAGS)
     mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
 end
 
-switch m2c_opts.optimLevel
-    case 0
-        coptflags = '-O0 -DM2C_DEBUG=1';
-    case {1,2}
-        coptflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0'];
-    case {3,4}
-        coptflags = '-O3 -DNDEBUG -DM2C_DEBUG=0';
-    otherwise
-        coptflags = '';
+if m2c_opts.optimLevel==0
+    coptflags = '-O0 -DM2C_DEBUG=1';
+else
+    coptflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0'];
 end
 
 if m2c_opts.withBlas

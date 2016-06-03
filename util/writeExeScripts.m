@@ -59,15 +59,10 @@ else
     CC = sprintf(' %s ', m2c_opts.cc{:});
 end
 
-switch m2c_opts.optimLevel
-    case 0
-        cflags = '-O0 -DM2C_DEBUG=1 -g';
-    case {1,2}
-        cflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
-    case {3,4}
-        cflags = '-O3 -DNDEBUG -DM2C_DEBUG=0 -g';
-    otherwise
-        cflags = '-g';
+if m2c_opts.optimLevel==0
+    cflags = '-O0 -DM2C_DEBUG=1 -g';
+else
+    cflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
 end
 
 if ~m2c_opts.withACC
