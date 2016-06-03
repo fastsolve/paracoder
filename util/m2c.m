@@ -4,6 +4,8 @@ function m2c(varargin)
 %
 % Usage:
 %    m2c <options> matlabFunc [-args {...}]
+%    m2c <options> -lib {'mfile1', 'mfile2', ..., 'mfilen'}
+%    m2c <options> -dll {'mfile1', 'mfile2', ..., 'mfilen'}
 %
 %  matlabFunc can be the function name or file name of the top-level
 %  function to be converted into C.
@@ -11,9 +13,8 @@ function m2c(varargin)
 %  -args {...}
 %      Specifies the data types of the MATLAB function using the same format
 %      as codegen. If given, it must appear right after matlabFunc.
-%      The -args argument and everything after it will be passed to codegen.
 %      If not present, the argument specification will be extracted from
-%      the MATLAB file from the first comment block started with %#codegen.
+%      the M file from the first comment block started with %#codegen.
 %
 %  The options for m2c have several groups, defined as follows:
 %
@@ -34,6 +35,16 @@ function m2c(varargin)
 %           as the M file. If a parameter is given, it saves the exe file
 %           to the specified directory, which should be a path relative to
 %           the M file (such as 'exe').
+%     -lib       (Not yet implemented)
+%     -lib {'mfile1', 'mfile2', ..., 'mfilen'}
+%           Generate C code from the list of files and build a static
+%           library. Each file must have its own codegen argument 
+%           specification within the M file. 
+%     -dll       (Not yet implemented)
+%     -dll {'mfile1', 'mfile2', ..., 'mfilen'}
+%           Generate C code from the list of files and build a shared
+%           library. 
+% COMPILATION DEPENDENCY
 %     -cktop
 %           By default, m2c does not regenerated C code if it already exist.
 %           Use this optoin to request m2c to check the dependecies of the
@@ -321,9 +332,9 @@ end
 [mpath, func, mfile] = get_path_of_mfile(matlabFunc);
 cpath = [mpath 'codegen/lib/' func '/'];
 
-if isempty(m2c_opts.codegenArgs) || ~isequal(m2c_opts.codegenArgs(1:5), -args)
+if isempty(m2c_opts.codegenArgs)
     % Extract arguments from source code.
-    m2c_opts.codegenArgs = [extract_codegen_args(mfile) ' ' m2c_opts.codegenArgs];
+    m2c_opts.codegenArgs = extract_codegen_args(mfile);
 end
 
 regen_c = ~m2c_opts.skipcg && (m2c_opts.force || ~exist([cpath  func '.c'], 'file') || ...
