@@ -148,14 +148,16 @@ else
     str = regexprep(str, '\n\s*#pragma momp [^\n]+\n', '');
 end
 
-str = optimize_kernel_functions(str);
+if ~isempty(regexp(str, '\n#momp_kernel', 'match', 'once'))
+    str = optimize_kernel_functions(str);
+end
 
 %% Change whether the file has changed
 changed = ~isequal(strin, str);
 end
 
 function fb = kernel_funcbody
-fb = '{(?:[^}][^\n]*\n)*\n#pragma m2c kernel\n(?:[^}][^\n]*\n)*\n*}';
+fb = '{(?:[^}][^\n]*\n)*\n#momp_kernel\n(?:[^}][^\n]*\n)*\n*}';
 end
 
 function expr = funccall(func)
@@ -163,9 +165,7 @@ expr = ['\n[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
 end
 
 function str = optimize_kernel_functions(str)
-
 %% Find kernel functions
-
 kernel = ['\s+(\w+)\s*(\([^{}\)]+\))\s*' kernel_funcbody];
 basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
     'uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)'];
@@ -173,7 +173,7 @@ basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
 [kernels, prototype] = regexp(str, kernel, 'match', 'tokens');
 
 for i=1:length(kernels)
-    newfunc = regexprep(kernels{i}, '\n#pragma m2c kernel', '');
+    newfunc = regexprep(kernels{i}, '\n#momp_kernel', '');
     
     funcdecl = regexp(str, ['\s+static\s+\w+\s+' prototype{i}{1} '\s*\([^\)]*\);'], 'match', 'once');
     %% Process each kernel function
