@@ -16,6 +16,35 @@ usem2c = ~isempty(regexp(cfile_str, '\n#include "m2c.h"', 'once'));
 
 cfile_str_orig = cfile_str;
 
+%% Move type declarations from C file to header file
+% Remove definition of emxArray__common
+cfile_str = regexprep(cfile_str, ['#ifndef\s+struct_emxArray__common\s+'...
+    '#define\s+struct_emxArray__common\s+struct\s+emxArray__common\s+{[^}]+};\s+' ...
+    '#endif\s+#ifndef\s+typedef_emxArray__common\s+#define\s+typedef_emxArray__common\s+' ...
+    'typedef\s+struct\s+emxArray__common\s+' ...
+    'emxArray__common;\s+#endif\n'], '');
+
+[cfile_str, type_def] = move_type_decl(cfile_str);
+
+if ~isempty(type_def)
+    if m2c_opts.verbose
+        % Move type definitions
+        fprintf('M2C: API functions involves structures. Moved type definitions into header file %s_types.h\n', func);
+    end
+    
+    if ~isempty(strfind(ctypes_str, '/* End of code generation'))
+        ctypes_str = strrep(ctypes_str, ...
+            sprintf('\n#endif\n\n/* End of code generation'), ...
+            [sprintf('%s\n', '', '', ...
+            '/* Type Declarations inserted by m2c */', type_def, ...
+            '#endif', '') '/* End of code generation']);
+    else
+        ctypes_str = regexprep(ctypes_str, '(\n#endif\n*$)', [type_def '$1']);
+    end
+    writeFile(ctype_filename, ctypes_str);
+end
+
+%% Remove functions for standard data types
 basictype = '(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)';
 
 % Remove declaration of emxEnsureCapacity
@@ -27,9 +56,11 @@ cfile_str = regexprep(cfile_str, ['(static\s+)?void\s+' ...
 tokens = regexp(ctypes_str, ['struct\s+emxArray_(' basictype ')'], 'tokens');
 for i=1:length(tokens)
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxInit_' ...
-        tokens{i}{1} '\([^,\)]+,[^,\)]+\);\n'], '');
+        tokens{i}{1} '\d*\([^,\)]+,[^,\)]+\);\n'], '');
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxInit_' ...
-        tokens{i}{1} '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
+        tokens{i}{1} '\d*\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
+    % Replace calls to emxInit_<type>\d by emxInit_<type>
+    cfile_str = regexprep(cfile_str, ['(\s+emxInit_' tokens{i}{1} ')\d+\('], '$1(');
     
     cfile_str = regexprep(cfile_str, ['static\s+void\s+emxFree_' ...
         tokens{i}{1} '\([^,\)]+\);\n'], '');
@@ -50,7 +81,6 @@ cfile_str = regexprep(cfile_str, ['emxArray_\w+\s+\*emxCreateWrapperND_' basicty
 cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_' basictype ...
     '\([^,\)]+\)\s*' funcbody], '');
 
-
 % Remove declaration of emxCreate_struct, emxCreateND_struct,
 % and emxCreateWrapperND_struct, emxDestroyArray_struct
 cfile_str = regexprep(cfile_str, ['emxArray_(\w+)\s+\*emxCreate_\w+\s*' ...
@@ -69,27 +99,20 @@ cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_(\w+)\s*' ...
     '\([^,\)]+\)\s*{\s+(\w*emxFree_\w+)\s*\([^\)]+\);\s+}'], ...
     'define_emxDestroyArray($2, $1)');
 
-% Remove definition of emxArray__common
-cfile_str = regexprep(cfile_str, ['#ifndef\s+struct_emxArray__common\s+'...
-    '#define\s+struct_emxArray__common\s+struct\s+emxArray__common\s+{[^}]+};\s+' ...
-    '#endif\s+#ifndef\s+typedef_emxArray__common\s+#define\s+typedef_emxArray__common\s+' ...
-    'typedef\s+struct\s+emxArray__common\s+' ...
-    'emxArray__common;\s+#endif\n'], '');
-
 % Add '#include "m2c.h"' if needed
 if ~usem2c && length(cfile_str) ~= length(cfile_str_orig)
     cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '.h"\n)'], ...
         '$1$2#include "m2c.h"\n');
 end
 
-% Omit declaration of variable references.
+%% Omit declaration of variable references and replace pragma
 cfile_str = regexprep(cfile_str, '\n#ref\([^\)]+\);', '');
 
 if exist('replace_pragmas', 'file')
-    cfile_str = replace_pragmas(cfile_str);
+    cfile_str = replace_pragmas(cfile_str, m2c_opts);
 end
 
-% Change API definitinons.
+%% Change API definitinons.
 api_decl = '';
 for i=1:length(m2c_opts.api)
     [cfile_str, api_decl] = move_api_declaration(m2c_opts.api{i}, ...
@@ -99,9 +122,7 @@ for i=1:length(m2c_opts.api)
     fprintf('M2C: Moved API function %s into header file\n', m2c_opts.api{i});
 end
 
-changed = ~isempty(api_decl);
-
-if changed
+if ~isempty(api_decl)
     hfile_str = strrep(hfile_str, ...
         sprintf('\n#endif\n\n/* End of code generation'), ...
         [sprintf('%s\n', '', ...
@@ -115,45 +136,37 @@ if changed
     end
     
     if ~isempty(public_types)
-        [cfile_str, type_def] = move_type_decl(cfile_str);
-        
-        % Move type definitions
-        fprintf('M2C: API functions involves structures. Moved type definitions into header file %s_types.h\n', func);
-        
-        if ~isempty(type_def)
-            ctypes_str = strrep(ctypes_str, ...
-                sprintf('\n#endif\n\n/* End of code generation'), ...
-                [sprintf('%s\n', '', '', ...
-                '/* Type Declarations inserted by m2c */', type_def, ...
-                '#endif', '') '/* End of code generation']);
-            writeFile(ctype_filename, ctypes_str);
-        end
-        
         % Move emxInit_ and emxFree_ of public data types into the header file
         [cfile_str, hfile_str] = move_emx_decl(cfile_str, hfile_str, public_types);
     end
     
     writeFile(h_filename, hfile_str);
-    changed = true;
 end
 
-% Remove two consecutive empty lines
+% Remove two consecutive empty lines and empty functions
 while ~isempty(regexp(cfile_str, '\n\n\n', 'once'))
     cfile_str = regexprep(cfile_str, '(\n\n)\n', '$1');
 end
+cfile_str = regexprep(cfile_str, '(\{\n)\n+(\})', '$1$2');
 
-% Check copying of constant input arrays
-check_inputArrays(cfile_str);
-
-% Check allocation of local arrays
-check_localArrays(cfile_str);
-
-% Check casting of integers
-check_intCasting(cfile_str);
-
+% Write C file
 if ~isequal(cfile_str, cfile_str_orig)
     writeFile(cfilename, cfile_str);
     changed = true;
+end
+
+%% Perform some checkings on performance
+if m2c_opts.debugInfo && ~m2c_opts.quiet
+    % Check copying of constant input arrays
+    check_inputArrays(cfile_str);
+    
+    % Check allocation of local arrays
+    check_localArrays(cfile_str);
+    
+    % Check casting of integers
+    check_intCasting(cfile_str);
+    
+    % TODO Check integer division
 end
 
 end
@@ -298,18 +311,27 @@ end
 end
 
 function [cfile, type_def] = move_type_decl(cfile)
-% Move type declarations from C code to the _types.h header file.
-
 % Find function declaration
 pat = '\n\/\* Type Definitions \*\/\n.+\n\/\* Function Declarations \*\/\n';
-type_def = regexp(cfile, pat, 'match', 'once');
+comment = regexp(cfile, pat, 'match', 'once');
 
-if ~isempty(type_def)
+if ~isempty(comment)
     % Remove it from C file
-    cfile = strrep(cfile, type_def, ...
+    cfile = strrep(cfile, comment, ...
         sprintf('\n%s', '/* Function Declarations */', ''));
     
-    type_def = type_def(25:end-30);
+    type_def = comment(25:end-30);
+else
+    % Move type declarations from C code to the _types.h header file.
+    pat = ['#ifndef\s+\w+\n+\#define\s+\w+\n+struct\s+\w+\s+\{([^}][^\n]+\n)+\};\n+#endif\n+' ...
+        '#ifndef\s+typedef_\w+\n+#define\s+\w+\n+typedef\s+struct\s+\w+\s+\w+;\n+#endif'];
+    
+    types = regexp(cfile, pat, 'match');
+    type_def = '';
+    for i=1:length(types)
+        cfile = strrep(cfile, types{i}, '');
+        type_def = sprintf('%s\n', type_def, types{i});
+    end
 end
 end
 
