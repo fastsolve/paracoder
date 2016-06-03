@@ -19,9 +19,9 @@ if m2c_opts.withPetsc
 elseif m2c_opts.withMPI
     % If MPI is used, enforce using mpi compiler wrappers
     if m2c_opts.useCpp
-        CC = ['CXX=''''' m2c_opts.mpiCXX{1} ''''''];
+        CC = m2c_opts.mpiCXX{1};
     else
-        CC = ['CC=''''' m2c_opts.mpiCC{1} ''''''];
+        CC = m2c_opts.mpiCC{1};
     end
 elseif m2c_opts.withACC
     % Try to locate pgcc, with support of OpenACC and OpenMP
@@ -59,11 +59,13 @@ else
     CC = sprintf(' %s ', m2c_opts.cc{:});
 end
 
-switch m2c_opts.optLevel
-    case '0',
-        cflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1 -g'];
-    case {'1','2','3'}
-        cflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0 -g'];
+switch m2c_opts.optimLevel
+    case 0
+        cflags = '-O0 -DM2C_DEBUG=1 -g';
+    case {1,2}
+        cflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
+    case {3,4}
+        cflags = '-O3 -DNDEBUG -DM2C_DEBUG=0 -g';
     otherwise
         cflags = '-g';
 end
@@ -72,7 +74,7 @@ if ~m2c_opts.withACC
     if m2c_opts.withOMP
         cflags = [cflags ' -fopenmp'];
     end
-    cflags = [cflags '  -Wall -Wno-unused-variable -Wno-unused-function'];
+    cflags = [cflags ' -Wall -Wno-unused-variable -Wno-unused-function'];
 end
 
 if m2c_opts.withACC
@@ -119,11 +121,11 @@ end
 if m2c_opts.withPetsc
     cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
 end
-if m2c_opts.withCuda
-    cflags = [cflags sprintf(' %s ', m2c_opts.cudaInc{1})];
-end
 if m2c_opts.withMKL
     cflags = [cflags sprintf(' %s ', m2c_opts.mklInc{1})];
+end
+if m2c_opts.withCuda
+    cflags = [cflags sprintf(' %s ', m2c_opts.cudaInc{1})];
 end
 if m2c_opts.withMPI
     cflags = [cflags sprintf(' %s ', m2c_opts.mpiInc{1})];
@@ -132,21 +134,22 @@ end
 if m2c_opts.verbose; cflags = ['-v ' cflags]; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
-if m2c_opts.withLapack
+
+libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
+if m2c_opts.withMKL
+    libs = [libs sprintf(' %s ', m2c_opts.mklLibs{:})];
+elseif m2c_opts.withLapack
     libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
 elseif m2c_opts.withBlas
     libs = [libs sprintf(' %s ', m2c_opts.blasLibs{:})];
 end
+
 if m2c_opts.withCuda
     libs = [libs sprintf(' %s ', m2c_opts.cudaLibs{:})];
-end
-if m2c_opts.withMKL
-    libs = [libs sprintf(' %s ', m2c_opts.mklLibs{:})];
 end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
 
 % Place exe file in the same directory as the M file.
 exedir = '../../../';

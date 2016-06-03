@@ -17,7 +17,7 @@ clear(outMfile);
 mexflags = '';
 
 CC = '';
-CFLAGS = '';
+CFLAGS = '-fPIC';
 LDFLAGS = '';
 
 if m2c_opts.useCpp
@@ -95,7 +95,7 @@ if ~isempty(CC)
 end
 
 if ~isempty(m2c_opts.cppflags)
-    % Overwrite all the CPP flags
+    % Append all the CPP flags
     mexflags = [mexflags ' ' sprintf(' %s ', m2c_opts.cppflags{:})];
 end
 
@@ -112,11 +112,13 @@ elseif ~isempty(LDFLAGS)
     mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
 end
 
-switch m2c_opts.optLevel
-    case '0'
-        coptflags = ['-O' m2c_opts.optLevel ' -DM2C_DEBUG=1'];
-    case {'1','2','3'}
-        coptflags = ['-O' m2c_opts.optLevel ' -DNDEBUG -DM2C_DEBUG=0'];
+switch m2c_opts.optimLevel
+    case 0
+        coptflags = '-O0 -DM2C_DEBUG=1';
+    case {1,2}
+        coptflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0'];
+    case {3,4}
+        coptflags = '-O3 -DNDEBUG -DM2C_DEBUG=0';
     otherwise
         coptflags = '';
 end
@@ -153,13 +155,13 @@ if m2c_opts.withPetsc
     % Append mexflags using petscInc
     mexflags = [mexflags sprintf(' %s ', m2c_opts.petscInc{:})];
 end
-if m2c_opts.withCuda
-    % Append mexflags using cudaInc
-    mexflags = [mexflags sprintf(' %s ', m2c_opts.cudaInc{:})];
-end
 if m2c_opts.withMKL
     % Append mexflags using mklInc
     mexflags = [mexflags sprintf(' %s ', m2c_opts.mklInc{:})];
+end
+if m2c_opts.withCuda
+    % Append mexflags using cudaInc
+    mexflags = [mexflags sprintf(' %s ', m2c_opts.cudaInc{:})];
 end
 if m2c_opts.withMPI
     % Append mexflags using mpiInc
@@ -169,21 +171,22 @@ if m2c_opts.verbose; mexflags = [mexflags ' -v']; end
 if m2c_opts.quiet; mexflags = [mexflags ' -silent']; end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
-if m2c_opts.withLapack
+libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
+if m2c_opts.withMKL
+    libs = [libs sprintf(' %s ', m2c_opts.mklLibs{:})];
+elseif m2c_opts.withLapack
     libs = [libs sprintf(' %s ', m2c_opts.lapackLibs{:})];
 elseif m2c_opts.withBlas
     libs = [libs sprintf(' %s ', m2c_opts.blasLibs{:})];
 end
+
 if m2c_opts.withCuda
     libs = [libs sprintf(' %s ', m2c_opts.cudaLibs{:})];
 end
-if m2c_opts.withMKL
-    libs = [libs sprintf(' %s ', m2c_opts.mklLibs{:})];
-end
+
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.petscLibs{:})];
 
 libs = strtrim(libs);
 
