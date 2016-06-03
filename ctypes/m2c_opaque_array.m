@@ -29,7 +29,7 @@ function output = m2c_opaque_array(basetype, varargin) %#codegen
 % string known at compile time. It is user's responsibility to ensure
 % the basedatatype is valid.
 %
-% See also m2c_opqaue_ptr, m2c_opqaue_ptr_const, m2c_touch
+% See also m2c_opqaue_ptr, m2c_opqaue_ptr_const
 
 % Note: This is an advanced function for constructing array of opaque
 %    C objects for passing to C functions. In general, it must be used in
