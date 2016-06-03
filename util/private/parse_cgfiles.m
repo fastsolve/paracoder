@@ -274,8 +274,8 @@ if nargout>2
                 pruned_vars = [pruned_vars, ...
                     struct('name', name, 'type', '', 'size', [], 'oindex', i)]; %#ok<AGROW>
                 npruned = npruned + 1;
-                [pruned_vars(npruned).size, pruned_vars(npruned).vardim, ...
-                    pruned_vars(npruned).type] = determine_type_size(htmlfile, name, 0);
+                [pruned_vars(npruned).size, ~, pruned_vars(npruned).type] = ...
+                    determine_type_size(htmlfile, name, 0);
                 if length(pruned_vars(npruned).size)==1
                     pruned_vars(npruned).size = [0 1];
                 end

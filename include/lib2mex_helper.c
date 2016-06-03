@@ -136,11 +136,34 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
 }
 
 /*****************************************************************
- * Copy data in mxArray into a given emxArray.
+ * Copy size and data from mxArray to a preallocated static emxArray.
  *****************************************************************/
-static void copy_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
-        mwSize maxlen) {
+static void copy_mxArray_to_emxArrayStatic(const mxArray *a, void *data,
+        int32_T size[], int32_T dim, const char *name, int32_T maxlen) {
     mxClassID type=mxGetClassID(a);
+    int   i, mxdim = mxGetNumberOfDimensions(a);    
+    const mwSize *dims = mxGetDimensions(a);
+    mwSize n = mxGetNumberOfElements(a);
+    
+    if (n==0) {
+        for (i=dim; i<mxdim; ++i)
+            size[i] = 0;
+        return;
+    }
+    /* Check the compatibility of the mxArray */
+    if (mxdim>dim) {
+        for (i=dim; i<mxdim; ++i) {
+            if (dims[i]!=1) {
+                mexErrMsgIdAndTxt("lib2mex:WrongDimension",
+                        "Varialble %s has incorrect dimension.", name);
+            }
+        }
+        mxdim = dim;
+    }
+    
+    /* Copy the size from mxArray to emxArray */
+    for (i=0; i<mxdim; ++i) size[i] = dims[i];
+    for (i=mxdim; i<dim; ++i) size[i] = 1;
     
     switch (type) {
         case mxLOGICAL_CLASS:
@@ -154,14 +177,13 @@ static void copy_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
         case mxUINT32_CLASS:
         case mxINT64_CLASS:
         case mxUINT64_CLASS: {
-            mwSize n = mxGetNumberOfElements(a);
             if (n>maxlen) n=maxlen;
             
-            memcpy(emx->data, mxGetData(a), n*mxGetElementSize(a));
+            memcpy(data, mxGetData(a), n*mxGetElementSize(a));
             break;
         }
         case mxCHAR_CLASS:
-            mxGetString(a, (char*)emx->data, maxlen);
+            mxGetString(a, (char*)data, maxlen);
             break;
         case mxSTRUCT_CLASS:
             mxAssert(0, "mxSTRUCT_CLASS is not supported.");

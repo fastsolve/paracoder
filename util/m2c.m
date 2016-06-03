@@ -141,18 +141,18 @@ function m2c(varargin)
 %           to enable nearly all supported optimizations that do not
 %           involve a space-speed tradeoff.
 %     -O3
-%           Enable inlining for MATLAB Coder and pass -O3 to the C compiler
-%           enable all supported optimizations, including loop unrolling
-%           and function inlining.
+%           Enable inlining and set DynamicMemoryAllocation to thresholding
+%           in code generation. Pass -O3 to the C compiler to enable all
+%           supported optimizations, including loop unrolling and function
+%           inlining.
 %     -O4
-%           Enable inlining and allow MATLAB Coder to reuse variable names
-%           freely and set DynamicMemoryAllocation to Threshold. It also
-%           passes -O3 to the C compiler. Ths generates unreadable C code,
-%           so it should be used only for final "bindary" code distribution
-%           for optimal performance.
+%           Enable inlining and thresholding, and in addition allow MATLAB
+%           Coder to reuse variable names freely. It also passes -O3 to
+%           the C compiler. Ths generates unreadable C code, and it may not
+%           deliver better performance than -O3, but may use less momory.
 % DEBUGGING
 %     -g
-%           Preserve MATLAB code info in C code and also generate 
+%           Preserve MATLAB code info in C code and also generate
 %           source-level debug information when compiling C.
 %     -chkmem
 %           Generate code for runtime error checking of buffer overflow.
@@ -199,9 +199,9 @@ function m2c(varargin)
 %     -mkl {'expression'}
 %           Enable Intel MKL and link with its BLAS and sparse BLAS libraries.
 %           The root directory of MKL can be specified as an express
-%           contained in a cell array, or be specified by the environment 
-%           variables MKLROOT. By befault, -mkl specifies linking with 
-%           the sequential version of MKL. Use -mkl-iomp to link with 
+%           contained in a cell array, or be specified by the environment
+%           variables MKLROOT. By befault, -mkl specifies linking with
+%           the sequential version of MKL. Use -mkl-iomp to link with
 %           multithreaded MKL library with Intel OpenMP. Note that the
 %           Intel OpenMP may conflict with GCC's OpenMP library, so it should
 %           not be used with -omp when compiling with a non-Intel compiler.
@@ -641,10 +641,13 @@ while i<=last_index
         case {'-O0'}
             m2c_opts.optimLevel = str2double(opt(3));
             m2c_opts.presVars = 'All';
-        case {'-O1', '-O2', '-O3'}
-            m2c_opts.optimLevel = str2double(opt(3));            
-        case '-O4'
+        case {'-O1', '-O2'}
             m2c_opts.optimLevel = str2double(opt(3));
+        case '-O3'
+            m2c_opts.optimLevel = 3;
+            m2c_opts.dynMem = 'Threshold';
+        case '-O4'
+            m2c_opts.optimLevel = 4;
             m2c_opts.presVars = 'None';
             m2c_opts.dynMem = 'Threshold';
         case '-inline'
