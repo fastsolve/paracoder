@@ -711,14 +711,14 @@ while i<=last_index
                 m2c_opts.timing = eval(varargin{i+1});
                 i = i + 1;
             else
-                m2c_opts.timing = {''};
+                m2c_opts.timing = {' '};
             end
         case '-api'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.api = eval(varargin{i+1});
                 i = i + 1;
             else
-                m2c_opts.api = {''};
+                m2c_opts.api = {' '};
             end
         case '-globals'
             if i<last_index && varargin{i+1}(1) == '{'
@@ -735,7 +735,7 @@ while i<=last_index
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
             else
-                m2c_opts.(opt(2:end)) = {''};
+                m2c_opts.(opt(2:end)) = {' '};
             end
         case {'-lib', '-dll'}
             if i<last_index && varargin{i+1}(1) == '{'
@@ -895,7 +895,7 @@ while i<=last_index
                 m2c_opts.([opt(2:end) 'Libs']) = eval(varargin{i+1});
                 i = i + 1;
             else
-                m2c_opts.([opt(2:end) 'Libs']) = {''};
+                m2c_opts.([opt(2:end) 'Libs']) = {' '};
             end
         case {'-mpi'}
             m2c_opts.withMPI= true;
@@ -903,7 +903,7 @@ while i<=last_index
                 m2c_opts.mpiLibs = eval(varargin{i+1});
                 i = i + 1;
             else
-                m2c_opts.mpiLibs = {''};
+                m2c_opts.mpiLibs = {' '};
             end
             
             if ~isequal(m2c_opts.petscCC, {''})
@@ -988,6 +988,8 @@ end
 for i=1:length(names)
     if iscell(m2c_opts.(names{i})) && isequal(m2c_opts.(names{i}){1}, '')
         m2c_opts.(names{i})(1) = [];
+    elseif iscell(m2c_opts.(names{i})) && isequal(m2c_opts.(names{i}){1}, ' ')
+        m2c_opts.(names{i})(1) = {''};
     end
 end
 
