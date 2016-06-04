@@ -571,6 +571,8 @@ end
 function [str,sub_mx_level] = marshallout(vars, nlhs, pruned_vars)
 % Marshall function output arguments
 
+sub_mx_level = 0;
+
 if nlhs==0;
     str='';
     return;
@@ -585,7 +587,6 @@ for i=1:length(vars)
     end
 end
 
-sub_mx_level = 0;
 for j=1:nlhs
     pruned = 0;
     if outvarsindex(j)==0
