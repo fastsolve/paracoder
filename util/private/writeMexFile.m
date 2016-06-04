@@ -316,13 +316,8 @@ for j=1:nrhs
                 str = sprintf('%s\n    alias_mxArray_to_emxArray(%s, (emxArray__common *)&%s, "%s", %d);', ...
                     str, mx, var.name, var.name, length(var.size));
             else
-                if ~isempty(var.modifier)
-                    ref = '->';
-                else
-                    ref = '.';
-                end
-                str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s%sdata, %s%ssize, %d, "%s", %d);', ...
-                    str, mx, var.name, ref, var.name, ref, length(var.size), var.name, prod(var.size));
+                str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s.data, %s.size, %d, "%s", %d);', ...
+                    str, mx, var.name, var.name, length(var.size), var.name, prod(var.size));
             end
         elseif prod(var.size)~=1
             assert(~any(var.vardim));
@@ -408,7 +403,7 @@ end
 
 for k=1:length(var.subfields)
     sf = var.subfields(k);
-    if sf.isemx && any(isinf(sf.size))
+    if sf.isemx && ~isempty(sf.modifier)
         substr = sprintf(['%s\n%s    *(void **)&%s.%s = mxCalloc(1, sizeof(emxArray__common));', ...
             '%s    init_emxArray((emxArray__common*)%s.%s, %d);'], ...
             substr, indent, prefix, sf.name, indent, prefix, sf.name, length(sf.size));
@@ -493,24 +488,19 @@ for k=1:length(var.subfields)
             elseif isfinite(sf.size(i))
                 substr = sprintf(['%s\n%s    if (mxGetDimensions(%s)[%d] > %d)\n', ...
                     '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
-                    '%s            "Dimension %d %s.%s should be equal to %d.");'], ...
+                    '%s            "Dimension %d %s.%s should be no more than %d.");'], ...
                     substr, indent, submx, i-1, sf.size(i), indent, funcname, indent, ...
                     i, [prefix var.name], sf.name, sf.size(i));
             end
         end
-        if any(isinf(sf.size))
+        if ~isempty(sf.modifier)
             substr = sprintf('%s\n%s    *(void**)&%s.%s = mxCalloc(1, sizeof(emxArray__common));', ...
                 substr, indent, p, var.subfields(k).name);
             substr = sprintf('%s\n%s    alias_mxArray_to_emxArray(%s, (emxArray__common*)%s.%s, "%s.%s", %d);', ...
                 substr, indent, submx, p, sf.name, [prefix var.name], sf.name, length(sf.size));
         else
-            if ~isempty(sf.modifier)
-                ref = '->';
-            else
-                ref = '.';
-            end
-            substr = sprintf('%s\n%s    copy_mxArray_to_emxArrayStatic(%s, %s.%s%sdata, %s.%s%ssize, %d, "%s.%s", %d);', ...
-                substr, indent, submx, p, sf.name, ref, p, sf.name, ref, length(sf.size), [prefix var.name], sf.name, prod(sf.size));
+            substr = sprintf('%s\n%s    copy_mxArray_to_emxArrayStatic(%s, %s.%s.data, %s.%s.size, %d, "%s.%s", %d);', ...
+                substr, indent, submx, p, sf.name, p, sf.name, length(sf.size), [prefix var.name], sf.name, prod(sf.size));
         end
     elseif ~isempty(var.subfields(k).subfields)
         [substr, sub_mx_level1] = marshallin_struct(substr, submx, var.subfields(k), ...
@@ -823,7 +813,7 @@ end
 
 for k=1:length(var.subfields)
     sf = var.subfields(k);
-    if sf.isemx && any(isinf(sf.size))
+    if sf.isemx && ~isempty(sf.modifier)
         substr = sprintf('%s    free_emxArray((emxArray__common*)%s%s); mxFree(%s%s);\n%s', ...
             indent, varname, sf.name, varname, sf.name, substr);
         has_emxArray = true;
