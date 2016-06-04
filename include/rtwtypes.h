@@ -3,7 +3,7 @@
  *
  */
 
-#if defined(MATLAB_MEX_FILE) && !defined(OCTAVE_MEX_FILE)
+#if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(OCTAVE_MEX_FILE)
 #include "tmwtypes.h" /* Use MATLAB's TMWTYPES */
 #endif
 
@@ -43,16 +43,87 @@ typedef short int16_T;
 typedef unsigned short uint16_T;
 typedef int int32_T;
 typedef unsigned int uint32_T;
-#if !defined(_INT64_T) && defined(__WORDSIZE) && __WORDSIZE == 64
-typedef long int int64_T;
-typedef unsigned long int uint64_T;
-#elif !defined(_INT64_T)
-typedef long long int64_T;
-typedef unsigned long long uint64_T;
-#endif
 
 typedef float real32_T;
 typedef double real64_T;
+
+/*=======================================================================*
+ * Fixed width word size data types:                                     *
+ *   int64_T                      - signed 64 bit integers               *
+ *   uint64_T                     - unsigned 64 bit integers             *
+ *=======================================================================*/
+
+#ifndef INT64_T
+# if defined(__APPLE__)
+#  define INT64_T long long
+#  define FMT64 "ll"
+#  if defined(__LP64__) && !defined(INT_TYPE_64_IS_LONG)
+#    define INT_TYPE_64_IS_LONG
+#  endif
+# elif (defined(__x86_64__) || defined(__LP64__))&& !defined(__MINGW64__)
+#  define INT64_T long
+#  define FMT64 "l"
+#  if !defined(INT_TYPE_64_IS_LONG)
+#    define INT_TYPE_64_IS_LONG
+#  endif
+# elif defined(_MSC_VER) || (defined(__BORLANDC__) && __BORLANDC__ >= 0x530) \
+                         || (defined(__WATCOMC__)  && __WATCOMC__  >= 1100)
+#  define INT64_T __int64
+#  define FMT64 "I64"
+# elif defined(__GNUC__) || defined(TMW_ENABLE_INT64) \
+                         || defined(__LCC64__)
+#  define INT64_T long long
+#  define FMT64 "ll"
+# endif
+#endif
+
+
+#if defined(INT64_T)
+# if defined(__GNUC__) && \
+    ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >=9)))
+  __extension__
+# endif
+ typedef INT64_T int64_T;
+#endif
+                         
+#ifndef UINT64_T
+# if defined(__APPLE__)
+#  define UINT64_T unsigned long long
+#  define FMT64 "ll"
+#  if defined(__LP64__) && !defined(INT_TYPE_64_IS_LONG)
+#    define INT_TYPE_64_IS_LONG
+#  endif
+# elif (defined(__x86_64__) || defined(__LP64__))&& !defined(__MINGW64__)
+#  define UINT64_T unsigned long
+#  define FMT64 "l"
+#  if !defined(INT_TYPE_64_IS_LONG)
+#    define INT_TYPE_64_IS_LONG
+#  endif
+# elif defined(_MSC_VER) || (defined(__BORLANDC__) && __BORLANDC__ >= 0x530) \
+                         || (defined(__WATCOMC__)  && __WATCOMC__  >= 1100)
+#  define UINT64_T unsigned __int64
+#  define FMT64 "I64"
+# elif defined(__GNUC__) || defined(TMW_ENABLE_INT64) \
+                         || defined(__LCC64__)
+#  define UINT64_T unsigned long long
+#  define FMT64 "ll"
+# endif
+#endif
+
+
+#if defined(_WIN64) || (defined(__APPLE__) && defined(__LP64__)) \
+                    || defined(__x86_64__) \
+                    || defined(__LP64__)
+#  define INT_TYPE_64_IS_SUPPORTED
+#endif
+
+#if defined(UINT64_T)
+# if defined(__GNUC__) && \
+    ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >=9)))
+  __extension__
+# endif
+ typedef UINT64_T uint64_T;
+#endif
 
 /*===========================================================================* 
  * Generic type definitions: real_T, time_T, boolean_T, int_T, uint_T,       * 
