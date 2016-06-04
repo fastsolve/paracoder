@@ -151,6 +151,8 @@ for i=1:ncarg
         vars(i).basetype = vars(i).type(10:end);
         vars(i).isemx = true;
         [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, [prefix vars(i).name], 0);
+        
+        vars(i).modifier = strtrim(toks{1}{4});
     elseif strncmp(vars(i).type, 'emxArray_', 9) % struct array
         % Determine basetype
         [~,b] = regexp(typedecl, ['\sstruct\s+' vars(i).type ...

@@ -316,8 +316,13 @@ for j=1:nrhs
                 str = sprintf('%s\n    alias_mxArray_to_emxArray(%s, (emxArray__common *)&%s, "%s", %d);', ...
                     str, mx, var.name, var.name, length(var.size));
             else
-                str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s.data, %s.size, %d, "%s", %d);', ...
-                    str, mx, var.name, var.name, length(var.size), var.name, prod(var.size));
+                if ~isempty(var.modifier)
+                    ref = '->';
+                else
+                    ref = '.';
+                end
+                str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s%sdata, %s%ssize, %d, "%s", %d);', ...
+                    str, mx, var.name, ref, var.name, ref, length(var.size), var.name, prod(var.size));
             end
         elseif prod(var.size)~=1
             assert(~any(var.vardim));
@@ -499,8 +504,13 @@ for k=1:length(var.subfields)
             substr = sprintf('%s\n%s    alias_mxArray_to_emxArray(%s, (emxArray__common*)%s.%s, "%s.%s", %d);', ...
                 substr, indent, submx, p, sf.name, [prefix var.name], sf.name, length(sf.size));
         else
-            substr = sprintf('%s\n%s    copy_mxArray_to_emxArrayStatic(%s, %s.%s.data, %s.%s.size, %d, "%s.%s", %d);', ...
-                substr, indent, submx, p, sf.name, p, sf.name, length(sf.size), [prefix var.name], sf.name, prod(sf.size));
+            if ~isempty(sf.modifier)
+                ref = '->';
+            else
+                ref = '.';
+            end
+            substr = sprintf('%s\n%s    copy_mxArray_to_emxArrayStatic(%s, %s.%s%sdata, %s.%s%ssize, %d, "%s.%s", %d);', ...
+                substr, indent, submx, p, sf.name, ref, p, sf.name, ref, length(sf.size), [prefix var.name], sf.name, prod(sf.size));
         end
     elseif ~isempty(var.subfields(k).subfields)
         [substr, sub_mx_level1] = marshallin_struct(substr, submx, var.subfields(k), ...
@@ -615,9 +625,14 @@ for j=1:nlhs
             str, var.name, j-1, var.name, getMxClassID(var.basetype));
     elseif var.isemx
         if all(isfinite(var.size)) && any(var.vardim)
+            if isempty(var.modifier)
+                ref = '.';
+            else
+                ref = '->';
+            end
             str = sprintf(['%s\n', ...
-                '    plhs[%d] = copy_array_to_mxArray(%s.data, %s, %d, %s.size);'], ...
-                str, j-1, var.name, getMxClassID(var.basetype), length(sz), var.name);
+                '    plhs[%d] = copy_array_to_mxArray(%s%sdata, %s, %d, %s%ssize);'], ...
+                str, j-1, var.name, ref, getMxClassID(var.basetype), length(sz), var.name, ref);
         elseif all(isfinite(var.size))
             sz = var.size;
             sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
@@ -693,22 +708,27 @@ for k=1:length(var.subfields)
             substr, indent, mx, index, k-1, level);
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif sf.isemx
+        if isempty(sf.modifier)
+            ref = '.';
+        else
+            ref = '->';
+        end
         if all(isfinite(sf.size)) && any(sf.vardim)
             substr = sprintf(['%s\n' ...
                 '    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
-                'copy_array_to_mxArray(%s%s.%s.data, %s, %d, %s%s.%s.size));'], ...
-                substr, mx, index, k-1, [prefix var.name], sub, sfname, ...
+                'copy_array_to_mxArray(%s%s.%s%sdata, %s, %d, %s%s.%s%ssize));'], ...
+                substr, mx, index, k-1, [prefix var.name], sub, sfname, ref, ...
                 getMxClassID(sf.basetype), length(sf.size), ...
-                [prefix var.name], sub, sfname);
+                [prefix var.name], sub, sfname, ref);
         elseif all(isfinite(sf.size))
             sz = sf.size;
             sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
             
             substr = sprintf(['%s\n%s    {int32_T l_size[] = {%s};\n' ...
                 '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
-                'copy_array_to_mxArray(%s%s.%s.data, %s, %d, l_size)); }'], ...
+                'copy_array_to_mxArray(%s%s.%s%sdata, %s, %d, l_size)); }'], ...
                 substr, indent, sz_str, indent, mx, index, k-1, ...
-                [prefix var.name], sub, sfname, getMxClassID(sf.basetype), length(sz));
+                [prefix var.name], sub, sfname, ref, getMxClassID(sf.basetype), length(sz));
         else
             substr = sprintf(['%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
                 'move_emxArray_to_mxArray((emxArray__common*)%s%s.%s, %s));'], ...
