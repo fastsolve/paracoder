@@ -69,12 +69,12 @@ extern void M2C_warn(const char * id, const char * msg, ...);
 
 #endif /* MATLAB_MEX_FILE */
 
-#define M2C_OFFSET_PTR(ptr,offset)    ((ptr)+(offset))
-#define M2C_GET_FIELD(s,field)        (s).field
-#define M2C_GET_FIELD_IND(s,field)    (s)->field
-#define M2C_BEGIN_REGION()            {
-#define M2C_END_REGION()              }
-#define M2C_INTDIV(a,b)               ((int)(a) / (int)(b))
+#define M2C_OFFSET_PTR(ptr,offset)        ((ptr)+(offset))
+#define M2C_GET_FIELD(s,field)            (s).field
+#define M2C_SET_FIELD(s,field,val)        (s)->field=val
+#define M2C_BEGIN_REGION()                {
+#define M2C_END_REGION()                  }
+#define M2C_INTDIV(a,b)                   ((int)(a) / (int)(b))
 
 /* Define emxArray__common and other standard emxInit and emxFree 
  * functions for basic data types. */
