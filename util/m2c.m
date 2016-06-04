@@ -167,7 +167,7 @@ function m2c(varargin)
 %     -O1
 %           Enable function inlining for MATLAB Coder and pass the -O1
 %           compiler option to the C compiler to enable basic optimization.
-%           This is the default behavior if -O? is not specified.
+%           This is the default behavior if -O? and -g is not specified.
 %     -O
 %     -O2
 %           Enable inlining and and in addition allow MATLAB Coder to reuse
@@ -189,6 +189,11 @@ function m2c(varargin)
 %     -chkmem
 %           Generate code for runtime error checking of buffer overflow.
 %           It also enables -g.
+%     -gdb
+%     -gdb {'expression'}
+%           Generate a script for running the standalone executable in gdb.
+%           The gdb command can be specified after it in a cell array.
+%           It also activates -g and -chkmem.
 %     -ddd
 %     -ddd {'expression'}
 %           Generate a script for running the standalone executable in ddd.
@@ -339,17 +344,6 @@ if ~isempty(m2c_opts.codegenConfig)
     m2c_opts.force = true;
 end
 
-m2c_opts.genExe = m2c_opts.genExe || ...
-    ~isempty(m2c_opts.valgrind) || ~isempty(m2c_opts.ddd) || ...
-    ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
-
-if m2c_opts.genExe && ~isunix()
-    if ~m2c_opts.quiet
-        fprintf('Warning: Building executable is not supported on Windows PCs\n');
-    end
-    m2c_opts.genExe = false;
-end
-
 %% Process arguments
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile(matlabFunc);
@@ -418,7 +412,8 @@ if regen_c
             co_cfg.PreserveVariableNames = 'UserNames';
         end
         co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
-        co_cfg.RuntimeChecks = m2c_opts.chkMem || ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind);
+        co_cfg.RuntimeChecks = m2c_opts.chkMem || ~isempty(m2c_opts.gdb) || ...
+            ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind);
         if ~m2c_opts.exampleMain
             co_cfg.GenerateExampleMain = 'DoNotGenerate';
         else
@@ -557,7 +552,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'enableInf', false, ...
     'presVars', '', ...
     'dynMem', '', ...
-    'optimLevel', 1, ...
+    'optimLevel', -1, ...
     'typeRep', false, ...
     'addpath', '', ...
     'api', '', ...
@@ -601,6 +596,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'gprof', '', ...
     'gcov', '', ...
     'valgrind', '', ...
+    'gdb', '', ...
     'ddd', '', ...
     'genMex', false, ...
     'mexDir', '', ...
@@ -730,7 +726,7 @@ while i<=last_index
             end
             % TODO
             warning('Support for ''-globals'' is not yet implemented.');
-        case {'-valgrind', '-ddd', '-gprof', '-gcov'}
+        case {'-valgrind', '-ddd', '-gdb', '-gprof', '-gcov'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
@@ -996,6 +992,24 @@ end
 if exist('octave_config_info', 'builtin')
     % When running in octave, always skip codegen
     m2c_opts.skipcg = true;
+end
+
+m2c_opts.debugInfo = m2c_opts.debugInfo || ~isempty(m2c_opts.gdb) || ...
+    ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind);
+
+if m2c_opts.optimLevel<0
+    m2c_opts.optimLevel=int32(~m2c_opts.debugInfo);
+end
+
+m2c_opts.genExe = m2c_opts.genExe || ~isempty(m2c_opts.gdb) || ...
+    ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind) || ...
+    ~isempty(m2c_opts.gprof) || ~isempty(m2c_opts.gcov);
+
+if m2c_opts.genExe && ~isunix()
+    if ~m2c_opts.quiet
+        fprintf('Warning: Building executable is not supported on Windows PCs\n');
+    end
+    m2c_opts.genExe = false;
 end
 
 if m2c_opts.withOMP && m2c_opts.withMKL>1 && isempty(m2c_opts.cc)

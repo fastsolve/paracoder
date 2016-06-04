@@ -251,6 +251,22 @@ if ~isempty(m2c_opts.ddd)
         end
         echo = '';
     end
+elseif ~isempty(m2c_opts.gdb)
+    gdb = strtrim(sprintf(' %s ', m2c_opts.gdb{:}));
+    if isempty(gdb)
+        % Find gdb
+        gdb = locate_gdb();
+        
+        if ~isempty(gdb)
+            % Add breakpoints
+            breakponts = sprintf(' -ex "break %s" ', altapis{:});
+            if ismac
+                gdb = ['sudo ' gdb];
+            end
+            cmdpre = ['xterm -e ' gdb breakponts ' -ex run -ex where --args '];
+        end
+        echo = '';
+    end
 elseif ~isempty(m2c_opts.valgrind)
     valgrind = strtrim(sprintf(' %s ', m2c_opts.valgrind{:}));
     
