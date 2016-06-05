@@ -43,7 +43,7 @@ for i=1:length(altapis)
         fprintf(2, ['m2c Info: Codegen generated a StackData object "%s" of type "%s". ' ...
             'This probably indicates that you have some large, fixed-size local buffers in some subroutines ' ...
             'that Codegen grouped into an object. See "%scodegen/lib/%s/%s_types.h" for the definition and content of the object.\n'], ...
-            vars(SDindex).name, vars(SDindex).type, mpath, funcname, funcname);
+            vars(SDindex).cname, vars(SDindex).type, mpath, funcname, funcname);
     end
     filestr = sprintf('%s', filestr, printApiFunction(funcname, altapis{i}, ...
         nlhs, nrhs, vars, ret, SDindex, pruned_vars, m2c_opts.timing));
@@ -60,7 +60,7 @@ function str = printApiFunction(funcname, altname, nlhs, nrhs, vars, ret, SDinde
 % numbers of input and output arguments.
 
 if ~isempty(ret)
-    retval = [ret.name ' = '];
+    retval = [ret.cname ' = '];
 else
     retval = '';
 end
@@ -69,7 +69,7 @@ vars_ret = [vars; ret];
 if isempty(SDindex)
     SDname = '';
 else
-    SDname = ['&' vars(SDindex).name];
+    SDname = ['&' vars(SDindex).cname];
 end
 
 %TODO: Improve computation of sub_mx_level_in and sub_mx_level_out
@@ -181,7 +181,7 @@ for i=1:length(vars)
             has_struct_arr=true;
         end
         decl_emx = sprintf('%s\n    %-20s %s;', decl_emx, ...
-            vars(i).type, vars(i).name);
+            vars(i).type, vars(i).cname);
     elseif ~isempty(vars(i).subfields)
         if prod(vars(i).size)>1
             has_struct_arr=true;
@@ -190,10 +190,10 @@ for i=1:length(vars)
         % declare a variable of a struct type
         if prod(vars(i).size)==1
             decl_struct = sprintf('%s\n    %-20s %s;', decl_struct, ...
-                vars(i).type, vars(i).name);
+                vars(i).type, vars(i).mname);
         else
             decl_struct = sprintf('%s\n    %-20s %s[%d];', decl_struct, ...
-                vars(i).type, vars(i).name, prod(vars(i).size));
+                vars(i).type, vars(i).cname, prod(vars(i).size));
         end
         [~,b] = check_struct_levels(vars(i).subfields);
         
@@ -201,21 +201,21 @@ for i=1:length(vars)
     elseif isequal(vars(i).type, 'char_T')
         % declare a varialbe of primitive type
         decl_basic = sprintf('%s\n    %-20s %s[%d];', decl_basic, ...
-            'char', vars(i).name, prod(vars(i).size));
+            'char', vars(i).cname, prod(vars(i).size));
     elseif prod(vars(i).size)>1 && ~any(vars(i).vardim)
         % declare a varialbe of primitive type
         decl_basic = sprintf('%s\n    %-20s %s[%d];', decl_basic, ...
-            vars(i).type, vars(i).name, prod(vars(i).size));
+            vars(i).type, vars(i).cname, prod(vars(i).size));
     else
         % declare a varialbe of primitive type
         decl_basic = sprintf('%s\n    %-20s %s%s;', decl_basic, ...
-            vars(i).type, vars(i).modifier, vars(i).name);
+            vars(i).type, vars(i).modifier, vars(i).cname);
     end
 end
 
 if ~isempty(ret)
     decl_basic = sprintf('%s\n    %-20s %s%s;', decl_basic, ...
-        ret.type, ret.modifier, ret.name);
+        ret.type, ret.modifier, ret.cname);
 end
 
 if sub_mx_level
@@ -296,7 +296,7 @@ for j=1:nrhs
             '        mexErrMsgIdAndTxt("%s:WrongInputType",\n',...
             '            "Input argument %s has incorrect data type. %s is expected.");'], ...
             str, mx, mx, getMxClassID(var.basetype), ...
-            funcname, var.name, getMatlabClass(var.basetype));
+            funcname, var.mname, getMatlabClass(var.basetype));
         
         if var.isemx
             for i=1:length(var.size)
@@ -304,20 +304,20 @@ for j=1:nrhs
                     str = sprintf(['%s\n    if (mxGetNumberOfElements(%s) && mxGetDimensions(%s)[%d] != %d)\n', ...
                         '        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                         '            "Dimension %d of %s should be equal to %d.");'], ...
-                        str, mx, mx, i-1, var.size(i), funcname, i, var.name, var.size(i));
+                        str, mx, mx, i-1, var.size(i), funcname, i, var.mname, var.size(i));
                 elseif isfinite(var.size(i))
                     str = sprintf(['%s\n    if (mxGetDimensions(%s)[%d] > %d)\n', ...
                         '        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                         '            "Dimension %d of %s should be no more than %d.");'], ...
-                        str, mx, i-1, var.size(i), funcname, i, var.name, var.size(i));
+                        str, mx, i-1, var.size(i), funcname, i, var.mname, var.size(i));
                 end
             end
             if any(isinf(var.size))
                 str = sprintf('%s\n    alias_mxArray_to_emxArray(%s, (emxArray__common *)&%s, "%s", %d);', ...
-                    str, mx, var.name, var.name, length(var.size));
+                    str, mx, var.cname, var.mname, length(var.size));
             else
                 str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s.data, %s.size, %d, "%s", %d);', ...
-                    str, mx, var.name, var.name, length(var.size), var.name, prod(var.size));
+                    str, mx, var.cname, var.cname, length(var.size), var.mname, prod(var.size));
             end
         elseif prod(var.size)~=1
             assert(~any(var.vardim));
@@ -325,27 +325,27 @@ for j=1:nrhs
                 str = sprintf(['%s\n    if (mxGetDimensions(%s)[%d] != %d)\n', ...
                     '        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                     '            "Dimension %d of %s should be equal to %d.");'], ...
-                    str, mx, i-1, var.size(i), funcname, i, var.name, var.size(i));
+                    str, mx, i-1, var.size(i), funcname, i, var.mname, var.size(i));
             end
             assert(~isequal(var.type, 'char') && ~isequal(var.type, 'char_T'));
             str = sprintf('%s\n    copy_mxArray_to_array(%s, %s, %d);', ...
-                str, mx, var.name, prod(var.size));
+                str, mx, var.cname, prod(var.size));
         else
             str = sprintf(['%s\n    if (mxGetNumberOfElements(%s) != 1)\n', ...
                 '        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                 '            "Argument %s should be a scalar.");'], ...
-                str, mx, funcname, var.name);
+                str, mx, funcname, var.mname);
             if isempty(var.modifier)
                 if isequal(var.type, 'char_T') || isequal(var.type, 'char')
                     str = sprintf('%s\n    %s = *(mxChar*)mxGetData(%s);', ...
-                        str, var.name, mx);
+                        str, var.cname, mx);
                 else
                     str = sprintf('%s\n    %s = *(%s*)mxGetData(%s);', ...
-                        str, var.name, var.type, mx);
+                        str, var.cname, var.type, mx);
                 end
             else
                 str = sprintf('%s\n    %s = (%s*)mxGetData(%s);', ...
-                    str, var.name, var.type, mx);
+                    str, var.cname, var.type, mx);
             end
         end
     end
@@ -368,14 +368,14 @@ for j=1:nlhs
     
     if var.isemx && any(isinf(var.size))
         str = sprintf('%s\n    init_emxArray((emxArray__common*)&%s, %d);', ...
-            str, var.name, length(var.size));
+            str, var.cname, length(var.size));
     elseif ~isempty(var.subfields)
-        str = preallocate_struct(str, var.name, var);
+        str = preallocate_struct(str, var.cname, var);
     elseif ~isempty(var.modifier) && prod(var.size)>0 && ~isequal(var.type, 'char_T')
         str = sprintf(['%s\n    {mwSize l_size[] = {', ...
             regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
             '    *(void **)&%s = prealloc_mxArray((mxArray**)&plhs[%d], %s, %d, l_size); }'], ...
-            str, var.name, j-1, getMxClassID(var.basetype), length(var.size));
+            str, var.cname, j-1, getMxClassID(var.basetype), length(var.size));
     end
 end
 
@@ -384,12 +384,12 @@ if ~isempty(SDindex)
     var = vars(SDindex);
     sf = vars(SDindex).subfields;
     str = sprintf('%s\n\n%s\n    %s.%s = (%s *)mxMalloc(sizeof(%s));', str, ...
-        '    /* Allocate Stack Data */', var.name,sf.name, sf.type, sf.type);
+        '    /* Allocate Stack Data */', var.cname,sf.cname, sf.type, sf.type);
 end
 
 end
 
-function str = preallocate_struct(str, prefix, var, level)
+function str = preallocate_struct(str, cprefix, var, level)
 % Pre-allocate output struct
 
 if nargin<4; level=1; end
@@ -406,9 +406,9 @@ for k=1:length(var.subfields)
     if sf.isemx && ~isempty(sf.modifier)
         substr = sprintf(['%s\n%s    *(void **)&%s.%s = mxCalloc(1, sizeof(emxArray__common));', ...
             '%s    init_emxArray((emxArray__common*)%s.%s, %d);'], ...
-            substr, indent, prefix, sf.name, indent, prefix, sf.name, length(sf.size));
+            substr, indent, cprefix, sf.cname, indent, cprefix, sf.cname, length(sf.size));
     elseif ~isempty(sf.subfields)
-        substr = preallocate_struct(substr, [prefix '.' sf.name], sf, level+1);
+        substr = preallocate_struct(substr, [cprefix '.' sf.cname], sf, level+1);
     end
 end
 
@@ -420,9 +420,9 @@ end
 str = sprintf('%s%s', str, substr);
 end
 
-function [str, sub_mx_level] = marshallin_struct(str, mx, var, funcname, level, prefix)
+function [str, sub_mx_level] = marshallin_struct(str, mx, var, funcname, level, cprefix, mprefix)
 if nargin<5; level=1; end
-if nargin<6; prefix=''; end
+if nargin<6; cprefix=''; mprefix=''; end
 
 indent = repmat('    ',1,level-1);
 
@@ -432,28 +432,28 @@ str = sprintf('%s\n', str);
 str = sprintf(['%s\n%s    if (!mxIsStruct(%s))\n', ...
     '%s        mexErrMsgIdAndTxt("%s:WrongInputType",\n',...
     '%s            "Input argument %s has incorrect data type. struct is expected.");'], ...
-    str, indent, mx, indent, funcname, indent, [prefix var.name]);
+    str, indent, mx, indent, funcname, indent, [mprefix var.mname]);
 str = sprintf(['%s\n%s    if (mxGetNumberOfFields(%s)!=%d)\n', ...
     '%s        mexErrMsgIdAndTxt("%s:InputStructWrongFields",\n',...
     '%s            "Input argument %s has incorrect number of fields.");'], ...
-    str, indent, mx, length(var.subfields), indent, funcname, indent, [prefix var.name]);
+    str, indent, mx, length(var.subfields), indent, funcname, indent, [mprefix var.mname]);
 if all(isfinite(var.size)) && ~any(var.vardim)
     str = sprintf(['%s\n%s    if (mxGetNumberOfElements(%s) != %d)\n', ...
         '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
         '%s            "Argument %s must contain %d items.");'], ...
-        str, indent, mx, prod(var.size), indent, funcname, indent, var.name, prod(var.size));
+        str, indent, mx, prod(var.size), indent, funcname, indent, var.mname, prod(var.size));
 end
 
 if var.isemx && any(isinf(var.size))
     str = sprintf('%s\n%s    init_emxArray_from_mxArray(%s, (emxArray__common*)&%s, "%s", %d, sizeof(%s));', ...
-        str, indent, mx, [prefix var.name], [prefix var.name], length(var.size), var.structname);
+        str, indent, mx, [cprefix var.cname], [cprefix var.mname], length(var.size), var.structname);
     indent = repmat('    ',1,level);
-    index = '_sub_k'; p = [[prefix var.name] '.data[_sub_k]' ];
+    index = '_sub_k'; p = [[cprefix var.cname] '.data[_sub_k]' ];
 elseif prod(var.size)>1
     indent = repmat('    ',1,level);
-    index = '_sub_k'; p = [[prefix var.name] '[_sub_k]' ];
+    index = '_sub_k'; p = [[cprefix var.cname] '[_sub_k]' ];
 else
-    index = '0'; p = [prefix var.name];
+    index = '0'; p = [cprefix var.cname];
 end
 
 submx = ['_sub_mx' int2str(level)];
@@ -465,17 +465,17 @@ for k=1:length(var.subfields)
     
     % Check fields
     substr = sprintf('%s\n%s    %s = mxGetField(%s, %s, "%s");', ...
-        substr, indent, submx, mx, index, sf.name);
+        substr, indent, submx, mx, index, sf.mname);
     substr = sprintf(['%s\n%s    if (%s==NULL)\n', ...
         '%s        mexErrMsgIdAndTxt("%s:WrongInputStruct",\n',...
         '%s            "Input argument %s does not have the field %s.");'], ...
-        substr, indent, submx, indent, funcname, indent, [prefix var.name], sf.name);
+        substr, indent, submx, indent, funcname, indent, [mprefix var.mname], sf.mname);
     
     substr = sprintf(['%s\n%s    if (mxGetNumberOfElements(%s) && mxGetClassID(%s) != %s)\n', ...
         '%s        mexErrMsgIdAndTxt("%s:WrongInputType",\n',...
         '%s            "Input argument %s.%s has incorrect data type. %s is expected.");'], ...
         substr, indent, submx, submx, getMxClassID(sf.basetype), indent, funcname, ...
-        indent, [prefix var.name], sf.name, getMatlabClass(sf.basetype));
+        indent, [mprefix var.mname], sf.mname, getMatlabClass(sf.basetype));
     
     if sf.isemx
         for i=1:length(sf.size)
@@ -484,27 +484,27 @@ for k=1:length(var.subfields)
                     '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                     '%s            "Dimension %d of %s.%s should be equal to %d.");'], ...
                     substr, indent, submx, submx, i-1, sf.size(i), indent, funcname, indent, ...
-                    i, [prefix var.name], sf.name, sf.size(i));
+                    i, [mprefix var.mname], sf.mname, sf.size(i));
             elseif isfinite(sf.size(i))
                 substr = sprintf(['%s\n%s    if (mxGetDimensions(%s)[%d] > %d)\n', ...
                     '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                     '%s            "Dimension %d %s.%s should be no more than %d.");'], ...
                     substr, indent, submx, i-1, sf.size(i), indent, funcname, indent, ...
-                    i, [prefix var.name], sf.name, sf.size(i));
+                    i, [mprefix var.mname], sf.mname, sf.size(i));
             end
         end
         if ~isempty(sf.modifier)
             substr = sprintf('%s\n%s    *(void**)&%s.%s = mxCalloc(1, sizeof(emxArray__common));', ...
-                substr, indent, p, var.subfields(k).name);
+                substr, indent, p, var.subfields(k).cname);
             substr = sprintf('%s\n%s    alias_mxArray_to_emxArray(%s, (emxArray__common*)%s.%s, "%s.%s", %d);', ...
-                substr, indent, submx, p, sf.name, [prefix var.name], sf.name, length(sf.size));
+                substr, indent, submx, p, sf.cname, [mprefix var.mname], sf.mname, length(sf.size));
         else
             substr = sprintf('%s\n%s    copy_mxArray_to_emxArrayStatic(%s, %s.%s.data, %s.%s.size, %d, "%s.%s", %d);', ...
-                substr, indent, submx, p, sf.name, p, sf.name, length(sf.size), [prefix var.name], sf.name, prod(sf.size));
+                substr, indent, submx, p, sf.cname, p, sf.cname, length(sf.size), [mprefix var.mname], sf.mname, prod(sf.size));
         end
     elseif ~isempty(var.subfields(k).subfields)
         [substr, sub_mx_level1] = marshallin_struct(substr, submx, var.subfields(k), ...
-            funcname, level+1, [prefix var.name '.']);
+            funcname, level+1, [cprefix cvar.cname '.'], [mprefix cvar.mname '.']);
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif prod(sf.size)>1
         assert(~isequal(sf.type, 'char') && ~isequal(sf.type, 'char_T'));
@@ -513,17 +513,17 @@ for k=1:length(var.subfields)
                 '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
                 '%s            "Dimension %d of %s.%s should be equal to %d.");'], ...
                 substr, indent, submx, submx, i-1, sf.size(i), indent, funcname, indent, ...
-                i, [prefix var.name], sf.name, sf.size(i));
+                i, [mprefix var.mname], sf.mname, sf.size(i));
         end
         substr = sprintf('%s\n%s    copy_mxArray_to_array(%s, %s.%s, %d);', ...
-            substr, indent, submx, p, sf.name, prod(sf.size));
+            substr, indent, submx, p, sf.cname, prod(sf.size));
     else
         substr = sprintf(['%s\n%s    if (mxGetNumberOfElements(%s) != 1)\n', ...
             '%s        mexErrMsgIdAndTxt("%s:WrongSizeOfInputArg",\n',...
             '%s            "Argument %s.%s should be a scalar.");'], ...
-            substr, indent, submx, indent, funcname, indent, [prefix var.name], sf.name);
+            substr, indent, submx, indent, funcname, indent, [mprefix var.mname], sf.mname);
         substr = sprintf('%s\n%s    %s.%s = *(%s*)mxGetData(%s);', ...
-            substr, indent, p, sf.name, sf.type, submx);
+            substr, indent, p, sf.cname, sf.type, submx);
     end
 end
 
@@ -552,16 +552,16 @@ function str = listargs(vars)
 str = '';
 for i=1:length(vars)
     if vars(i).isemx
-        str = sprintf('%s, &%s', str, vars(i).name);
+        str = sprintf('%s, &%s', str, vars(i).cname);
     elseif ~isempty(vars(i).subfields)
         if ~isempty(vars(i).modifier) && prod(vars(i).size)==1
             modifier='&';
         else
             modifier='';
         end
-        str = sprintf('%s, %s%s', str, modifier, vars(i).name);
+        str = sprintf('%s, %s%s', str, modifier, vars(i).cname);
     else
-        str = sprintf('%s, %s', str, vars(i).name);
+        str = sprintf('%s, %s', str, vars(i).cname);
     end
 end
 
@@ -602,7 +602,7 @@ for j=1:nlhs
     end
     
     if pruned
-        str = sprintf('%s\n    /* Creating empty mxArray for pruned variable %s */', str, var.name);
+        str = sprintf('%s\n    /* Creating empty mxArray for pruned variable %s */', str, var.mname);
         str = sprintf(['%s\n    {mwSize l_size[] = {', ...
             regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
             '    prealloc_mxArray((mxArray**)&plhs[%d], %s, %d, l_size); }'], ...
@@ -612,7 +612,7 @@ for j=1:nlhs
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
     elseif ~isempty(var.iindex) && var.isemx && any(isinf(var.size))
         str = sprintf('%s\n    if (%s.canFreeData) plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
-            str, var.name, j-1, var.name, getMxClassID(var.basetype));
+            str, var.cname, j-1, var.cname, getMxClassID(var.basetype));
     elseif var.isemx
         if all(isfinite(var.size)) && any(var.vardim)
             if isempty(var.modifier)
@@ -622,56 +622,56 @@ for j=1:nlhs
             end
             str = sprintf(['%s\n', ...
                 '    plhs[%d] = copy_array_to_mxArray(%s%sdata, %s, %d, %s%ssize);'], ...
-                str, j-1, var.name, ref, getMxClassID(var.basetype), length(sz), var.name, ref);
+                str, j-1, var.cname, ref, getMxClassID(var.basetype), length(sz), var.cname, ref);
         elseif all(isfinite(var.size))
             sz = var.size;
             sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
             
             str = sprintf(['%s\n    {int32_T l_size[] = {%s};\n' ...
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, l_size); }'], ...
-                str, sz_str, j-1, var.name, getMxClassID(var.basetype), length(sz));
+                str, sz_str, j-1, var.cname, getMxClassID(var.basetype), length(sz));
         else
             str = sprintf('%s\n    plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
-                str, j-1, var.name, getMxClassID(var.basetype));
+                str, j-1, var.cname, getMxClassID(var.basetype));
         end
     elseif isempty(var.modifier)
         str = sprintf('%s\n    plhs[%d] = copy_scalar_to_mxArray(&%s, %s);', ...
-            str, j-1, var.name, getMxClassID(var.basetype));
+            str, j-1, var.cname, getMxClassID(var.basetype));
     elseif isequal(var.type, 'char_T')
         if ~isempty(var.sizefield)
             str = sprintf(['%s\n', ...
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, %s);'], ...
-                str, j-1, var.name, getMxClassID(var.basetype), vars(var.sizefield).size, vars(var.sizefield).name);
+                str, j-1, var.cname, getMxClassID(var.basetype), vars(var.sizefield).size, vars(var.sizefield).cname);
         else
             str = sprintf(['%s\n    {int32_T l_size[] = {', ...
                 regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};\n', ...
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, l_size); }'], ...
-                str, j-1, var.name, getMxClassID(var.basetype), length(var.size));
+                str, j-1, var.cname, getMxClassID(var.basetype), length(var.size));
         end
     elseif ~isempty(var.sizefield)
         % Need to resize a preallocated varilable-length array
         str = sprintf(['%s\n', '    resize_mxArray(plhs[%d], %d, %s);'], ...
-            str, j-1, vars(var.sizefield).size, vars(var.sizefield).name);
+            str, j-1, vars(var.sizefield).size, vars(var.sizefield).cname);
     else
         str = sprintf('%s\n    /* Nothing to do for plhs[%d] */', str, j-1);
     end
 end
 end
 
-function [str,sub_mx_level] = marshallout_struct(str, mx, var, level, prefix)
+function [str,sub_mx_level] = marshallout_struct(str, mx, var, level, cprefix, mprefix)
 % sub_mx_level is needed for determining the levels of _sub_mx
 
 if nargin<4; level=1; end
-if nargin<5; prefix=''; end
+if nargin<5; cprefix=''; mprefix=''; end
 
 indent = repmat('    ',1,level-1);
 
 str = sprintf('%s\n%s    {const char *_fields[] = { %s ""};', ...
-    str, indent, sprintf('"%s", ', var.subfields.name));
+    str, indent, sprintf('"%s", ', var.subfields.mname));
 
 if var.isemx
     str = sprintf('%s\n%s    %s = create_struct_mxArray(%s.numDimensions, %s.size, %d, _fields);}', ...
-        str, indent, mx, [prefix var.name], [prefix var.name], length(var.subfields));
+        str, indent, mx, [cprefix var.cname], [cprefix var.cname], length(var.subfields));
     indent = repmat('    ',1,level); index='_sub_k'; sub='.data[_sub_k]';
 elseif prod(var.size)>1
     sz_str = sprintf(', %d', var.size); sz_str = sz_str(3:end);
@@ -691,9 +691,10 @@ local_sub_mx_level = ~isempty(var.subfields);
 substr = '';
 for k=1:length(var.subfields)
     sf = var.subfields(k);
-    sfname = sf.name;
+    sfcname = sf.cname; sfmname = sf.mname;
     if ~isempty(sf.subfields)
-        [substr,sub_mx_level1] = marshallout_struct(substr, ['_sub_mx' int2str(level)], sf, level+1, [prefix var.name sub '.']);
+        [substr,sub_mx_level1] = marshallout_struct(substr, ...
+            ['_sub_mx' int2str(level)], sf, level+1, [cprefix var.cname sub '.'], [mprefix var.mname sub '.']);
         substr = sprintf('%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, _sub_mx%d);', ...
             substr, indent, mx, index, k-1, level);
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
@@ -707,9 +708,9 @@ for k=1:length(var.subfields)
             substr = sprintf(['%s\n' ...
                 '    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
                 'copy_array_to_mxArray(%s%s.%s%sdata, %s, %d, %s%s.%s%ssize));'], ...
-                substr, mx, index, k-1, [prefix var.name], sub, sfname, ref, ...
+                substr, mx, index, k-1, [cprefix var.cname], sub, sfcname, ref, ...
                 getMxClassID(sf.basetype), length(sf.size), ...
-                [prefix var.name], sub, sfname, ref);
+                [mprefix var.mname], sub, sfmname, ref);
         elseif all(isfinite(sf.size))
             sz = sf.size;
             sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
@@ -718,26 +719,26 @@ for k=1:length(var.subfields)
                 '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
                 'copy_array_to_mxArray(%s%s.%s%sdata, %s, %d, l_size)); }'], ...
                 substr, indent, sz_str, indent, mx, index, k-1, ...
-                [prefix var.name], sub, sfname, ref, getMxClassID(sf.basetype), length(sz));
+                [cprefix var.cname], sub, sfcname, ref, getMxClassID(sf.basetype), length(sz));
         else
             substr = sprintf(['%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
                 'move_emxArray_to_mxArray((emxArray__common*)%s%s.%s, %s));'], ...
-                substr, indent, mx, index, k-1, [prefix var.name], sub, ...
-                sfname, getMxClassID(sf.basetype));
+                substr, indent, mx, index, k-1, [cprefix var.cname], sub, ...
+                sfcname, getMxClassID(sf.basetype));
         end
     elseif prod(sf.size)==1
         substr = sprintf(['%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
             'copy_scalar_to_mxArray(&%s%s.%s, %s));'], ...
-            substr, indent, mx, index, k-1, [prefix var.name], sub, sfname, getMxClassID(sf.basetype));
+            substr, indent, mx, index, k-1, [cprefix var.cname], sub, sfcname, getMxClassID(sf.basetype));
     elseif ~isempty(sf.sizefield)
         % Not yet debugged
         substr = sprintf(['%s\n' ...
             '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
             'copy_array_to_mxArray(%s%s.%s, %s, %d, %s%s.%s));'], ...
-            substr, indent, mx, index, k-1, [prefix var.name], ...
-            sub, sfname, getMxClassID(sf.basetype), ...
+            substr, indent, mx, index, k-1, [cprefix var.cname], ...
+            sub, sfcname, getMxClassID(sf.basetype), ...
             var.subfields(sf.sizefield).size, ...
-            [prefix var.name], sub, var.subfields(sf.sizefield).name);
+            [cprefix var.cname], sub, var.subfields(sf.sizefield).cname);
     else
         sz = sf.size;
         sz_str = sprintf(', %d', sz); sz_str = sz_str(3:end);
@@ -745,8 +746,8 @@ for k=1:length(var.subfields)
         substr = sprintf(['%s\n%s    {int32_T l_size[] = {%s};\n' ...
             '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
             'copy_array_to_mxArray(%s%s.%s, %s, %d, l_size)); }'], ...
-            substr, indent, sz_str, indent, mx, index, k-1, [prefix var.name], ...
-            sub, sfname, getMxClassID(sf.basetype), length(sz));
+            substr, indent, sz_str, indent, mx, index, k-1, [cprefix var.cname], ...
+            sub, sfcname, getMxClassID(sf.basetype), length(sz));
     end
 end
 
@@ -777,7 +778,7 @@ for i=1:length(vars)
         has_emxArray = has_emxArray || hasa;
     elseif strncmp(vars(i).type, 'emxArray_', 9) && any(isinf(vars(i).size))
         fvstr = sprintf('%s\n    free_emxArray((emxArray__common*)&%s);', ...
-            fvstr, vars(i).name);
+            fvstr, vars(i).cname);
         has_emxArray = true;
     end
 end
@@ -789,7 +790,7 @@ else
 end
 end
 
-function [str, has_emxArray] = deallocate_struct(str, prefix, var, level)
+function [str, has_emxArray] = deallocate_struct(str, cprefix, var, level)
 % Deallocate output struct
 
 if nargin<4; level=1; end
@@ -799,15 +800,15 @@ substr = '';
 
 if strncmp(var.type, 'emxArray_', 9)
     has_emxArray = true;
-    varname = [prefix var.name '.data[_sub_k].'];
+    varname = [cprefix var.cname '.data[_sub_k].'];
     indent = repmat('    ', 1, level);
 else
     has_emxArray = false;
     if prod(var.size)>1
-        varname = [prefix var.name '[_sub_k].'];
+        varname = [cprefix var.cname '[_sub_k].'];
         indent = repmat('    ', 1, level);
     else
-        varname = [prefix var.name '.'];
+        varname = [cprefix var.cname '.'];
     end
 end
 
@@ -815,7 +816,7 @@ for k=1:length(var.subfields)
     sf = var.subfields(k);
     if sf.isemx && ~isempty(sf.modifier)
         substr = sprintf('%s    free_emxArray((emxArray__common*)%s%s); mxFree(%s%s);\n%s', ...
-            indent, varname, sf.name, varname, sf.name, substr);
+            indent, varname, sf.cname, varname, sf.cname, substr);
         has_emxArray = true;
     elseif ~isempty(sf.subfields)
         [substr, has_subemx] = deallocate_struct(substr, varname, sf, level+1);
@@ -827,7 +828,7 @@ if isempty(substr); return; end
 
 if strncmp(var.type, 'emxArray_', 9)
     str = sprintf('%s\n%sfor (_sub_k=nelems_emxArray((emxArray__common*)&%s)-1; _sub_k>=0; --_sub_k) {\n%s\n%s}', ...
-        str, indent, [prefix var.name], substr, indent);
+        str, indent, [cprefix var.cname], substr, indent);
 elseif prod(var.size)>1
     str = sprintf('%s\n%sfor (_sub_k=0; _sub_k<%d; ++_sub_k) {\n%s\n%s}', ...
         str, indent, prod(var.size), substr, indent);

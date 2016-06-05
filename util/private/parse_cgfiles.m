@@ -124,7 +124,8 @@ SDindex = [];
 ncarg = length(carglist);
 
 % Try to parse the cdecl
-vars = repmat(struct('name', '', 'type', '', 'basetype', '', ...
+vars = repmat(struct('cname', '', 'mname', '', ...
+    'type', '', 'basetype', '', ...
     'structname', '', 'modifier', '', 'isconst', false, 'subfields', [], ...
     'isemx', false, 'size', [], 'vardim', [], 'sizefield', [], ...
     'iindex', [], 'oindex', []), ncarg,1);
@@ -134,7 +135,7 @@ for i=1:ncarg
     
     % Set variable name
     assert(~isempty(toks{1}{5}));
-    vars(i).name = toks{1}{5};
+    vars(i).cname = toks{1}{5};
     
     % Set isconst
     if ~isempty(toks{1}{1})
@@ -150,7 +151,8 @@ for i=1:ncarg
             ~isempty(strfind(basetypes, [' ' vars(i).type(10:end) ' ']))
         vars(i).basetype = vars(i).type(10:end);
         vars(i).isemx = true;
-        [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, [prefix vars(i).name], 0);
+        [vars(i).size, vars(i).vardim, vars(i).mname] = ...
+            determine_type_size(htmlfile, prefix, vars(i).cname, 0);
         
         vars(i).modifier = strtrim(toks{1}{4});
     elseif strncmp(vars(i).type, 'emxArray_', 9) % struct array
@@ -169,12 +171,14 @@ for i=1:ncarg
                     '\s*\{\s*(\w+)\s*data\[\d+\];\s'], 'match', 'tokens', 'once');
                 vars(i).basetype = b{1};
             end
-            [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, [prefix vars(i).name], 0);
+            [vars(i).size, vars(i).vardim, vars(i).mname] = ...
+                determine_type_size(htmlfile, prefix, vars(i).cname, 0);
         else
             vars(i).isemx = true;
             vars(i).basetype = 'struct';
             vars(i).structname = b{1}{1};
-            [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, [prefix vars(i).name], 0);
+            [vars(i).size, vars(i).vardim, vars(i).mname] = ...
+                determine_type_size(htmlfile, prefix, vars(i).cname, 0);
             
             [decl, sublist] = regexp(typedecl, ['\stypedef\s+struct\s+\w*\s*\{([^}][^\n]+\n)+\}\s+' ...
                 vars(i).structname '\s*;'], 'match', 'tokens');
@@ -190,7 +194,7 @@ for i=1:ncarg
             sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
             
             % Parse type declaration
-            [vars(i).subfields,SDindex] = parse_var_decl(sublist{1}, typedecl, htmlfile, [prefix vars(i).name '.']);
+            [vars(i).subfields,SDindex] = parse_var_decl(sublist{1}, typedecl, htmlfile, [prefix vars(i).cname '.']);
         end
     else
         if isempty(strfind(basetypes, [' ' vars(i).type ' ']))
@@ -213,7 +217,7 @@ for i=1:ncarg
                 sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
                 
                 % Parse type declaration
-                [vars(i).subfields,SDindex] = parse_var_decl(sublist{1}, typedecl, htmlfile, [prefix vars(i).name '.']);
+                [vars(i).subfields,SDindex] = parse_var_decl(sublist{1}, typedecl, htmlfile, [prefix vars(i).cname '.']);
                 if ~isempty(SDindex); SDindex=i; end
             end
         else
@@ -232,20 +236,20 @@ for i=1:ncarg
             totallen = str2double(toks{1}{1});
         end
         
-        [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, ...
-            [prefix vars(i).name], totallen);
+        [vars(i).size, vars(i).vardim, vars(i).mname] = ...
+            determine_type_size(htmlfile, prefix, vars(i).cname, totallen);
         vars(i).modifier = '*';
         
         if isempty(vars(i).size)
-            if isequal(vars(i).name(1:end-4), vars(i-1).name(1:end-4)) && ...
-                    isequal(vars(i).name(end-3:end), 'size') && ...
-                    isequal(vars(i-1).name(end-3:end), 'data')
+            if isequal(vars(i).cname(1:end-4), vars(i-1).cname(1:end-4)) && ...
+                    isequal(vars(i).cname(end-3:end), 'size') && ...
+                    isequal(vars(i-1).cname(end-3:end), 'data')
                 % This is a size field of the previous argument
                 vars(i-1).sizefield = i;
                 vars(i).size = totallen;
                 vars(i).vardim = false;
             else
-                error('Could not determine the size of argument %s\n', vars(i).name);
+                error('Could not determine the size of C argument %s\n', vars(i).cname);
             end
         end
     elseif ~isequal(vars(i).modifier,'*') && isempty(prefix) && ...
@@ -255,12 +259,14 @@ for i=1:ncarg
     
     % Set size for scalar
     if isempty(vars(i).size)
-        [vars(i).size, vars(i).vardim] = determine_type_size(htmlfile, [prefix vars(i).name], 1);
+        [vars(i).size, vars(i).vardim, vars(i).mname] = ...
+            determine_type_size(htmlfile, prefix, vars(i).cname, 1);
     end
 end
 
 if nargout>2
-    pruned_vars = repmat(struct('name', '', 'type', '', 'size', [], 'oindex', []), 1,0);
+    pruned_vars = repmat(struct('cname', '', 'mname', '', ...
+        'type', '', 'size', [], 'oindex', []), 1,0);
     
     if nargin>4
         npruned = 0;
@@ -270,17 +276,17 @@ if nargout>2
             name = m_args.output{i};
             found = 0;
             for j=1:length(vars)
-                if isequal(vars(j).name, name)
+                if isequal(vars(j).cname, name)
                     found = j;
                     break;
                 end
             end
             if ~found
-                pruned_vars = [pruned_vars, ...
-                    struct('name', name, 'type', '', 'size', [], 'oindex', i)]; %#ok<AGROW>
+                pruned_vars = [pruned_vars, struct('cname', '', 'mname', name, ...
+                    'type', '', 'size', [], 'oindex', i)]; %#ok<AGROW>
                 npruned = npruned + 1;
-                [pruned_vars(npruned).size, ~, pruned_vars(npruned).type] = ...
-                    determine_type_size(htmlfile, name, 0);
+                [pruned_vars(npruned).size, ~, ~, pruned_vars(npruned).type] = ...
+                    determine_type_size(htmlfile, '', name, 0);
                 if length(pruned_vars(npruned).size)==1
                     pruned_vars(npruned).size = [0 1];
                 end
@@ -300,7 +306,7 @@ for i=1:nrhs
     found = false;
     % Parse input arguments
     for k=i:length(vars)
-        if isequal(vars(k).name,m_args.input{i})
+        if isequal(vars(k).mname,m_args.input{i})
             vars(k).iindex = i;
             found = true;
             break;
@@ -309,7 +315,9 @@ for i=1:nrhs
     
     if ~found
         for k=i:length(vars)
-            if isempty(vars(k).iindex) && ~isempty(regexp(vars(k).name,['^\w+_' m_args.input{i} '$'],'once'))
+            if isempty(vars(k).iindex) && ~isempty(regexp(vars(k).cname, ...
+                    ['^\w+_' m_args.input{i} '$'],'once'))
+                assert(isequal(vars(k).mname, m_args.input{i}));
                 vars(k).iindex = i;
                 found = true;
                 break;
@@ -331,8 +339,9 @@ ret = [];
 for i=1:nlhs
     % Parse output arguments
     for k=1:length(vars)
-        if isequal(vars(k).name,m_args.output{i}) || ...
-                ~isempty(vars(k).sizefield) && isequal(vars(k).name(1:end-5),m_args.output{i})
+        if isequal(vars(k).mname, m_args.output{i}) || ...
+                ~isempty(vars(k).sizefield) && isequal(vars(k).cname(1:end-5),m_args.output{i})
+            assert(isequal(vars(k).mname, m_args.output{i}));
             vars(k).oindex = i;
             break;
         end
@@ -346,16 +355,19 @@ for i=1:nlhs
         % Parse output arguments
         len = length(m_args.output{i});
         for k=1:length(vars)
-            if ~isempty(strfind(vars(k).name, m_args.output{i})) && ...
+            if isequal(vars(k).mname, m_args.output{i}) || ...
+                    ~isempty(strfind(vars(k).cname, m_args.output{i})) && ...
                     isempty(vars(k).oindex) && ...
-                    isequal(vars(k).name(end-len+1:end), m_args.output{i})
+                    isequal(vars(k).cname(end-len+1:end), m_args.output{i})
+                assert(isequal(vars(k).mname, m_args.output{i}));
                 vars(k).oindex = i;
                 break;
             end
         end
     else
         assert(isempty(ret) && ~isequal(rettype, 'void'), 'Incorrect return variable');
-        ret = struct('name', m_args.output{i}, 'type', rettype, 'basetype', rettype, ...
+        ret = struct('cname', ['_' m_args.output{i}], 'mname', m_args.output{i}, ...
+            'type', rettype, 'basetype', rettype, ...
             'structname', '', 'modifier', '', 'isconst', false, 'subfields', [], ...
             'isemx', false, 'size', [], 'vardim', [], 'sizefield', [], ...
             'iindex', [], 'oindex', i);
@@ -370,15 +382,17 @@ for i=1:nlhs
             sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
             
             % Parse type declaration
-            ret.subfields = parse_var_decl(sublist{1}, typedecl, htmlfile, [ret.name '.']);
+            ret.subfields = parse_var_decl(sublist{1}, typedecl, htmlfile, [ret.mname '.']);
         end
     end
 end
 
 end
 
-function [sz,vardim,basetype] = determine_type_size(htmlfile, varname, totalsize)
+function [sz, vardim, mname, basetype] = determine_type_size(htmlfile, prefix, cname, totalsize)
 % Parse the HTML file to determine the size of a variable
+
+varname = [prefix cname];
 
 % Determine the size of the variable
 if isempty(strfind(varname,'.'))
@@ -396,11 +410,16 @@ if isempty(toks)
             'the optional argument "varargin" expliclty.']);
     elseif ~isempty(regexp(varname, '[a-z]+_data', 'once'))
         toks = regexp(htmlfile, ['\s+' varname(1:end-5) '\s+(?:&gt;\s+\d+)?\s+(?:' type ')\s+ ([\dx\s:?]+)(\w+|-)'], 'tokens');
-    elseif ~isempty(regexp(varname, '[a-z]_', 'once'))
-        toks = regexp(htmlfile, ['\s+' varname(3:end) '\s+(?:&gt;\s+\d+)?\s+(?:' type ')\s+ ([\dx\s:?]+)(\w+|-)'], 'tokens');
+        mname = cname(1:end-5);
+    elseif ~isempty(regexp(cname, '[a-z]_', 'once'))
+        toks = regexp(htmlfile, ['\s+' [prefix cname(3:end)] '\s+(?:&gt;\s+\d+)?\s+(?:' type ')\s+ ([\dx\s:?]+)(\w+|-)'], 'tokens');
+        mname = cname(3:end);
     else
+        mname = '';
         sz = [totalsize; 1]; return;
     end
+else
+    mname = cname;
 end
 
 if isempty(toks)
