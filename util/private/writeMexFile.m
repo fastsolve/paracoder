@@ -193,8 +193,13 @@ for i=1:length(vars)
         if ~isempty(vars(i).subfields)
             has_struct_arr=true;
         end
-        decl_emx = sprintf('%s\n    %-20s %s;', decl_emx, ...
-            vars(i).type, vars(i).cname);
+        if strncmp(vars(i).type, 'emxArray', 8)
+            decl_emx = sprintf('%s\n    %-20s %s;', decl_emx, ...
+                vars(i).type, vars(i).cname);
+        else
+            decl_emx = sprintf('%s\n    %-20s %s%s;', decl_emx, ...
+                vars(i).type, vars(i).modifier, vars(i).cname);
+        end
     elseif ~isempty(vars(i).subfields)
         if prod(vars(i).size)>1
             has_struct_arr=true;
@@ -325,9 +330,12 @@ for j=1:nrhs
                         str, mx, i-1, var.size(i), funcname, i, var.mname, var.size(i));
                 end
             end
-            if any(isinf(var.size))
+            if any(isinf(var.size)) && isempty(var.sizefield)
                 str = sprintf('%s\n    alias_mxArray_to_emxArray(%s, (emxArray__common *)&%s, "%s", %d);', ...
                     str, mx, var.cname, var.mname, length(var.size));
+            elseif ~isempty(var.sizefield) && ~isempty(var.modifier)
+                str = sprintf('%s\n    %s = (%s*)mxGetData(%s);', ...
+                    str, var.cname, var.basetype, mx);
             else
                 str = sprintf('%s\n    copy_mxArray_to_emxArrayStatic(%s, %s.data, %s.size, %d, "%s", %d);', ...
                     str, mx, var.cname, var.cname, length(var.size), var.mname, prod(var.size));
@@ -565,7 +573,11 @@ function str = listargs(vars)
 str = '';
 for i=1:length(vars)
     if vars(i).isemx
-        str = sprintf('%s, &%s', str, vars(i).cname);
+        if strncmp(vars(i).type, 'emxArray', 8)
+            str = sprintf('%s, &%s', str, vars(i).cname);
+        else
+            str = sprintf('%s, %s', str, vars(i).cname);
+        end
     elseif ~isempty(vars(i).subfields)
         if ~isempty(vars(i).modifier) && prod(vars(i).size)==1
             modifier='&';
@@ -623,7 +635,7 @@ for j=1:nlhs
     elseif ~isempty(var.subfields)
         [str,sub_mx_level1] = marshallout_struct(str, sprintf('plhs[%d]', j-1), var);
         sub_mx_level = max(sub_mx_level, sub_mx_level1);
-    elseif ~isempty(var.iindex) && var.isemx && any(isinf(var.size))
+    elseif ~isempty(var.iindex) && var.isemx && any(isinf(var.size)) && isempty(var.sizefield)
         str = sprintf('%s\n    if (%s.canFreeData) plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
             str, var.cname, j-1, var.cname, getMxClassID(var.basetype));
     elseif var.isemx
@@ -643,7 +655,7 @@ for j=1:nlhs
             str = sprintf(['%s\n    {int32_T l_size[] = {%s};\n' ...
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, l_size); }'], ...
                 str, sz_str, j-1, var.cname, getMxClassID(var.basetype), length(sz));
-        else
+        elseif isempty(var.sizefield)
             str = sprintf('%s\n    plhs[%d] = move_emxArray_to_mxArray((emxArray__common*)&%s, %s);', ...
                 str, j-1, var.cname, getMxClassID(var.basetype));
         end
@@ -651,7 +663,7 @@ for j=1:nlhs
         str = sprintf('%s\n    plhs[%d] = copy_scalar_to_mxArray(&%s, %s);', ...
             str, j-1, var.cname, getMxClassID(var.basetype));
     elseif isequal(var.type, 'char_T')
-        if ~isempty(var.sizefield)
+        if ~isempty(var.sizefield) && isstruct(var.sizefield)
             str = sprintf(['%s\n', ...
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, %s);'], ...
                 str, j-1, var.cname, getMxClassID(var.basetype), vars(var.sizefield).size, vars(var.sizefield).cname);
@@ -661,7 +673,7 @@ for j=1:nlhs
                 '    plhs[%d] = copy_array_to_mxArray(%s, %s, %d, l_size); }'], ...
                 str, j-1, var.cname, getMxClassID(var.basetype), length(var.size));
         end
-    elseif ~isempty(var.sizefield)
+    elseif ~isempty(var.sizefield) && isstruct(var.sizefield)
         % Need to resize a preallocated varilable-length array
         str = sprintf(['%s\n', '    resize_mxArray(plhs[%d], %d, %s);'], ...
             str, j-1, vars(var.sizefield).size, vars(var.sizefield).cname);
@@ -743,7 +755,7 @@ for k=1:length(var.subfields)
         substr = sprintf(['%s\n%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...
             'copy_scalar_to_mxArray(&%s%s.%s, %s));'], ...
             substr, indent, mx, index, k-1, [cprefix var.cname], sub, sfcname, getMxClassID(sf.basetype));
-    elseif ~isempty(sf.sizefield)
+    elseif ~isempty(sf.sizefield) && isstruct(sf.sizefield)
         % Not yet debugged
         substr = sprintf(['%s\n' ...
             '%s    mxSetFieldByNumber((mxArray*)(%s), %s, %d, ' ...

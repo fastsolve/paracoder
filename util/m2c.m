@@ -479,17 +479,17 @@ if regen_c
     [~, iscuda] = post_codegen(func, cpath, m2c_opts);
     if iscuda && ~m2c_opts.withNvcc
         warning('m2c:CudaWithoutNVCC', ...
-            'Detected CUDA code, but -nvcc was not specified.');
+            'Detected CUDA kernel function, but -nvcc was not specified.');
     elseif ~iscuda && m2c_opts.withNvcc
         warning('m2c:PlainCWithNVCC', ...
-            'No CUDA code was found, but nvcc was specified for compilation.');
+            'No CUDA kernel function found, but nvcc was specified for compilation.');
     end
     
     % Write Mex file to annotate the options used in codegen
     writeMexFile(func, mpath, cpath, m2c_opts, iscuda);
     
     % Write README file
-    writeREADME(func, cpath, m2c_opts.genExe);
+    writeREADME(func, cpath, m2c_opts.genExe, iscuda);
     
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end

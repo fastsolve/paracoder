@@ -257,10 +257,16 @@ for i=1:ncarg
         vars(i).isconst = true;
     end
     
-    % Set size for scalar
+    % Set size for scalar or an optimized out array
     if isempty(vars(i).size)
         [vars(i).size, vars(i).vardim, vars(i).mname] = ...
-            determine_type_size(htmlfile, prefix, vars(i).cname, 1);
+            determine_type_size(htmlfile, prefix, vars(i).cname, 0);
+        if prod(vars(i).size)>1
+            % This is an optimized
+            assert(isequal(vars(i).cname, [vars(i).mname '_data']));
+            vars(i).isemx = true;
+            vars(i).sizefield = 'NULL';
+        end
     end
 end
 
@@ -339,8 +345,7 @@ ret = [];
 for i=1:nlhs
     % Parse output arguments
     for k=1:length(vars)
-        if isequal(vars(k).mname, m_args.output{i}) || ...
-                ~isempty(vars(k).sizefield) && isequal(vars(k).cname(1:end-5),m_args.output{i})
+        if isequal(vars(k).mname, m_args.output{i})
             assert(isequal(vars(k).mname, m_args.output{i}));
             vars(k).oindex = i;
             break;

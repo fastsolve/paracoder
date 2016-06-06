@@ -100,9 +100,7 @@ end
 if m2c_opts.withBlas
     COPTFLAGS = [COPTFLAGS ' -DM2C_BLAS=1 '];
 end
-if m2c_opts.withNvcc
-    COPTFLAGS = [COPTFLAGS ' -DM2C_NVCC=1 '];
-elseif m2c_opts.withCuda
+if m2c_opts.withCuda
     COPTFLAGS = [COPTFLAGS ' -DM2C_CUDA=1 '];
 end
 if m2c_opts.withMKL
@@ -198,7 +196,9 @@ filestr = sprintf('%s\n', ...
 
 if m2c_opts.withNvcc
     NVCC = [m2c_opts.cudaDir{1} '/bin/nvcc'];
-    NVCC_CFLAGS = [regexprep(CFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
+    
+    NVCC_CFLAGS = [regexprep(strrep(CFLAGS, '-std=c99', ''), ...
+        '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
     nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CFLAGS ' -x cu -dc ' funcname '.' m2c_opts.suf ' -o ' funcname '.o'];
     nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];

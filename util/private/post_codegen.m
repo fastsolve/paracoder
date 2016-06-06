@@ -15,6 +15,7 @@ ctypes_str = readFile(ctype_filename);
 usem2c = ~isempty(regexp(cfile_str, '\n#include "m2c.h"', 'once'));
 
 cfile_str_orig = cfile_str;
+hfile_str_orig = hfile_str;
 
 %% Move type declarations from C file to header file
 % Remove definition of emxArray__common
@@ -111,7 +112,7 @@ cfile_str = regexprep(cfile_str, '\n#ref\([^\)]+\);', '');
 iscuda = ~isempty(regexp(cfile_str, '\n\s*#mcuda_kernel', 'match', 'once'));
 
 if exist('replace_pragmas', 'file')
-    cfile_str = replace_pragmas(cfile_str, m2c_opts);
+    [cfile_str, hfile_str] = replace_pragmas(cfile_str, hfile_str, m2c_opts);
 end
 
 %% Change API definitinons.
@@ -141,8 +142,6 @@ if ~isempty(api_decl)
         % Move emxInit_ and emxFree_ of public data types into the header file
         [cfile_str, hfile_str] = move_emx_decl(cfile_str, hfile_str, public_types);
     end
-    
-    writeFile(h_filename, hfile_str);
 end
 
 % Remove two consecutive empty lines and empty functions
@@ -154,6 +153,11 @@ cfile_str = regexprep(cfile_str, '(\{\n)\n+(\})', '$1$2');
 % Write C file
 if ~isequal(cfile_str, cfile_str_orig)
     writeFile(cfilename, cfile_str);
+    changed = true;
+end
+
+if ~isequal(hfile_str, hfile_str_orig)    
+    writeFile(h_filename, hfile_str);
     changed = true;
 end
 
