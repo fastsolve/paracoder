@@ -24,6 +24,7 @@ if m2c_opts.useCpp
     varname_CFLAGS = 'CXXFLAGS';
     varname_OPTIMFLAGS = 'CXXOPTIMFLAGS';    
 else
+    CFLAGS = [CFLAGS ' -std=c99'];
     varname_CFLAGS = 'CFLAGS';
     varname_OPTIMFLAGS = 'COPTIMFLAGS';    
 end
