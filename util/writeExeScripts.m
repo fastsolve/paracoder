@@ -23,18 +23,6 @@ elseif m2c_opts.withMPI
     else
         CC = m2c_opts.mpiCC{1};
     end
-elseif m2c_opts.withACC
-    % Try to locate pgcc, with support of OpenACC and OpenMP
-    [CBASE, CXXBASE, found] = locate_pgcc;
-    if ~found
-        error('Could not locate pgcc. Please disable openacc');
-    end
-    
-    if m2c_opts.useCpp
-        CC = CXXBASE;
-    else
-        CC = CBASE;
-    end
 elseif isempty(m2c_opts.cc)
     if m2c_opts.useCpp
         CC = 'g++';
@@ -70,14 +58,6 @@ if ~m2c_opts.withACC
         cflags = [cflags ' -fopenmp'];
     end
     cflags = [cflags ' -Wall -Wno-unused-variable -Wno-unused-function'];
-end
-
-if m2c_opts.withACC
-    % Currently only supports PGI compilers
-    cflags = [cflags ' -acc -fast -ta=nvidia:cc30'];
-    if m2c_opts.debugInfo
-        cflags = [cflags ' -Minfo=accel'];
-    end
 end
 
 if ~isempty(m2c_opts.gprof)
@@ -144,7 +124,6 @@ if m2c_opts.withCuda
 end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
-libs = [libs sprintf(' %s ', m2c_opts.accLibs{:})];
 
 % Place exe file in the same directory as the M file.
 exedir = '../../../';

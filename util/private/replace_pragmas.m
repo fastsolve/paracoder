@@ -77,7 +77,7 @@ while ~isempty(regexp(str, pat, 'once'))
 end
 
 % Remove semicolon
-pat = ['(' prag ');(\n)'];
+pat = '(\n#[^\n]+);(\n)';
 while ~isempty(regexp(str, pat, 'once'))
     str = regexprep(str, pat, '$1$2');
 end
@@ -120,13 +120,18 @@ while ~isempty(regexp(str, pat, 'once'))
     str = regexprep(str, pat, '$2$1');
 end
 
-% Process begin_region and end_region
+%% Process kernel functions
+if ~isempty(regexp(str, '\n#mcuda_kernel', 'match', 'once'))
+    str = optimize_kernel_functions(str);
+end
+
+%% Process begin_region and end_region
 str = regexprep(str, '#{[^\n]+\n#}[^\n]+', '  {}');
 
 if m2c_opts.enableInline
-    parregion = ['(\n)#{(parallel|section|sections)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
+    parregion = ['(\n)#{(parallel|section|sections|cuda)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
         '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-        '#}(parallel|section|sections)\(\s*\)[^\n]*'];
+        '#}(parallel|section|sections|cuda)\(\s*\)[^\n]*'];
     region = ['(\n)#{([\w\s]*)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
         '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
         '#}([\w\s]*)\(\s*\)[^\n]*'];
@@ -139,34 +144,47 @@ if m2c_opts.enableInline
                     toks{i}{2}, [toks{i}{4},toks{i}{5}]);
             end
             if strfind(toks{i}{5}, 'emxEnsureCapacity')
-                fprintf(2,['It seems that you have memory allocation in an OpenMP %s region:\n %s', ...
-                    'If you allocated a local buffer, make sure you call m2c_sync(buf) before OMP_begin_%s.\n'], ...
-                    toks{i}{2}, [toks{i}{4},toks{i}{5}], toks{i}{2});
+                if ~isequal(toks{i}{2}, 'cuda')
+                    fprintf(2,['It seems that you have memory allocation in an OpenMP %s region:\n %s', ...
+                        'If you allocated a local buffer, make sure you call m2c_sync(buf) before OMP_begin_%s.\n'], ...
+                        toks{i}{2}, [toks{i}{4},toks{i}{5}], toks{i}{2});
+                else
+                    fprintf(2,['It seems that you have memory allocation in a CUDA parallel region:\n %s', ...
+                        'If you allocated a local buffer, make sure you call m2c_sync(buf) before MCU_begin_parallle.\n'], ...
+                        [toks{i}{4},toks{i}{5}]);
+                end
+            end
+            if ~isequal(toks{i}{2}, toks{i}{6})
+                fprintf(2, 'A %s region is marked with end_%s. Potential coding error:\n %s', ...
+                    toks{i}{2}, toks{i}{6}, [toks{i}{4},toks{i}{5}]);
             end
         end
 
         str = regexprep(str, region, ...
-            '$1$4M2C_BEGIN_REGION(/*omp $2*/)$3$4$5$4M2C_END_REGION(/*omp $6*/)$1');
+            '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4M2C_END_REGION(/*$6*/)$1');
     end
-    
-    % Add ifdef around "#pragma macc ..."
-    str = regexprep(str, '(\n+)(\s*#pragma) macc ([^\n]+)', ...
-        '$1#if defined(M2C_OPENACC)\n$2 acc $3\n#endif');
-    
+
     % Add ifdef around "#pragma momp ..."
     str = regexprep(str, '(\n+)(\s*#pragma) momp ([^\n]+)', ...
         '$1#if defined(M2C_OPENMP)\n$2 omp $3\n#endif');
+
+    % Check mismatched regions
+    marks = '(\n)#({|})(\w+)\(\s*\)[^\n]*\n';
+    if ~isempty(regexp(str, marks, 'once'))
+        warning('m2c:MismatchRegions', ...
+            'Found mis-matched begin and end labels. Look for REGION_MISMATCH in the C code.\n');
+        
+        str = regexprep(str, '(\n)#{(\w+)\(\s*\)[^\n]*\n', ...
+            '\nM2C_BEGIN_REGION_MISMATCH(/*$2*/)\n');
+        str = regexprep(str, '(\n)#}(\w+)\(\s*\)[^\n]*\n', ...
+            '\nM2C_END_REGION_MISMATCH(/*$2*/)\n');
+    end
 else
     % Remove all m2c pragmas
     str = regexprep(str, '\n#\+\+[^\n]*\n', '');
     str = regexprep(str, '\n#{[\w\s]*\(\s*\)[^\n]*\n', '');
     str = regexprep(str, '\n#}[\w\s]*\(\s*\)[^\n]*\n', '');
-    str = regexprep(str, '\n\s*#pragma macc [^\n]+\n', '');
     str = regexprep(str, '\n\s*#pragma momp [^\n]+\n', '');
-end
-
-if ~isempty(regexp(str, '\n#momp_kernel', 'match', 'once'))
-    str = optimize_kernel_functions(str);
 end
 
 %% Change whether the file has changed
@@ -174,7 +192,7 @@ changed = ~isequal(strin, str);
 end
 
 function fb = kernel_funcbody
-fb = '{(?:[^}][^\n]*\n)*\n#momp_kernel\n(?:[^}][^\n]*\n)*\n*}';
+fb = '{(?:[^}][^\n]*\n)*\n#mcuda_kernel\n(?:[^}][^\n]*\n)*\n*}';
 end
 
 function expr = funccall(func)
@@ -190,7 +208,7 @@ basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
 [kernels, prototype] = regexp(str, kernel, 'match', 'tokens');
 
 for i=1:length(kernels)
-    newfunc = regexprep(kernels{i}, '\n#momp_kernel', '');
+    newfunc = regexprep(kernels{i}, '\n#mcuda_kernel', '');
     
     funcdecl = regexp(str, ['\s+static\s+\w+\s+' prototype{i}{1} '\s*\([^\)]*\);'], 'match', 'once');
     %% Process each kernel function
