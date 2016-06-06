@@ -60,9 +60,13 @@ else
 end
 
 if m2c_opts.optimLevel==0
-    cflags = '-O0 -DM2C_DEBUG=1 -g';
+    cflags = '-fPIC -O0 -DM2C_DEBUG=1 -g';
 else
-    cflags = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
+    cflags = ['-fPIC -O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
+end
+
+if ~m2c_opts.useCpp
+    cflags = [cflags ' -std=c99 '];
 end
 
 if ~m2c_opts.withACC
@@ -83,7 +87,7 @@ end
 if ~isempty(m2c_opts.gprof)
     cflags = [cflags ' -pg '];
 elseif ~isempty(m2c_opts.gcov)
-    cflags = [cflags ' -fprofile-arcs -ftest-coverage -fPIC '];
+    cflags = [cflags ' -fprofile-arcs -ftest-coverage '];
     try delete([cpath '*.gcda']); catch; end
     try delete([cpath '*.gcno']); catch; end
 end
