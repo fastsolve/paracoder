@@ -102,10 +102,10 @@ typedef struct emxArray__common emxArray__common;
 #endif
 
 #ifndef INLINE_ENSURE_CAPACITY
-#if M2C_DEBUG
-#define INLINE_ENSURE_CAPACITY  0
-#else
+#if !defined(M2C_DEBUG) && defined(_STDC_C99)
 #define INLINE_ENSURE_CAPACITY  1
+#else
+#define INLINE_ENSURE_CAPACITY  0
 #endif /* M2C_DEBUG */
 #endif /* INLINE_ENSURE_CAPACITY */
 

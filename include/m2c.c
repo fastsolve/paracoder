@@ -4,7 +4,7 @@
 
 #include "rtwtypes.h"
 
-/* Always define an non-inlined versino of emxEnsureCapacity to
+/* Always define an non-inlined version of emxEnsureCapacity to
  * avoid linking errors */
 #if INLINE_ENSURE_CAPACITY
 #undef INLINE_ENSURE_CAPACITY
