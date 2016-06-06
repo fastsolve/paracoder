@@ -244,6 +244,25 @@ typedef char_T byte_T;
  */
 #define TMW_NAME_LENGTH_MAX	64
 
+#endif /* __TMWTYPES__ */
+
+#if !defined(__NVCC__)
+#ifndef __global__
+#define __global__
 #endif
+
+#ifndef __device__
+#define __device__
+#endif
+
+#ifndef __host__
+#define __host__
+#endif
+
+#ifndef __shared__
+#define __shared__
+#endif
+#endif
+
 #endif
 /* End of code generation (rtwtypes.h) */
