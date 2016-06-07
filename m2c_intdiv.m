@@ -10,5 +10,5 @@ else
     end
 
     quotient = int32(0);
-    quotient = coder.ceval('M2C_INTDIV', a, b);
+    quotient = coder.ceval('M2C_INTDIV', int32(a), int32(b));
 end
