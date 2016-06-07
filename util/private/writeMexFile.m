@@ -2,6 +2,7 @@ function writeMexFile(funcname, mpath, cpath, m2c_opts, iscuda)
 
 % TODO: Implement support for varargin, varargout, cell arrays, complex
 %       numbers, global variables, and function pointers.
+% TODO: Automatic conversion from MATLAB arrays to CUDA pointers
 
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
 
@@ -68,7 +69,8 @@ end
 
 end
 
-function str = printApiFunction(funcname, altname, nlhs, nrhs, vars, ret, SDindex, pruned_vars, timing)
+function str = printApiFunction(funcname, altname, nlhs, nrhs, vars, ...
+    ret, SDindex, pruned_vars, timing)
 % Print into a string an API function for the function with the given
 % numbers of input and output arguments.
 
@@ -93,8 +95,12 @@ sub_mx_level = max(sub_mx_level_in, sub_mx_level_out);
 str = sprintf('%s\n', ...
     ['void ' altname '_api(const mxArray ** prhs, const mxArray **plhs) {'], ...
     var_declr(vars, ret, sub_mx_level, timing), ...
-    marshallin_substr, '', '    /* Invoke the target function */', ...
-    ['    ' funcname '_initialize(' SDname ');']);
+    marshallin_substr, '', '    /* Invoke the target function */');
+
+if ~isempty(SDname)
+    str = sprintf('%s\n', str, ...
+        ['    ' funcname '_initialize(' SDname ');']);
+end
 
 if ~isempty(timing)
     str = sprintf('%s\n', str, '    _timestamp = M2C_wtime();');
@@ -109,8 +115,12 @@ if ~isempty(timing)
         ['    printf("Function ' funcname ' completed in %g seconds.\n", _timestamp);']);
 end
 
+if ~isempty(SDname)
+    str = sprintf('%s\n', str, ...
+        ['    ' funcname '_terminate();']);
+end
+
 str = sprintf('%s\n', str, ...
-    ['    ' funcname '_terminate();'], '', ...
     marshallout_substr, '', var_free(vars_ret), '}');
 
 % Remove two consecutive empty lines
