@@ -419,11 +419,11 @@ if regen_c
             co_cfg.GenerateExampleMain = 'GenerateCodeOnly';
         end
         co_cfg.GenerateMakefile = false;
-        co_cfg.TargetLangStandard = 'C89/C90 (ANSI)';
-        if m2c_opts.typeRep || m2c_opts.withCuda
-            % To support CUDA pointers, we need to use the bulit-in definition
-            % of uint_64 for compatability with M.S. Windows, because MATLAB
-            % Coder uses "unsigned long" for "uint64" in code generation.
+        co_cfg.TargetLangStandard = 'C99 (ISO)';
+        if m2c_opts.typeRep || m2c_opts.withCuda && ~isunix()
+            % To support CUDA pointers, it is recommended to use the bulit-in 
+            % definition of uint_64 for compatability with M.S. Windows, 
+            % because MATLAB Coder uses "unsigned long" for "uint64".
             co_cfg.DataTypeReplacement = 'CoderTypeDefs';
         else
             co_cfg.DataTypeReplacement = 'CBuiltIn';
@@ -504,6 +504,10 @@ end
 if m2c_opts.genMex
     if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', mexbuild)
         writeMexScript(func, cpath, m2c_opts);
+        if m2c_opts.withNvcc
+            % Also write a script for feval
+            writeFevalScript(func, mpath, m2c_opts);
+        end
     end
     
     clear(mexbuild);
