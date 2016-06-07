@@ -16,6 +16,7 @@ usem2c = ~isempty(regexp(cfile_str, '\n#include "m2c.h"', 'once'));
 
 cfile_str_orig = cfile_str;
 hfile_str_orig = hfile_str;
+ctypes_str_orig = ctypes_str;
 
 %% Move type declarations from C file to header file
 % Remove definition of emxArray__common
@@ -42,7 +43,6 @@ if ~isempty(type_def)
     else
         ctypes_str = regexprep(ctypes_str, '(\n#endif\n*$)', [type_def '$1']);
     end
-    writeFile(ctype_filename, ctypes_str);
 end
 
 %% Remove functions for standard data types
@@ -81,6 +81,45 @@ cfile_str = regexprep(cfile_str, ['emxArray_\w+\s+\*emxCreateWrapperND_' basicty
     '\([^,\)]+,[^,\)]+,[^,\)]+\)\s*' funcbody], '');
 cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_' basictype ...
     '\([^,\)]+\)\s*' funcbody], '');
+
+if m2c_opts.withNvcc
+    % For NVCC, remove declaration of emxCreate_basictype, emxCreateND_basictype,
+    % and emxCreateWrapperND_basictype, emxDestroyArray_basictype
+    hfile_str = regexprep(hfile_str, ['extern emxArray_\w+\s+\*emxCreate_' basictype ...
+        '\([^,\)]+,[^,\)]+\);\n'], '');
+    hfile_str = regexprep(hfile_str, ['extern emxArray_\w+\s+\*emxCreateND_' basictype ...
+        '\([^,\)]+,[^,\)]+\);\n'], '');
+    hfile_str = regexprep(hfile_str, ['extern emxArray_\w+\s+\*emxCreateWrapper_' basictype ...
+        '\([^,\)]+,[^,\)]+,[^,\)]+\);\n'], '');
+    hfile_str = regexprep(hfile_str, ['extern emxArray_\w+\s+\*emxCreateWrapperND_' basictype ...
+        '\([^,\)]+,[^,\)]+,[^,\)]+\);\n'], '');
+    hfile_str = regexprep(hfile_str, ['extern void\s+emxDestroyArray_' basictype ...
+        '\([^,\)]+\);\n'], '');
+    
+    % Also remove emxInitArray_
+    cfile_str = regexprep(cfile_str, ['void\s+emxInitArray_' basictype ...
+        '\([^,\)]+,[^,\)]+\)\s*' funcbody], '');
+    hfile_str = regexprep(hfile_str, ['extern void\s+emxInitArray_' basictype ...
+        '\([^,\)]+,[^,\)]+\);\n'], '');
+    
+    % Remove definition of emxArray__*
+    ctypes_str = regexprep(ctypes_str, ['#ifndef\s+struct_emxArray_\w+\s+'...
+        '#define\s+struct_emxArray_\w+\s+struct\s+emxArray_\w+\s+{[^}]+};\s+' ...
+        '#endif\s+#ifndef\s+typedef_emxArray_\w+\s+#define\s+typedef_emxArray_\w+\s+' ...
+        'typedef\s+struct\s+emxArray_\w+\s+' ...
+        'emxArray_\w+;\s+#endif\n'], '');
+    
+    % Remove #include _types.h
+    hfile_str = regexprep(hfile_str, '#include "\w+_types.h"\n', '');
+
+    % Remove empty _initialize and _terminate routines
+    cfile_str = regexprep(cfile_str, ['void\s+\w+(_initialize|_terminate)' ...
+        '\(void\)\s*' funcbody], '');
+    hfile_str = regexprep(hfile_str, ['extern void\s+\w+(_initialize|_terminate)' ...
+        '\(void\);\n'], '');
+    hfile_str = regexprep(hfile_str, '#include "\w+_types.h"\n', '');
+end
+
 
 % % Remove declaration of emxCreate_struct, emxCreateND_struct,
 % % and emxCreateWrapperND_struct, emxDestroyArray_struct
@@ -144,6 +183,20 @@ if ~isempty(api_decl)
     end
 end
 
+%% Replace M2C_GET_FIELD, M2C_SET_FIELD, and M2C_INTDIV
+cfile_str = regexprep(cfile_str, '([^\w])M2C_GET_FIELD\((\w+),\s*(\w+)\)', ...
+    '$1$2->$3');
+cfile_str = regexprep(cfile_str, '([^\w])M2C_GET_FIELD\(([^,\)]+),\s*(\w+)\)', ...
+    '$1($2)->$3');
+cfile_str = regexprep(cfile_str, '([^\w])M2C_SET_FIELD\((\w+),\s*(\w+),\s*(\w+)\)', ...
+    '$1$2->$3 = $4');
+cfile_str = regexprep(cfile_str, '([^\w])M2C_SET_FIELD\(([^,\)]+),\s*(\w+),\s*(\w+)\)', ...
+    '$1($2)->$3 = $4');
+cfile_str = regexprep(cfile_str, '([^\w])M2C_INTDIV\((\w+),\s*(\w+)\)', ...
+    '$1$2 / $3');
+cfile_str = regexprep(cfile_str, '([^\w])M2C_INTDIV\(([^,\)]+),\s*([^,\)]+)\)', ...
+    '$1($2) / ($3)');
+
 % Remove two consecutive empty lines and empty functions
 while ~isempty(regexp(cfile_str, '\n\n\n', 'once'))
     cfile_str = regexprep(cfile_str, '(\n\n)\n', '$1');
@@ -153,6 +206,11 @@ cfile_str = regexprep(cfile_str, '(\{\n)\n+(\})', '$1$2');
 % Write C file
 if ~isequal(cfile_str, cfile_str_orig)
     writeFile(cfilename, cfile_str);
+    changed = true;
+end
+
+if ~isequal(ctypes_str, ctypes_str_orig)    
+    writeFile(ctype_filename, ctypes_str);
     changed = true;
 end
 

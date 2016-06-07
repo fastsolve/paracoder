@@ -122,7 +122,7 @@ end
 
 %% Process kernel functions
 if ~isempty(regexp(cfile_str, '\n#mcuda_kernel', 'match', 'once'))
-    [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str);
+    [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts);
 end
 
 %% Process begin_region and end_region
@@ -220,7 +220,7 @@ function expr = funccall(func)
 expr = ['\n[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
 end
 
-function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str)
+function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts)
 %% Find kernel functions
 kernel = ['\w+\s+(\w+)\s*(\([^{}\)]+\))\s*' kernel_funcbody];
 basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
@@ -259,9 +259,11 @@ while true
             
             if ~isempty(arg)
                 newfuncdecl = regexprep(newfuncdecl, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *' [arg{2} '_data'] '$1']);
+                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
+                    [get_ctypename(arg{1}, m2c_opts.typeRep) ' *' [arg{2} '_data'] '$1']);
                 newargs = regexprep(newargs, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], [arg{1} ' *' [arg{2} '_data'] '$1']);
+                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
+                    [get_ctypename(arg{1}, m2c_opts.typeRep)  ' *' [arg{2} '_data'] '$1']);
                 newfunc = regexprep(newfunc, [arg{2} '->\s*data'], [arg{2} '_data']);
                 
                 append(k) = true;
@@ -355,4 +357,37 @@ while i<length(args)
     i = i + 1;
 end
 
+end
+
+function ctype = get_ctypename(basetype, nochange)
+if nochange
+    ctype = basetype;
+    return; 
+end
+switch basetype
+    case 'boolean_T'
+        ctype = 'boolean_T';
+    case 'char_T'
+        ctype = 'char';
+    case 'int8_T'
+        ctype = 'signed char';
+    case 'uint8_T'
+        ctype = 'unsigned char';
+    case 'int16_T'
+        ctype = 'short';
+    case 'uint16_T'
+        ctype = 'unsigned short';
+    case 'int32_T'
+        ctype = 'int';
+    case 'uint32_T'
+        ctype = 'unsigned int';
+    case 'int64_T'
+        ctype = 'signed long';
+    case 'uint64_T'
+        ctype = 'unsigned long';
+    case {'real_T', 'real64_T'}
+        ctype = 'double';
+    case 'real32_T'
+        ctype = 'float';
+end
 end
