@@ -1,5 +1,5 @@
 function writeExeScripts(funcname, cpath, m2c_opts)
-% Generate scripts for building the standalone executable.
+% Generate scripts for building and running a standalone executable.
 
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
 
