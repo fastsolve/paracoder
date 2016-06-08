@@ -4,7 +4,12 @@ function writeMexFile(funcname, mpath, cpath, m2c_opts, iscuda)
 %       numbers, global variables, and function pointers.
 % TODO: Automatic conversion from MATLAB arrays to CUDA pointers
 
-altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
+altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, ...
+    '(\w+)\s+-args', 'match'), ' -args', ''))];
+
+if iscuda
+    altapis = filterOutCudaGlobal(funcname, altapis, mpath);
+end
 
 % Write out _mex file
 outCfile = [cpath funcname '_mex.' m2c_opts.suf];
@@ -869,5 +874,33 @@ elseif prod(var.size)>1
         str, indent, prod(var.size), substr, indent);
 else
     str = sprintf('%s\n%s', str, substr);
+end
+end
+
+function altapis = filterOutCudaGlobal(funcname, altapis, mpath)
+% Remove functions that are declared to be global
+
+hfile = [mpath 'codegen/lib/' funcname '/' funcname '.h'];
+
+% Read in C declarations
+[fid, msg] = fopen(hfile, 'r', 'n', 'US-ASCII');
+if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
+
+hfile = fread(fid, inf, '*char')';
+hfile = regexprep(hfile, '\r\n', '\n');
+hfile = regexprep(hfile, '\n', ' ');
+fclose(fid);
+
+i = 1;
+while i<=length(altapis)
+    altfunc = altapis{i};
+
+    % Extract function definition from the header file
+    if ~isempty(regexp(hfile, ['__global__\s+extern\s+(unsigned\s+)?\w+\s+' ...
+            altfunc '\s*\([^)]*\)'], 'match', 'once'))
+        altapis(i) = [];
+    else
+        i = i + 1;
+    end
 end
 end
