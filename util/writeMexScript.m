@@ -169,7 +169,7 @@ if ~isempty(m2c_opts.mexFile)
         [mexDir, mexBase, ~] = filearts(mexFile);
         mexFile = [mexDir '/' mexBase '.' mexext];
     end
-elseif isequal(mpath, cpath(1:length(mpath)))
+elseif isempty(mpath) || isequal(mpath, cpath(1:length(mpath)))
     mexDir = repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/')));
     mexFile = [mexDir funcname '.' mexext];
 elseif mpath(1)=='/' || mpath(1)=='\'

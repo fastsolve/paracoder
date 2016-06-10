@@ -388,8 +388,9 @@ if ~isempty(comment)
     type_def = comment(25:end-30);
 else
     % Move type declarations from C code to the _types.h header file.
-    pat = ['#ifndef\s+\w+\n+\#define\s+\w+\n+struct\s+\w+\s+\{([^}][^\n]+\n)+\};\n+#endif\n+' ...
-        '#ifndef\s+typedef_\w+\n+#define\s+\w+\n+typedef\s+struct\s+\w+\s+\w+;\n+#endif'];
+    pat = ['#ifndef\s+\w+\n+\#define\s+\w+\n+(typedef\s+struct\s+{([^}][^\n]+\n)+\}\s+\w+|' ...
+        'struct\s+\w+\s+\{([^}][^\n]+\n)+\};\n+#endif\n+' ...
+        '#ifndef\s+typedef_\w+\n+#define\s+\w+\n+typedef\s+struct\s+\w+\s+\w+);\n+#endif'];
     
     types = regexp(cfile, pat, 'match');
     type_def = '';
