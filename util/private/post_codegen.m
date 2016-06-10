@@ -203,6 +203,7 @@ while ~isempty(regexp(cfile_str, '\n\n\n', 'once'))
 end
 cfile_str = regexprep(cfile_str, '(\{\n)\n+(\})', '$1$2');
 
+changed = false;
 % Write C file
 if ~isequal(cfile_str, cfile_str_orig)
     writeFile(cfilename, cfile_str);
