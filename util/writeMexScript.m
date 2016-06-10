@@ -1,4 +1,4 @@
-function writeMexScript(funcname, cpath, m2c_opts)
+function writeMexScript(funcname, mpath, cpath, m2c_opts)
 % Generate a script for building the Mex file.
 
 % Nested function for writing out mex script
@@ -17,33 +17,22 @@ clear(outMfile);
 mexflags = '';
 
 CC = '';
-CFLAGS = '-fPIC';
+CFLAGS = '-fPIC -std=c99';
+CXXFLAGS = '-fPIC';
 LDFLAGS = '';
-
-if m2c_opts.useCpp
-    varname_CFLAGS = 'CXXFLAGS';
-    varname_OPTIMFLAGS = 'CXXOPTIMFLAGS';
-else
-    CFLAGS = [CFLAGS ' -std=c99'];
-    varname_CFLAGS = 'CFLAGS';
-    varname_OPTIMFLAGS = 'COPTIMFLAGS';
-end
 
 if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
     % PETSc for CC and add the include path.
     CC = ['CC=''''' m2c_opts.petscCC{1} '''''' ...
         ' CXX=''''' m2c_opts.petscCXX{1} ''''''];
-    if m2c_opts.useCpp
-        CFLAGS = [CFLAGS ' ' m2c_opts.petscCXXFLAGS{1}];
-    else
-        CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1}];
-    end
+    CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1}];
+    CXXFLAGS = [CXXFLAGS ' ' m2c_opts.petscCXXFLAGS{1}];
 elseif m2c_opts.withMPI
     % If MPI is used, enforce using mpi compiler wrappers
     CC = ['CC=''''' m2c_opts.mpiCC{1} ''''' CXX=''''' m2c_opts.mpiCXX{1} ''''''];
 elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
-    % Try to locate gcc-mp, with support of OpenMP
+    % Try to locate gcc-mp on Mac, with support of OpenMP
     [CBASE, CXXBASE, found] = locate_gcc_mp;
     if ~found
         if m2c_opts.withOMP
@@ -57,11 +46,13 @@ elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
 end
 
-CFLAGS = [CFLAGS ' -Wno-unused-variable -Wno-unused-function -Wno-null-character -Wno-invalid-pp-token'];
 if m2c_opts.withOMP
     CFLAGS = [CFLAGS ' -fopenmp'];
+    CXXFLAGS = [CXXFLAGS ' -fopenmp'];
     LDFLAGS = [LDFLAGS ' -fopenmp'];
 end
+
+CFLAGS = [CFLAGS ' -Wno-unused-variable -Wno-unused-function -Wno-null-character -Wno-invalid-pp-token'];
 
 if ismac
     LDFLAGS = [LDFLAGS ' -dynamiclib'];
@@ -71,43 +62,24 @@ if ~isempty(CC)
     mexflags = [mexflags ' ' CC];
 end
 
-CPPFLAGS = ' -I"'' m2cdir ''/include" ';
 if ~isempty(m2c_opts.cppflags)
-    CPPFLAGS = [CPPFLAGS sprintf(' %s ', m2c_opts.cppflags{:})];
+    CPPFLAGS = sprintf(' %s ', m2c_opts.cppflags{:});
 end
 % Append all the CPPFLAGS
 mexflags = [mexflags ' ' CPPFLAGS];
 
 if ~isempty(m2c_opts.cflags)
     % Overwrite all the CFLAGS flags
-    mexflags = [mexflags ' ' varname_CFLAGS '=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
+    mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ...
+        ''''' CXXFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
 elseif ~isempty(CFLAGS)
-    mexflags = [mexflags ' ' varname_CFLAGS '=''''' CFLAGS ''''''];
-end
-
-if ~isempty(m2c_opts.ldflags)
-    mexflags = [mexflags ' LDFLAGS=''''' sprintf(' %s ', m2c_opts.ldflags{:}) ''''''];
-elseif ~isempty(LDFLAGS)
-    mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
+    mexflags = [mexflags ' CFLAGS=''''' CFLAGS ''''' CXXFLAGS=''''' CXXFLAGS ''''''];
 end
 
 if m2c_opts.optimLevel==0
-    COPTFLAGS = '-O0 -DM2C_DEBUG=1';
+    COPTFLAGS = '-O0';
 else
-    COPTFLAGS = ['-O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0'];
-end
-
-if m2c_opts.withBlas
-    COPTFLAGS = [COPTFLAGS ' -DM2C_BLAS=1 '];
-end
-if m2c_opts.withCuda
-    COPTFLAGS = [COPTFLAGS ' -DM2C_CUDA=1 '];
-end
-if m2c_opts.withMKL
-    COPTFLAGS = [COPTFLAGS ' -DM2C_MKL=1 '];
-end
-if m2c_opts.withOMP
-    COPTFLAGS = [COPTFLAGS ' -DM2C_OPENMP '];
+    COPTFLAGS = ['-O' num2str(m2c_opts.optimLevel)];
 end
 
 if m2c_opts.debugInfo && m2c_opts.verbose
@@ -115,7 +87,13 @@ if m2c_opts.debugInfo && m2c_opts.verbose
 elseif m2c_opts.debugInfo
     COPTFLAGS = [COPTFLAGS ' -g'];
 end
-mexflags = [mexflags ' ' varname_OPTIMFLAGS '=''''' COPTFLAGS ''''''];
+mexflags = [mexflags ' COPTIMFLAGS=''''' COPTFLAGS ''''' CXXOPTIMFLAGS=''''' COPTFLAGS ''''''];
+
+if ~isempty(m2c_opts.ldflags)
+    mexflags = [mexflags ' LDFLAGS=''''' sprintf(' %s ', m2c_opts.ldflags{:}) ''''''];
+elseif ~isempty(LDFLAGS)
+    mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
+end
 
 if ~isempty(m2c_opts.mexflags)
     % Overwrite mexflags
@@ -177,12 +155,28 @@ if m2c_opts.enableInf
     srcs = [srcs ' rtGetInf.' m2c_opts.suf  ' rtGetNaN.' m2c_opts.suf ' rt_nonfinite.' m2c_opts.suf];
 end
 
-
-% Place mex file in the same directory as the M file.
-mexdir = '../../../';
-% If m2c_opts.mexDir is nonempty, modify the output directory.
-if ~isempty(m2c_opts.mexDir)
-    mexdir = [mexdir m2c_opts.mexDir{1} '/'];
+% If m2c_opts.mexFile is nonempty, modify the output directory.
+if ~isempty(m2c_opts.mexFile)
+    if m2c_opts.mexFile{1}(1)=='/' || m2c_opts.mexFile{1}(1)=='\'
+        mexFile = m2c_opts.mexFile{1};
+    else
+        mexFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
+            m2c_opts.mexFile{1}];
+    end
+    if exist([mpath m2c_opts.mexFile{1}], 'dir')
+        mexFile = [mexFile '/' funcname '.' mexext];
+    else
+        [mexDir, mexBase, ~] = filearts(mexFile);
+        mexFile = [mexDir '/' mexBase '.' mexext];
+    end
+elseif isequal(mpath, cpath(1:length(mpath)))
+    mexDir = repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/')));
+    mexFile = [mexDir funcname '.' mexext];
+elseif mpath(1)=='/' || mpath(1)=='\'
+    mexFile = [mpath funcname '.' mexext];
+    % By default, place mex file in the same directory as the M file.
+else
+    mexFile = [pwd '/' mpath funcname '.' mexext];
 end
 
 [~, signature] = ckSignature(m2c_opts, 'mex');
@@ -190,19 +184,17 @@ end
 % Place mex file in the same directory as the M file.
 filestr = sprintf('%s\n', ...
     ['% Build script for ' funcname], signature, '', ...
-    ['if exist(''isnewer'', ''file'') && ~isnewer([''' mexdir funcname ...
-    '.'' mexext], ''' prefix funcname '.m'', ''' funcname '_mex.' m2c_opts.suf ''')'], ...
-    '    m2cdir = fileparts(which(''m2c_printf.m''));');
+    ['if exist(''isnewer'', ''file'') && ~isnewer(''' mexFile ...
+    ''', ''' prefix funcname '.m'', ''' funcname '_mex.' m2c_opts.suf ''')']);
 
 if m2c_opts.withNvcc
     NVCC = [m2c_opts.cudaDir{1} '/bin/nvcc'];
     
-    NVCC_CFLAGS = [regexprep(strrep(CFLAGS, '-std=c99', ''), ...
-        '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
+    NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
-    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CFLAGS ' -x cu -dc ' funcname '.' m2c_opts.suf ' -o ' funcname '.o'];
-    nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
-    nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CFLAGS ' -x cu -ptx ' funcname '.' m2c_opts.suf ' -o ' funcname '.ptx'];
+    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -x cu -dc ' funcname '.' m2c_opts.suf ' -o ' funcname '.o'];
+    nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
+    nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -x cu -ptx ' funcname '.' m2c_opts.suf ' -o ' funcname '.ptx'];
     
     filestr = sprintf('%s\n', filestr, ...
         ['    nvccCmd1 = [''' nvccCmd1 '''];'], ...
@@ -225,11 +217,11 @@ end
 if exist('octave_config_info', 'builtin')
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = [''mmex ' mexflags ' ' ...
-        srcs ' -output ' mexdir funcname  '.'' mexext ''' LINKLIBS '''];']);
+        srcs ' -output ' mexFile LINKLIBS '''];']);
 else
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = [''mex ' mexflags ' '...
-        srcs ' -largeArrayDims -output ' mexdir funcname  '.'' mexext ''' LINKLIBS '''];']);
+        srcs ' -largeArrayDims -output ' mexFile LINKLIBS '''];']);
 end
 
 if ~m2c_opts.quiet

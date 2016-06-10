@@ -123,6 +123,10 @@ end
 %% Process kernel functions
 if ~isempty(regexp(cfile_str, '\n#mcuda_kernel', 'match', 'once'))
     [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts);
+    % Remove rtwtypes from header file
+    if ~m2c_opts.typeRep
+        hfile_str = regexprep(hfile_str, '\n#include "rtwtypes.h"', '');
+    end
 end
 
 %% Process begin_region and end_region
@@ -212,20 +216,29 @@ end
 changed = ~isequal(strin, cfile_str);
 end
 
-function fb = kernel_funcbody
-fb = '{(?:[^}][^\n]*\n)*\n#mcuda_kernel\n(?:[^}][^\n]*\n)*\n*}';
+function expr = cuda_kernel_funcbody
+expr = '{(?:([^}\n][^\n]*)?\n)*\n#mcuda_kernel\n(?:([^}\n][^\n]*)?\n)*\n*}';
 end
 
 function expr = funccall(func)
-expr = ['\n[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
+expr = ['\n\s+[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
+end
+
+function expr = basictype
+expr = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
+    'uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)'];
+end
+
+function expr = kernel
+expr = ['\w+\s+(\w+)\s*(\([^{}\)]+\))\s*' cuda_kernel_funcbody];
+end
+
+function expr = set_threads_args 
+expr = '#pragma mcuda set_threads\(([^,]+),\s*([^\)]+)\)[^\n]*\n';
 end
 
 function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts)
 %% Find kernel functions
-kernel = ['\w+\s+(\w+)\s*(\([^{}\)]+\))\s*' kernel_funcbody];
-basictype = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
-    'uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)'];
-set_threads_args = '#pragma mcuda set_threads\(([^,]+),\s*([^\)]+)\)[^\n]*\n';
 
 while true
     [kernels, prototype] = regexp(cfile_str, kernel, 'match', 'tokens', 'once');
@@ -276,12 +289,11 @@ while true
         isglobal = ~isempty(strfind(newfunc, '#pragma mcuda global'));
         if isglobal
             newfuncdecl = sprintf('%s\n', '', ...
-                '__global__', ...
-                newfuncdecl(2:end));
+                '__global__', newfuncdecl(2:end));
             newfunc = sprintf('%s\n', '', ...
-                '__global__', ...
-                newfunc);
+                '__global__', newfunc);
         end
+        
         if inheader
             hfile_str = strrep(hfile_str, funcdecl, newfuncdecl);
         else
@@ -289,19 +301,22 @@ while true
         end
         
         %% Find function calls to the kernel functions
-        [calls,pos] = regexp(cfile_str, funccall(prototype{1}), 'match');
-        for k=1:length(calls)
-            if ~isempty(regexp(calls{k}, '\s+static\s+', 'once'))
+        while true
+            [calls,pos] = regexp(cfile_str, funccall(prototype{1}), 'match', 'once');
+            if isempty(calls)
+                break;
+            end
+            if ~isempty(regexp(calls, '\s+static\s+', 'once'))
                 continue;
             end
-            [call, newcall, args] = parsefunccall(calls{k}, prototype{1});
+            [call, newcall, args] = parsefunccall(calls, prototype{1});
             assert(length(args)==length(append));
 
             if isglobal
-                set_threads = regexp(cfile_str(1:pos(k)), set_threads_args, 'tokens');
+                set_threads = regexp(cfile_str(1:pos), set_threads_args, 'tokens');
                 if ~isempty(set_threads)
-                    newcall = [newcall(1:end-1) ' MCU_SET_THREADS(' ...
-                        set_threads{end}{1}, ', ', set_threads{end}{2}, ') ('];
+                    newcall = [newcall(1:end-1) '<<<' ...
+                        set_threads{end}{1}, ', ', set_threads{end}{2}, '>>>('];
                 end
             end
 

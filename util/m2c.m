@@ -1,6 +1,6 @@
 function m2c(varargin)
-% Wrapper for converting MATLAB code into a C library using MATLAB Coder and
-%    for building the C code into a MEX file or a standalone executable.
+% Wrapper for converting MATLAB code into a C library using MATLAB Coder
+% and for building the C code into a MEX file or a standalone executable.
 %
 % Usage:
 %   m2c <options> topLevelFunc [-args {...}]
@@ -17,29 +17,39 @@ function m2c(varargin)
 %      the M file from the first comment block started with %#codegen.
 %
 %  -lib and -dll allows you to build a static or dynamic library from a
-%  list of MATLAB functions specified by the -api option.
+%  list of MATLAB functions specified by the -api option. (Not yet
+%  implemented.)
 %
 %  The options for m2c have several groups, defined as follows:
 %
 % COMPILATION WORKFLOW
 %     -mex
-%     -mex {'relative_path_to_m_file'}
-%           By default, m2c only generates the C code. This options requests
+%     -mex {'relative_path_to_m_file'} or
+%     -mex {'mex_path_and_filename'}
+%           By default, m2c only generates the C code. This option requests
 %           m2c to build the mex function in addition to generating the C files.
 %           By default, the mex file will be saved in the same directory
-%           as the M file. If a parameter is given, it saves the mex file
-%           to the specified directory, which should be a path relative to
-%           the M file (such as 'mex').
+%           as the M file. If a parameter is given, and it ends with '/' (or
+%           '\' on Windows) or it is an existing directory, then the mex
+%           file will be saved to the specified directory; if the parameter
+%           does not correspond to a directory name, it will be considered
+%           the filename for the mex file, of which the extension (if specified)
+%           will be replaced by mexext for the particular computer platform.
 %     -exe
-%     -exe {'relative_path_to_m_file'}
+%     -exe {'relative_path_to_m_file'} or
+%     -exe {'exe_path_and_filename'}
 %           Generate a MATLAB script for running the exe file from within
 %           MATLAB for debugging in place of the M-file (for Linux and Mac).
 %           By default, the exe file will be saved in the same directory
-%           as the M file. If a parameter is given, it saves the exe file
-%           to the specified directory, which should be a path relative to
-%           the M file (such as 'exe').
+%           as the M file, with the extension '.exe'.  If a parameter is 
+%           given, and it ends with '/' (or '\' on Windows) or it is an 
+%           existing directory, then the executable will be saved to the 
+%           specified directory; if the parameter is not a directory name, 
+%           it will be treated as the filename of the executable, without 
+%           any extension appended to it.
 %     -lib
-%     -lib {'rootdir'}
+%     -lib {'libdir'} or 
+%     -lib {'lib_path_and_filename'} 
 %           Generate wrapper C files and a makefile for building a static
 %           library from a list fo M files. Additional API functions with 
 %           the M files can be specified using the -api optoins.
@@ -52,7 +62,8 @@ function m2c(varargin)
 %           where the basename is the last part of the rootdir. If rootdir
 %           is not specified, the base name is the current directory name.
 %     -dll
-%     -dll {'rootdir'}
+%     -dll {'dlldir'} or
+%     -dll {'dll_path_and_filename'} or
 %           This is the same as -lib, except that it will generate a
 %           dynamic instead of static library. The suffix is .so, .dylib,
 %           and .dll on Linux, Mac, and Windows, respectively. The options
@@ -112,7 +123,12 @@ function m2c(varargin)
 %           during code generation.
 %     -outdir {'dir'}
 %           Specifies the output directory of the generated C code for the
-%           top-level MATLAB function.
+%           top-level MATLAB function. By default, if -nvcc is enabled, the
+%           generated CUDA code will be in codegen/lib/<funcname>-cuda;
+%           if -omp is enabled, the generated OpenMP code will be in
+%           codegen/lib/<funcname>-omp; otherwise, the code is in the
+%           codegen/lib/<funcname>. All the path is relative to the M file.
+%           You can overwrite these default directory names.
 %     -example
 %           Generate example main file.
 %     -config {'expression'}
@@ -147,13 +163,13 @@ function m2c(varargin)
 %           assigned by -O?, -cc -cflags options. The argument list is a
 %           cell array of character strings. Each string can be a MATLAB
 %           expression. E.g., -mexflags {'COPTIMFLAGS=''-O3 -NDEBUG'''}.
-%     -D'macro'
+%     -D<macro>
 %           Add a definition of a macro for C preprocessor.
-%     -I'dir'
+%     -I<dir>
 %           Add search path for C header files.
-%     -llib
+%     -l<lib>
 %           Specify linking of a particular library.
-%     -L'dir'
+%     -L<dir>
 %     -L {'dir1', 'dir2', ..., 'dirn'}
 %           Add search path for libraries for linking. In the second
 %           format, -rpath will also be added automatically for linking
@@ -346,7 +362,22 @@ end
 %% Process arguments
 % Split filename into the path and filename
 [mpath, func, mfile] = get_path_of_mfile(matlabFunc);
-cpath = [mpath 'codegen/lib/' func '/'];
+
+if isempty(m2c_opts.outDir)
+    if m2c_opts.withNvcc
+        m2c_opts.outDir = {['codegen/lib/' func '-cuda']};
+    elseif m2c_opts.withOMP
+        m2c_opts.outDir = {['codegen/lib/' func '-omp']};
+    else
+        m2c_opts.outDir = {['codegen/lib/' func]};
+    end
+end
+
+if m2c_opts.outDir{1}(1)=='/' || m2c_opts.outDir{1}(1)=='\' 
+    cpath = [m2c_opts.outDir{1}(1) '/'];
+else
+    cpath = [mpath m2c_opts.outDir{1} '/'];
+end
 
 if isempty(m2c_opts.codegenArgs)
     % Extract arguments from source code.
@@ -456,7 +487,8 @@ if regen_c
     end
     
     if m2c_opts.verbose; basecommand = [basecommand ' -v']; end
-    basecommand = [basecommand sprintf(' %s ', '-I ./codegen', m2c_opts.addpath{:})];
+    basecommand = [basecommand sprintf(' %s ', ...
+        m2c_opts.addpath{:}, '-I ./codegen', '-d', m2c_opts.outDir{1})];
     command = strtrim([basecommand ' ' opts ' ' func ' ' m2c_opts.codegenArgs]);
     
     try
@@ -503,10 +535,10 @@ else
 end
 if m2c_opts.genMex
     if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'mex', mexbuild)
-        writeMexScript(func, cpath, m2c_opts);
+        writeMexScript(func, mpath, cpath, m2c_opts);
         if m2c_opts.withNvcc
             % Also write a script for feval
-            writeFevalScript(func, mpath, m2c_opts);
+            writeFevalScript(func, mpath, cpath, m2c_opts);
         end
     end
     
@@ -526,7 +558,7 @@ if m2c_opts.genExe
     
     if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
         % Write the build script for Exe
-        writeExeScripts(func, cpath, m2c_opts);
+        writeExeScripts(func, mpath, cpath, m2c_opts);
     end
     
     if ~exist('octave_config_info', 'builtin')
@@ -607,10 +639,11 @@ m2c_opts = struct('codegenArgs', [], ...
     'valgrind', '', ...
     'gdb', '', ...
     'ddd', '', ...
+    'outDir', '', ...
     'genMex', false, ...
-    'mexDir', '', ...
+    'mexFile', '', ...
     'genExe', false, ...
-    'exeDir', '', ...
+    'exeFile', '', ...
     'genLib', false, ...
     'genDll', false, ...
     'libRoot', '', ...
@@ -630,6 +663,9 @@ for i=1:length(names)
         m2c_opts.(names{i}) = {m2c_opts.(names{i})};
     end
 end
+
+m2croot = fileparts(which('m2c_printf.m'));
+m2c_opts.cppflags = {['-I' m2croot '/include']};
 
 func_index = 0;
 i = 1;
@@ -662,16 +698,27 @@ while i<=last_index
             end
         case '-example'
             m2c_opts.exampleMain = true;
+        case '-outDir'
+            if i<last_index && varargin{i+1}(1) == '{'
+                m2c_opts.outDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+                m2c_opts.outDir = varargin(i+1);
+                i = i + 1;
+            else
+                error('m2c:wrong_argument', ...
+                    'Argument -outdir requires a cell-array argument after it.\n');
+            end
         case '-mex'
             m2c_opts.genMex = true;
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.mexDir = eval(varargin{i+1});
+                m2c_opts.mexFile = eval(varargin{i+1});
                 i = i + 1;
             end
         case '-exe'
             m2c_opts.genExe = true;
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.exeDir = eval(varargin{i+1});
+                m2c_opts.exeFile = eval(varargin{i+1});
                 i = i + 1;
             end
         case '-g'
@@ -792,6 +839,7 @@ while i<=last_index
                         '-cuda flag or be specified by environment variable CUDA_PATH.\n']);
                 end
             end
+            
             m2c_opts.withCuda = true;
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
             m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
@@ -820,6 +868,7 @@ while i<=last_index
             if m2c_opts.mklDir{1}(end)=='/' || m2c_opts.mklDir{1}(end)=='\'
                 m2c_opts.mklDir{1}(end) = [];
             end
+            
             m2c_opts.withMKL = true + ~isempty(strfind(opt, 'omp'));
             m2c_opts.mklInc = {['-I' m2c_opts.mklDir{1} '/include']};
             m2c_opts.mklLibs = {dylibdir([m2c_opts.mklDir{1} '/lib']), ...
@@ -1024,15 +1073,12 @@ if m2c_opts.genExe && ~isunix()
     m2c_opts.genExe = false;
 end
 
-if m2c_opts.withOMP && m2c_opts.withMKL>1 && isempty(m2c_opts.cc)
-    warning('m2c:WarnMKLwithOMP', ['You are using OpenMP together with Intel OpenMP in MKL.\n', ...
-        'This may cause conflicts! See https://software.intel.com/en-us/articles/recommended-settings', ...
-        '-for-calling-intelr-mkl-routines-from-multi-threaded-applications for recommended settings.\n', ...
-        'To disable this message, explicitly use -cc to specify an Intel compiler.']);
-end
+if m2c_opts.withCuda
+    mcudaroot = fileparts(which('startup_mcuda.m'));
+    m2c_opts.cppflags = [m2c_opts.cppflags ['-I' mcudaroot '/include'] '-DM2C_CUDA=1'];
+    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/cuda']];
 
-if m2c_opts.withCuda && ~m2c_opts.withNvcc
-    if m2c_opts.withPetsc || m2c_opts.withMPI
+    if ~m2c_opts.withNvcc && (m2c_opts.withPetsc || m2c_opts.withMPI)
         warning('m2c:WarnCUDAwithMPI', ['You have enabled CUDA together with PETSc/MPI.\n', ...
             'Mixed compilation of CUDA with PETSc/MPI is not supported. Compilation \n', ...
             'and linking will be performeed using mpicc instead of nvcc. No CUDA kernel\n', ...
@@ -1040,11 +1086,38 @@ if m2c_opts.withCuda && ~m2c_opts.withNvcc
     end
 end
 
+if m2c_opts.withNvcc && (m2c_opts.withPetsc || m2c_opts.withMPI || m2c_opts.withOMP)
+    error('m2c:NVCCWrontOption', 'You cannot mix NVCC with PETSc, MPI, or OpenMP.');
+end
+
 if m2c_opts.withMKL
     % When using MKL, diable BLAS and its libraries
     m2c_opts.withBlas = false;
     m2c_opts.blasLibs = {};
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_MKL=1'];
+
+    if m2c_opts.withOMP && m2c_opts.withMKL>1 && isempty(m2c_opts.cc)
+        warning('m2c:WarnMKLwithOMP', ['You are using OpenMP together with Intel OpenMP in MKL.\n', ...
+            'This may cause conflicts! See https://software.intel.com/en-us/articles/recommended-settings', ...
+            '-for-calling-intelr-mkl-routines-from-multi-threaded-applications for recommended settings.\n', ...
+            'To disable this message, explicitly use -cc to specify an Intel compiler.']);
+    end
+elseif m2c_opts.withBlas
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_BLAS=1'];
 end
+if m2c_opts.optimLevel==0
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_DEBUG=1'];
+else
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_DEBUG=0' '-DNDEBUG'];
+end
+if m2c_opts.withOMP
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_OPENMP=1'];
+    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/omp']];
+end
+if m2c_opts.withMPI
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_MPI=1'];
+end
+
 end
 
 function build_exe(cpath, func)

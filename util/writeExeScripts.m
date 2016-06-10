@@ -1,4 +1,4 @@
-function writeExeScripts(funcname, cpath, m2c_opts)
+function writeExeScripts(funcname, mpath, cpath, m2c_opts)
 % Generate scripts for building and running a standalone executable.
 
 altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, '(\w+)\s+-args', 'match'), ' -args', ''))];
@@ -48,20 +48,17 @@ else
 end
 
 if m2c_opts.optimLevel==0
-    cflags = '-fPIC -O0 -DM2C_DEBUG=1 -g';
+    cflags = '-fPIC -O0 -g';
 else
-    cflags = ['-fPIC -O' num2str(m2c_opts.optimLevel) ' -DNDEBUG -DM2C_DEBUG=0 -g'];
+    cflags = ['-fPIC -O' num2str(m2c_opts.optimLevel) ' -g'];
 end
 
 if ~m2c_opts.useCpp
     cflags = [cflags ' -std=c99 '];
 end
 
-if ~m2c_opts.withACC
-    if m2c_opts.withOMP
-        cflags = [cflags ' -fopenmp'];
-    end
-    cflags = [cflags ' -Wall -Wno-unused-variable -Wno-unused-function'];
+if m2c_opts.withOMP
+    cflags = [cflags ' -fopenmp'];
 end
 
 if ~isempty(m2c_opts.gprof)
@@ -80,21 +77,6 @@ if ~isempty(m2c_opts.cppflags)
     cppflags = sprintf(' %s ', m2c_opts.cppflags{:});
 else
     cppflags = '';
-end
-if m2c_opts.withBlas
-    cppflags = [cppflags ' -DM2C_BLAS=1 '];
-end
-if m2c_opts.withCuda
-    cppflags = [cppflags ' -DM2C_CUDA=1 '];
-end
-if m2c_opts.withMKL
-    cppflags = [cppflags ' -DM2C_MKL=1 '];
-end
-if m2c_opts.withOMP
-    cppflags = [cppflags ' -DM2C_OPENMP '];
-end
-if m2c_opts.withACC
-    cppflags = [cppflags ' -DM2C_OPENACC '];
 end
 
 if m2c_opts.withPetsc
@@ -129,19 +111,37 @@ end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 
-% Place exe file in the same directory as the M file.
-exedir = '../../../';
-% If m2c_opts.exeDir is nonempty, modify the output directory.
-if ~isempty(m2c_opts.exeDir)
-    exedir = [exedir m2c_opts.exeDir{1} '/'];
+% If m2c_opts.mexFile is nonempty, modify the output directory.
+if ~isempty(m2c_opts.exeFile)
+    if m2c_opts.exeFile{1}(1)=='/' || m2c_opts.exeFile{1}(1)=='\'
+        exeFile = m2c_opts.exeFile{1};
+    else
+        exeFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
+            m2c_opts.exeFile{1}];
+    end
+    if exist([mpath m2c_opts.exeFile{1}], 'dir')
+        exeFile = [exeFile '/' funcname '.exe'];
+        exeDir = [mpath m2c_opts.exeFile{1} '/'];
+    else
+        exeDir = [fileparts([mpath m2c_opts.exeFile{1}]) '/'];
+    end
+else
+    if isempty(mpath) || isequal(mpath, cpath(1:length(mpath)))
+        exeFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) funcname '.exe'];
+    elseif mpath(1)=='/' || mpath(1)=='\'
+        exeFile = [mpath funcname '.exe'];
+    else
+        exeFile = [pwd '/' mpath funcname '.exe'];
+    end
+    exeDir = mpath;
 end
 
 [~, signature] = ckSignature(m2c_opts, 'exe');
 
 filestr = sprintf('%s\n', ...
     ['% Build script for ' funcname], signature, '', ...
-    ['if exist(''isnewer'', ''file'') && ~isnewer(''' exedir funcname '.exe'', ''build_' funcname '_exe.m'', ''' funcname '_exe.' m2c_opts.suf ''')'], ...
-    '    m2cdir = fileparts(which(''m2c_printf.m''));');
+    ['if exist(''isnewer'', ''file'') && ~isnewer(''' exeFile ''', ''build_' ...
+    funcname '_exe.m'', ''' funcname '_exe.' m2c_opts.suf ''')']);
 
 srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf];
 if m2c_opts.enableInf
@@ -158,8 +158,8 @@ filestr = sprintf('%s\n', filestr, ...
     '    else', ...
     '        error(''Building executable is not supported on %s\n'', computer);', ...
     '    end', ...
-    ['    build_cmd = [''' CC ' ' cppflags cflags ' -DBUILD_MAT -I"'' incdir ''" -I"'' m2cdir ''/include" '...
-    srcs ' -o ' exedir funcname '.exe '  libs '''  matlibs];']);
+    ['    build_cmd = [''' CC ' ' cppflags cflags ' -DBUILD_MAT -I"'' incdir ''" '...
+    srcs ' -o ' exeFile libs '''  matlibs];']);
 
 if ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
@@ -176,14 +176,14 @@ end
 writeFile(outMfile, filestr);
 
 % Write M-file wrapper function for calling EXE within MATLAB
-writeExeMWrapper(altapis, cpath, exedir, funcname, m2c_opts, CC);
+writeExeMWrapper(altapis, cpath, exeDir, funcname, m2c_opts, CC);
 
 end
 
-function writeExeMWrapper(altapis, cpath, exedir, funcname, m2c_opts, CC)
+function writeExeMWrapper(altapis, cpath, exeDir, funcname, m2c_opts, CC)
 % Generate M-file for reading and writing output through MAT files.
 
-outfile = [cpath exedir 'run_' funcname '_exe.m'];
+outfile = [exeDir 'run_' funcname '_exe.m'];
 
 % Backup file
 if (exist(outfile, 'file'))
@@ -348,7 +348,10 @@ if ~isempty(m2c_opts.gcov)
             gcov = locate_gcov();
         end
     end
-    
+
+    if cpath(1)~='/' && cpath(1)~='\'
+        cpath = [pwd '/' cpath]; % User absolute path
+    end
     filestr = sprintf('%s\n', filestr, ...
         '% Process code coverage results', ...
         ['if exist(''' cpath  funcname '.gcda'', ''file'')'], ...
@@ -361,7 +364,6 @@ if ~isempty(m2c_opts.gcov)
 end
 
 filestr = sprintf('%s\n', filestr, 'end');
-
 writeFile(outfile, filestr);
 
 end
