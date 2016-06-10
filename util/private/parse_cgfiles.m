@@ -247,6 +247,7 @@ for i=1:ncarg
                     isequal(vars(i-1).cname(end-3:end), 'data')
                 % This is a size field of the previous argument
                 vars(i-1).sizefield = i;
+                vars(i-1).isemx = 1;
                 vars(i).size = totallen;
                 vars(i).vardim = false;
             else
@@ -422,7 +423,14 @@ if isempty(toks)
         mname = cname(3:end);
     else
         mname = '';
-        sz = [totalsize; 1]; return;
+        vardim = [];
+        basetype = '';
+        if totalsize==0;
+            sz = [1; 1];
+        else
+            sz = [totalsize; 1];
+        end
+        return;
     end
 else
     mname = cname;
