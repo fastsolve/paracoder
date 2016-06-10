@@ -35,7 +35,7 @@ void init_emxArray(emxArray__common *emx, int32_T dim) {
     emx->numDimensions = dim;
     emx->size = (int32_T*)mxCalloc(dim, sizeof(int32_T));
     emx->allocatedSize = 0;
-    emx->canFreeData = TRUE;
+    emx->canFreeData = 1;
 }
 
 /*****************************************************************
@@ -45,7 +45,7 @@ void free_emxArray(emxArray__common *emx) {
     if (emx->canFreeData && emx->data) mxFree(emx->data);
     if (emx->size) mxFree(emx->size);
     emx->data = NULL; emx->size=NULL;
-    emx->allocatedSize=0; emx->canFreeData=FALSE;
+    emx->allocatedSize=0; emx->canFreeData=0;
 }
 
 /*****************************************************************
@@ -117,12 +117,12 @@ static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
         case mxUINT64_CLASS:
             emx->allocatedSize = mxGetNumberOfElements(a);
             if (emx->allocatedSize) emx->data = mxGetData(a);
-            emx->canFreeData = false;
+            emx->canFreeData = 0;
             break;
         case mxCHAR_CLASS:
             emx->allocatedSize = mxGetNumberOfElements(a)+1;
             emx->data = mxMalloc(emx->allocatedSize);
-            emx->canFreeData = true;
+            emx->canFreeData = 1;
             
             mxGetString(a, (char*)emx->data, emx->allocatedSize);
             break;
@@ -235,16 +235,16 @@ static void copy_mxArray_to_array(const mxArray *a, void *data,
  * Preallocate storage for mxArray.
  *****************************************************************/
 static void *prealloc_mxArray(mxArray **pa, mxClassID type,
-        int32_T dim, mwSize *size) {
+        int32_T dim, const mwSize *size) {
     mxArray *a=NULL;
-    mwSize   dims_buf[CGEN_MAXDIM];
+    mwSize   dims_buf[2];
     mwSize  *dims=NULL;
     
     if  (dim==1) {
         dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
     }
     else
-        dims = (mwSize*)size;
+        dims = (mwSize *)size;
     
     switch (type) {
         case mxLOGICAL_CLASS:
@@ -279,47 +279,47 @@ static void *prealloc_mxArray(mxArray **pa, mxClassID type,
  * Copy data from a scalar into mxArray. The function should be used
  * only at the end of a mex wrapper.
  *****************************************************************/
-static mxArray *copy_scalar_to_mxArray(void *s, mxClassID type) {
+static mxArray *copy_scalar_to_mxArray(const void *s, mxClassID type) {
     mxArray *a = NULL;
     const mwSize  ones[2]={1,1};
     
     switch (type) {
         case mxLOGICAL_CLASS:
             a = mxCreateLogicalArray(2, ones);
-            *(boolean_T*)mxGetData(a) = *(boolean_T*)s;
+            *(boolean_T*)mxGetData(a) = *(const boolean_T*)s;
             break;
         case mxCHAR_CLASS: {
             a = mxCreateCharArray(2, ones);
-            *(mxChar*)mxGetData(a) = *(char_T*)s;
+            *(mxChar*)mxGetData(a) = *(const char_T*)s;
             break;
         }
         case mxDOUBLE_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(real64_T*)mxGetData(a) = *(real64_T*)s;
+            *(real64_T*)mxGetData(a) = *(const real64_T*)s;
             break;
         case mxSINGLE_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(real32_T*)mxGetData(a) = *(real32_T*)s;
+            *(real32_T*)mxGetData(a) = *(const real32_T*)s;
             break;
         case mxINT8_CLASS:
         case mxUINT8_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(int8_T*)mxGetData(a) = *(int8_T*)s;
+            *(int8_T*)mxGetData(a) = *(const int8_T*)s;
             break;
         case mxINT16_CLASS:
         case mxUINT16_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(uint16_T*)mxGetData(a) = *(uint16_T*)s;
+            *(uint16_T*)mxGetData(a) = *(const uint16_T*)s;
             break;
         case mxINT32_CLASS:
         case mxUINT32_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(uint32_T*)mxGetData(a) = *(uint32_T*)s;
+            *(uint32_T*)mxGetData(a) = *(const uint32_T*)s;
             break;
         case mxINT64_CLASS:
         case mxUINT64_CLASS:
             a = mxCreateNumericArray(2, ones, type, mxREAL);
-            *(uint64_T*)mxGetData(a) = *(uint64_T*)s;
+            *(uint64_T*)mxGetData(a) = *(const uint64_T*)s;
             break;
         case mxFUNCTION_CLASS:
             mxAssert(0, "mxFUNCTION_CLASS is not supported.");
@@ -334,7 +334,7 @@ static mxArray *copy_scalar_to_mxArray(void *s, mxClassID type) {
  * Copy data from an array into mxArray.
  *****************************************************************/
 static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
-        int32_T dim, int32_T *size) {
+        int32_T dim, const int32_T *size) {
     mxArray *a=NULL;
     mwSize   dims_buf[CGEN_MAXDIM];
     mwSize  *dims=NULL;
@@ -398,7 +398,7 @@ static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
 /*****************************************************************
  * Resize mxArray without reallocation
  *****************************************************************/
-static void resize_mxArray(mxArray *a, int32_T dim, int32_T *size) {
+static void resize_mxArray(mxArray *a, int32_T dim, const int32_T *size) {
     mwSize   dims_buf[CGEN_MAXDIM];
     mwSize  *dims=NULL;
     int      i;
@@ -421,7 +421,7 @@ static void resize_mxArray(mxArray *a, int32_T dim, int32_T *size) {
 /*****************************************************************
  * create struct array.
  *****************************************************************/
-static mxArray *create_struct_mxArray(int32_T dim, int32_T *size,
+static mxArray *create_struct_mxArray(int32_T dim, const int32_T *size,
         int32_T nfields, const char **fields) {
     mxArray *a=NULL;
     mwSize   dims_buf[CGEN_MAXDIM];
@@ -500,7 +500,7 @@ static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) 
             }
             /* Set size */
             mxSetDimensions(a, dims, dim);
-            emx->canFreeData = FALSE;
+            emx->canFreeData = 0;
             
             free_emxArray(emx);
             break;
@@ -566,3 +566,107 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 #else
 #include "matrix.h"
 #endif
+
+#if M2C_CUDA
+#include "mcuda.h"
+
+/*****************************************************************
+ * Copy data from mxArray to GPU
+ *****************************************************************/
+static void *create_gpuArray_from_mxArray(const mxArray *a) {
+    void     *data;        
+    mxClassID type=mxGetClassID(a);
+    mwSize n = mxGetNumberOfElements(a);
+    
+    switch (type) {
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS: {
+            mwSize sizepe = mxGetElementSize(a);            
+            cudaError_t ierr = cudaMalloc(&data, n * sizepe);
+            if (ierr)
+                mexErrMsgIdAndTxt("lib2mex:cudaMalloc", "cudaMalloc failed with error message %s",
+                        cudaGetErrorString(ierr));
+
+            ierr = cudaMemcpy(data, mxGetData(a), n * sizepe, cudaMemcpyHostToDevice);
+            if (ierr)
+                mexErrMsgIdAndTxt("lib2mex:cudaMemcpy", "cudaMemcpy failed with error message %s",
+                        cudaGetErrorString(ierr));
+            break;            
+        }
+        case mxCHAR_CLASS: {
+            char  *buf = (char *)mxMalloc(n+1);
+            mxGetString(a, buf, n+1);
+            
+            cudaError_t ierr = cudaMalloc(&data, n+1);
+            if (ierr)
+                mexErrMsgIdAndTxt("lib2mex:cudaMalloc", "cudaMalloc failed with error message %s",
+                        cudaGetErrorString(ierr));
+            
+            ierr = cudaMemcpy(data, buf, n+1, cudaMemcpyHostToDevice);
+            if (ierr)
+                mexErrMsgIdAndTxt("lib2mex:cudaMemcpy", "cudaMemcpy failed with error message %s",
+                        cudaGetErrorString(ierr));
+
+            mxFree(buf);
+            break;
+        }
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
+    }
+    
+    return data;
+}
+
+/*****************************************************************
+ * Copy data from GPU to mxArray
+ *****************************************************************/
+static void copy_gpuArray_to_mxArray(const void *s, mxArray *a) {
+    mxClassID type=mxGetClassID(a);
+    mwSize n = mxGetNumberOfElements(a);
+
+    switch (type) {
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS: {
+            cudaError_t ierr = cudaMemcpy(mxGetData(a), s, n * mxGetElementSize(a), cudaMemcpyDeviceToHost);
+            if (ierr)
+                mexErrMsgIdAndTxt("lib2mex:cudaMemcpy", "cudaMemcpy failed with error message %s",
+                        cudaGetErrorString(ierr));
+            break;            
+        }
+        case mxCHAR_CLASS:
+            mxAssert(0, "Return a character string is not yet supported.");
+            break;
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not yet supported.");
+            break;
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not yet supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
+    }
+}
+
+
+#endif /* M2C_CUDA */

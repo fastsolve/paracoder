@@ -246,14 +246,4 @@ typedef char_T byte_T;
 
 #endif /* __TMWTYPES__ */
 
-#if defined(M2C_CUDA) && M2C_CUDA
-#include <cuda_runtime_api.h>
-#else
-
-#define __global__
-#define __device__
-#define __host__
-#define __shared__
-#endif /* M2C_CUDA */
-
 #endif
