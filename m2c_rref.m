@@ -1,7 +1,7 @@
-function m2c_sync(buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9, buf10)
-%Makes sure a buffer allocation has completed.
+function m2c_rref(buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9, buf10)
+%Makes sure a buffer has been allocated and is not been deallocated.
 %
-%   m2c_sync(buf1, buf2, ...)
+%   m2c_rref(buf1, buf2, ...)
 
 coder.inline('always');
 

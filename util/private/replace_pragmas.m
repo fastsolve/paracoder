@@ -121,7 +121,7 @@ while ~isempty(regexp(cfile_str, pat, 'once'))
 end
 
 %% Process kernel functions
-if ~isempty(regexp(cfile_str, '\n#mcuda_kernel', 'match', 'once'))
+if m2c_opts.withNvcc
     [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts);
     % Remove rtwtypes from header file
     if ~m2c_opts.typeRep
@@ -146,7 +146,7 @@ if m2c_opts.enableInline
             end
             if strfind(toks{i}{5}, 'emxEnsureCapacity')
                 fprintf(2,['It seems that you have memory allocation in an OpenMP %s region:\n %s', ...
-                    'If you allocated a local buffer, make sure you call m2c_sync(buf) before OMP_begin_%s.\n'], ...
+                    'If you allocated a local buffer, make sure you call m2c_rref(buf) before OMP_begin_%s.\n'], ...
                     toks{i}{2}, [toks{i}{4},toks{i}{5}], toks{i}{2});
             end
             if ~isequal(toks{i}{2}, toks{i}{6})
@@ -178,7 +178,7 @@ if m2c_opts.enableInline
         for i=1:length(toks)
             if strfind(toks{i}{5}, 'emxEnsureCapacity')
                 fprintf(2,['It seems that you have memory allocation in a CUDA parallel region:\n %s', ...
-                    'If you allocated a local buffer, make sure you call m2c_sync(buf) before MCU_begin_parallle.\n'], ...
+                    'If you allocated a local buffer, make sure you call m2c_rref(buf) before MCU_begin_parallle.\n'], ...
                     [toks{i}{4},toks{i}{5}]);
             end
         end
@@ -216,10 +216,6 @@ end
 changed = ~isequal(strin, cfile_str);
 end
 
-function expr = cuda_kernel_funcbody
-expr = '{(?:([^}\n][^\n]*)?\n)*\n#mcuda_kernel\n(?:([^}\n][^\n]*)?\n)*\n*}';
-end
-
 function expr = funccall(func)
 expr = ['\n\s+[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
 end
@@ -229,123 +225,217 @@ expr = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
     'uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)'];
 end
 
-function expr = kernel
-expr = ['\w+\s+(\w+)\s*(\([^{}\)]+\))\s*' cuda_kernel_funcbody];
-end
-
-function expr = set_threads_args 
-expr = '#pragma mcuda set_threads\(([^,]+),\s*([^\)]+)\)[^\n]*\n';
+function expr = kernelfunc(funcname)
+expr = ['\w+\s+' funcname '\s*(\([^{}\)]+\))\s*{(?:([^}\n][^\n]*)?\n)*}'];
 end
 
 function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts)
 %% Find kernel functions
 
-while true
-    [kernels, prototype] = regexp(cfile_str, kernel, 'match', 'tokens', 'once');
-    if isempty(kernels); break; end
-    
-    newfunc = regexprep(kernels, '\n#mcuda_kernel', '');    
-    funcdecl = regexp(cfile_str, ['\nstatic\s+\w+\s+' prototype{1} '\s*\([^\)]*\);'], 'match', 'once');
-    %% Process each kernel function
-    if isempty(funcdecl)
-        inheader = true;
-        funcdecl = regexp(hfile_str, ['\nextern\s+\w+\s+' prototype{1} '\s*\([^\)]*\);'], 'match', 'once');
-    else
-        inheader = false;        
-    end
-    if ~isempty(strfind(kernels, 'emxArray_Init'))
-        warning('m2c:CannotProcessKernel', ['Function ' prototype{1} ...
-            ' contains temporary emxArrays, so it cannot be converted into a kernel function.']);
-    elseif ~isempty(regexp(kernels, '->sizes', 'once'))
-        warning('m2c:CannotProcessKernel', ['Function ' prototype{1} ...
-            ' explicitly uses size information of arrays, so it cannot be converted into a kernel function.']);
-    else
-        %% Find emxArray arguments and change them to plain pointers
-        newfuncdecl = funcdecl;
-        newargs = prototype{2};
-        
-        args = strtrim(textscan(strrep(newargs, sprintf('\n'), ' '), '%s', 'Delimiter', ','));
-        args = args{1};
-        append = false(length(args),1);
-        for k=1:length(args)
-            arg = regexp(args{k}, ['emxArray_(' basictype ')\s*\*\s*(\w+)'], 'tokens', 'once');
-            
-            if ~isempty(arg)
-                newfuncdecl = regexprep(newfuncdecl, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
-                    [get_ctypename(arg{1}, m2c_opts.typeRep) ' *' [arg{2} '_data'] '$1']);
-                newargs = regexprep(newargs, ...
-                    ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
-                    [get_ctypename(arg{1}, m2c_opts.typeRep)  ' *' [arg{2} '_data'] '$1']);
-                newfunc = regexprep(newfunc, [arg{2} '->\s*data'], [arg{2} '_data']);
-                
-                append(k) = true;
-            end
-        end
-        
-        newfunc = strrep(newfunc, prototype{2}, newargs);
+synced = ~isempty(regexp(cfile_str, '\s+__syncthreads\(', 'once'));
 
-        %% Change the prototype of function
-        isglobal = ~isempty(strfind(newfunc, '#pragma mcuda global'));
-        if isglobal
-            newfuncdecl = sprintf('%s\n', '', ...
-                '__global__', newfuncdecl(2:end));
-            newfunc = sprintf('%s\n', '', ...
-                '__global__', newfunc);
-        end
-        
-        if inheader
-            hfile_str = strrep(hfile_str, funcdecl, newfuncdecl);
-        else
-            cfile_str = strrep(cfile_str, funcdecl, newfuncdecl);
-        end
-        
-        %% Find function calls to the kernel functions
-        while true
-            [calls,pos] = regexp(cfile_str, funccall(prototype{1}), 'match', 'once');
-            if isempty(calls)
-                break;
-            end
-            if ~isempty(regexp(calls, '\s+static\s+', 'once'))
-                continue;
-            end
-            [call, newcall, args] = parsefunccall(calls, prototype{1});
-            assert(length(args)==length(append));
-
-            if isglobal
-                set_threads = regexp(cfile_str(1:pos), set_threads_args, 'tokens');
-                if ~isempty(set_threads)
-                    newcall = [newcall(1:end-1) '<<<' ...
-                        set_threads{end}{1}, ', ', set_threads{end}{2}, '>>>('];
-                end
-            end
-
-            for j=1:length(args)
-                if j>1
-                    newcall = sprintf('%s, ', newcall);
-                end
-                
-                if append(j)
-                    newcall = sprintf('%s%s', newcall, [args{j} '->data']);
-                else
-                    newcall = sprintf('%s%s', newcall, args{j});
-                end
-            end
-            
-            cfile_str = [cfile_str(1:pos-1) newcall cfile_str(pos+length(call):end)];
-        end
-    end
-    
-    if isglobal
-        newfunc = regexprep(newfunc, '\n#pragma mcuda global', '');
-    end
-    
-    cfile_str = strrep(cfile_str, kernels, newfunc);
+[~, func, ~] = fileparts(m2c_opts.funcName{1});
+altapis = [func, strtrim(strrep(regexp(m2c_opts.codegenArgs, ...
+    '(\w+)\s+-args', 'match'), ' -args', ''))];
+if length(altapis)>1
+    error('m2c:MultipeCudaEntry', 'There can be only one CUDA global functions.');
 end
 
-% Remove set_threads
-cfile_str = regexprep(cfile_str, set_threads_args, '');
+funcname = altapis{1};
+[kernel, prototype] = regexp(cfile_str, kernelfunc(funcname), 'match', 'tokens', 'once');
+funcdecl = regexp(hfile_str, ['\nextern\s+\w+\s+' funcname '\s*\([^\)]*\);'], 'match', 'once');
 
+if ~isempty(strfind(kernel, 'emxArray_Init'))
+    warning('m2c:CannotProcessKernel', ['Function ' funcname ...
+        ' contains temporary emxArrays, so it cannot be converted into a kernel function.']);
+elseif ~isempty(regexp(kernel, '->sizes', 'once'))
+    warning('m2c:CannotProcessKernel', ['Function ' funcname ...
+        ' explicitly uses size information of arrays, so it cannot be converted into a kernel function.']);
+else
+    %% Find emxArray arguments and change them to plain pointers
+    newfuncdecl = funcdecl;
+    newfunc = kernel;
+    newargs = prototype{1};
+    
+    args = strtrim(textscan(strrep(newargs, sprintf('\n'), ' '), '%s', 'Delimiter', ','));
+    args = args{1};
+    append = false(length(args),1);
+    for k=1:length(args)
+        arg = regexp(args{k}, ['emxArray_(' basictype ')\s*\*\s*(\w+)'], 'tokens', 'once');
+        
+        if ~isempty(arg)
+            newfuncdecl = regexprep(newfuncdecl, ...
+                ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
+                [get_ctypename(arg{1}, m2c_opts.typeRep) ' *' [arg{2} '_data'] '$1']);
+            newargs = regexprep(newargs, ...
+                ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
+                [get_ctypename(arg{1}, m2c_opts.typeRep)  ' *' [arg{2} '_data'] '$1']);
+            newfunc = regexprep(newfunc, [arg{2} '->\s*data'], [arg{2} '_data']);
+            
+            append(k) = true;
+        end
+    end
+    
+    newfunc = strrep(newfunc, prototype{1}, newargs);
+    
+    %% Find function calls to the kernel functions
+    while true
+        [calls,pos] = regexp(cfile_str, funccall(funcname), 'match', 'once');
+        if isempty(calls)
+            break;
+        end
+        if ~isempty(regexp(calls, '\s+static\s+', 'once'))
+            continue;
+        end
+        [call, newcall, args] = parsefunccall(calls, funcname);
+        assert(length(args)==length(append));
+        
+        for j=1:length(args)
+            if j>1
+                newcall = sprintf('%s, ', newcall);
+            end
+            
+            if append(j)
+                newcall = sprintf('%s%s', newcall, [args{j} '->data']);
+            else
+                newcall = sprintf('%s%s', newcall, args{j});
+            end
+        end
+        
+        cfile_str = [cfile_str(1:pos-1) newcall cfile_str(pos+length(call):end)];
+    end
+    
+    %% Change the prototype of function    
+    newfuncdecl = sprintf('%s\n', '', ...
+        '#ifdef __NVCC__', ...
+        '__global__', ...
+        newfuncdecl(2:end), ...
+        '#endif');
+    newfunc = sprintf('%s\n', '', ...
+        '__global__', newfunc);
+    
+    [wrapper_decls, wrapper_defs] = write_cuda_wrapper(funcname, newargs(2:end-1), synced, m2c_opts);
+    newfunc = [newfunc wrapper_defs];
+    
+    hfile_str = strrep(hfile_str, funcdecl, [newfuncdecl, wrapper_decls]);
+end
+
+cfile_str = strrep(cfile_str, kernel, newfunc);
+
+end
+
+function [decls, defs] = write_cuda_wrapper(func, args, synced, m2c_opts)
+toks = regexp(args, '(?:const\s+)?\w+\s+(?:\*)?(\w+)', 'tokens');
+
+vars = toks{1}{1};
+for i=2:length(toks)
+    vars = sprintf('%s, %s', vars, toks{i}{1});
+end
+
+if nargin<3
+    synced = false;
+end
+
+decls = sprintf('%s\n', '', ...
+    ['extern void ' func '_cuda0(' args ');'], ...
+    ['extern void ' func '_cuda1(' args ', int _nthreads);'], ...
+    ['extern void ' func '_cuda2(' args ', int _nthreads, int _threadsPB);']);
+
+if synced
+    % Note: If inter-thread synchronization is used, then nblocks will be set
+    % to 1 automatically
+    if m2c_opts.debugInfo
+        msg = '  M2C_printf("Launching CUDA with 1 block and %d threads per block\n", _threadsPB);';
+    else
+        msg = '';
+    end
+
+    defs = sprintf('%s\n', '', ...
+        ['void ' func '_cuda0(' args ')'], ...
+        '{', ...
+        '  int _threadsPB, _minGridSize;', ...
+        ['  cudaOccupancyMaxPotentialBlockSize(&_minGridSize, &_threadsPB, ' func ', 0, 0);'], msg, ...
+        ['  ' func '<<<1, _threadsPB>>>(' vars ');'], ...
+        '}');
+    
+    defs = sprintf('%s\n', defs, ...
+        ['void ' func '_cuda1(' args ', int _nthreads)'], ...
+        '{', ...
+        '  int _threadsPB, _minGridSize;', ...
+        ['  cudaOccupancyMaxPotentialBlockSize(&_minGridSize, &_threadsPB, ' func ', 0, 0);'], ...
+        '  if (_nthreads > 0 && _nthreads<_threadsPB)', ...
+        '    _threadsPB = _nthreads;', msg, ...
+        ['  ' func '<<<1, _threadsPB>>>(' vars ');'], ...
+        '}');
+    
+    defs = sprintf('%s\n', defs, ...
+        ['void ' func '_cuda2(' args ', int _nthreads, int _threadsPB)'], ...
+        '{', ...
+        '  if (_threadsPB <= 0) {', ...
+        '      int _minGridSize;', ...
+        ['    cudaOccupancyMaxPotentialBlockSize(&_minGridSize, &_threadsPB, ' func ', 0, 0);'], ...
+        '  }', ...
+        '  if (_nthreads > 0 && _nthreads<_threadsPB)', ...
+        '    _threadsPB = _nthreads;', msg, ...
+        ['  ' func '<<<1, _threadsPB>>>(' vars ');'], ...
+        '}');
+else
+    if m2c_opts.debugInfo
+        msg = '  M2C_printf("Launching CUDA with %d blocks and %d threads per block\n", _nblocks, _threadsPB);';
+    else
+        msg = '';
+    end
+    
+    defs = sprintf('%s\n', '', ...
+        ['void ' func '_cuda0(' args ')'], ...
+        '{', ...
+        '  int _threadsPB, _nblocks;', ...
+        '  struct cudaDeviceProp _prop;', ...
+        '  cudaGetDevice(&_nblocks);', ...
+        '  cudaGetDeviceProperties(&_prop, _nblocks);', ...
+        ['  cudaOccupancyMaxPotentialBlockSize(&_nblocks, &_threadsPB, ' func ', 0, 0);'], ...
+        ['  cudaOccupancyMaxActiveBlocksPerMultiprocessor(&_nblocks, ' func ', _threadsPB, 0);'], ...
+        '  _nblocks *= _prop.multiProcessorCount;', msg, ...
+        ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
+        '}');
+    
+    defs = sprintf('%s\n', defs, ...
+        ['void ' func '_cuda1(' args ', int _nthreads)'], ...
+        '{', ...
+        '  int _threadsPB, _nblocks;', ...
+        ['  cudaOccupancyMaxPotentialBlockSize(&_nblocks, &_threadsPB, ' func ', 0, 0);'], ...
+        '  if (_nthreads <= 0) {', ...
+        '    struct cudaDeviceProp _prop;', ...
+        '    cudaGetDevice(&_nblocks);', ...
+        '    cudaGetDeviceProperties(&_prop, _nblocks);', ...
+        ['    cudaOccupancyMaxActiveBlocksPerMultiprocessor(&_nblocks, ' func ', _threadsPB, 0);'], ...
+        '    _nblocks *= _prop.multiProcessorCount;', ...
+        '  } else if (_nthreads < _threadsPB) {', ...
+        '    _nblocks = 1; _threadsPB = _nthreads;', ...
+        '  } else', ...
+        '    _nblocks = (_nthreads + _threadsPB - 1) / _threadsPB;', msg, ...
+        ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
+        '}');
+    
+    defs = sprintf('%s\n', defs, ...
+        ['void ' func '_cuda2(' args ', int _nthreads, int _threadsPB)'], ...
+        '{', ...
+        '  int _nblocks;', ...
+        '  if (_threadsPB <= 0)', ...
+        ['    cudaOccupancyMaxPotentialBlockSize(&_nblocks, &_threadsPB, ' func ', 0, 0);'], ...
+        '  if (_nthreads <= 0) {', ...
+        '    struct cudaDeviceProp _prop;', ...
+        '    cudaGetDevice(&_nblocks);', ...
+        '    cudaGetDeviceProperties(&_prop, _nblocks);', ...
+        ['    cudaOccupancyMaxActiveBlocksPerMultiprocessor(&_nblocks, ' func ', _threadsPB, 0);'], ...
+        '    _nblocks *= _prop.multiProcessorCount;', ...
+        '  } else if (_nthreads < _threadsPB) {', ...
+        '    _nblocks = 1; _threadsPB = _nthreads;', ...
+        '  } else', ...
+        '    _nblocks = (_nthreads + _threadsPB - 1) / _threadsPB;', msg, ...
+        ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
+        '}');
+end
 end
 
 function [call, prefix, args] = parsefunccall(call, func)

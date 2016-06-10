@@ -163,10 +163,10 @@ if ~isempty(m2c_opts.mexFile)
         mexFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
             m2c_opts.mexFile{1}];
     end
-    if exist([mpath m2c_opts.mexFile{1}], 'dir')
+    if exist([cpath mexFile], 'dir')
         mexFile = [mexFile '/' funcname '.' mexext];
     else
-        [mexDir, mexBase, ~] = filearts(mexFile);
+        [mexDir, mexBase, ~] = fileparts(mexFile);
         mexFile = [mexDir '/' mexBase '.' mexext];
     end
 elseif isempty(mpath) || isequal(mpath, cpath(1:length(mpath)))
@@ -192,9 +192,9 @@ if m2c_opts.withNvcc
     
     NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
-    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -x cu -dc ' funcname '.' m2c_opts.suf ' -o ' funcname '.o'];
+    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -DMATLAB_MEX_FILE -dc ' funcname '.cu -o ' funcname '.o'];
     nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
-    nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -x cu -ptx ' funcname '.' m2c_opts.suf ' -o ' funcname '.ptx'];
+    nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -ptx ' funcname '.cu -o ' funcname '.ptx'];
     
     filestr = sprintf('%s\n', filestr, ...
         ['    nvccCmd1 = [''' nvccCmd1 '''];'], ...
@@ -216,12 +216,12 @@ end
 
 if exist('octave_config_info', 'builtin')
     filestr = sprintf('%s\n', filestr, ...
-        ['    build_cmd = [''mmex ' mexflags ' ' ...
-        srcs ' -output ' mexFile LINKLIBS '''];']);
+        ['    build_cmd = ''mmex ' mexflags ' ' ...
+        srcs ' -output ' mexFile LINKLIBS ''';']);
 else
     filestr = sprintf('%s\n', filestr, ...
-        ['    build_cmd = [''mex ' mexflags ' '...
-        srcs ' -largeArrayDims -output ' mexFile LINKLIBS '''];']);
+        ['    build_cmd = ''mex ' mexflags ' '...
+        srcs ' -largeArrayDims -output ' mexFile LINKLIBS ''';']);
 end
 
 if ~m2c_opts.quiet

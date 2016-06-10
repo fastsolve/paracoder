@@ -24,17 +24,17 @@ function m2c(varargin)
 %
 % COMPILATION WORKFLOW
 %     -mex
-%     -mex {'relative_path_to_m_file'} or
+%     -mex {'relative_path_to_m_file'}
 %     -mex {'mex_path_and_filename'}
 %           By default, m2c only generates the C code. This option requests
 %           m2c to build the mex function in addition to generating the C files.
 %           By default, the mex file will be saved in the same directory
-%           as the M file. If a parameter is given, and it ends with '/' (or
-%           '\' on Windows) or it is an existing directory, then the mex
-%           file will be saved to the specified directory; if the parameter
-%           does not correspond to a directory name, it will be considered
-%           the filename for the mex file, of which the extension (if specified)
-%           will be replaced by mexext for the particular computer platform.
+%           as that of the M file. The MEX file is named <mfilename>.<mexext>.
+%           If an argument is given and it corresponds to an existing directory,
+%           the generated mex file will be saved to the directory. The
+%           given path can be absolute or relative to the M file. If the
+%           given argument is not an existing directory, it is treated as
+%           the base naem of the MEX file, with the extension <mexext>.
 %     -exe
 %     -exe {'relative_path_to_m_file'} or
 %     -exe {'exe_path_and_filename'}
@@ -65,7 +65,7 @@ function m2c(varargin)
 %     -dll {'dlldir'} or
 %     -dll {'dll_path_and_filename'} or
 %           This is the same as -lib, except that it will generate a
-%           dynamic instead of static library. The suffix is .so, .dylib,
+%           dynamic instead of a static library. The suffix is .so, .dylib,
 %           and .dll on Linux, Mac, and Windows, respectively. The options
 %           -lib and -dll can be used simultaneously. If rootdir is 
 %           specified more than once, the last one is effective.
@@ -77,7 +77,7 @@ function m2c(varargin)
 %           An API function must not be inlined. This can be ensured by
 %           adding coder.inline('never') in the M code. Note that the
 %           top-level function is automatically an API function and need
-%           not be listed. This argument can be give after each top-level,
+%           not be listed. This argument can be given after each top-level,
 %           to make the list specific for each M file.
 %     -globals {'g1', init1, 'g2', init2, ..., 'gN', initN}
 %           Specify names and initial values for global variables in MATLAB.
@@ -123,8 +123,8 @@ function m2c(varargin)
 %           during code generation.
 %     -outdir {'dir'}
 %           Specifies the output directory of the generated C code for the
-%           top-level MATLAB function. By default, if -nvcc is enabled, the
-%           generated CUDA code will be in codegen/lib/<funcname>-cuda;
+%           top-level MATLAB function. By default, if -cuda-kernel is enabled,
+%           the generated CUDA code will be in codegen/lib/<funcname>-cuda;
 %           if -omp is enabled, the generated OpenMP code will be in
 %           codegen/lib/<funcname>-omp; otherwise, the code is in the
 %           codegen/lib/<funcname>. All the path is relative to the M file.
@@ -179,24 +179,24 @@ function m2c(varargin)
 %     -O0
 %           Disable function inlining and variable reuse for MATLAB Coder,
 %           and pass -O0 to the C compiler to disable all optimizations,
-%           including all OpenMP pragmas.
+%           including all OpenMP pragmas, and it enables memory checking.
 %     -O1
 %           Enable function inlining for MATLAB Coder and pass the -O1
 %           compiler option to the C compiler to enable basic optimization.
 %           This is the default behavior if -O? and -g is not specified.
 %     -O
 %     -O2
-%           Enable inlining and and in addition allow MATLAB Coder to reuse
+%           Enable inlining and in addition allow MATLAB Coder to reuse
 %           variable names freely. Ths generates C code is less readable,
-%           but it may use less momory and enable better performance. It
+%           but it may use less memory and enable better performance. It
 %           passes -O2 to the C compiler to enable nearly all supported
 %           optimizations that do not involve a space-speed tradeoff.
 %     -O3
-%           Enable level-2 optimizaiton, and also set DynamicMemoryAllocation
+%           Enable level-2 optimization, and also set DynamicMemoryAllocation
 %           to thresholding. It can be useful for generating codes for
 %           kernel functions that require a variable-size buffer with a
 %           known constant upper bound. However, it makes the code less
-%           readable. It also pass -O3 to the C compiler to enable all
+%           readable. It also passes -O3 to the C compiler to enable all
 %           optimizations, including loop unrolling and function inlining.
 % DEBUGGING
 %     -g
@@ -267,11 +267,10 @@ function m2c(varargin)
 %           if CUDA is available within MATLAB (when MATLAB Parallel Toolbox
 %           is installed), it will link with the CUDA libraries distributed
 %           with MATLAB.
-%     -nvcc
-%     -nvcc {'expression'}
-%           Specify to use nvcc to compile and link the C code. This is
-%           equivalent to using -cc {'nvcc'}. This should be used to
-%           compile CUDA device codes.
+%     -nvcc or -cuda-kernel
+%     -nvcc {'expression'} or -cuda-kernel {'expression'}
+%           Specify to use nvcc to compile and link the C code. This should
+%           be used to compile CUDA kernel functions.
 %     -petsc
 %     -petsc {'expression'}
 %           Enable support for PETSc. The root directory of PETSc can be
@@ -343,16 +342,17 @@ function m2c(varargin)
 
 % TODO: Implement support for -lib, -dll, -global
 
-[m2c_opts, matlabFunc] = proc_options(varargin{:});
+m2c_opts = proc_options(varargin{:});
 
 if isempty(m2c_opts)
     help m2c; %#ok<MCHLP>
     return;
 end
 
-if isempty(matlabFunc)
+if isempty(m2c_opts.funcName)
     error('Missing function in the argument list.');
 end
+matlabFunc = m2c_opts.funcName{1};
 
 % Force code generation if config is specified
 if ~isempty(m2c_opts.codegenConfig)
@@ -508,20 +508,13 @@ if regen_c
     end
     
     % Modify C code generated by codegen
-    [~, iscuda] = post_codegen(func, cpath, m2c_opts);
-    if iscuda && ~m2c_opts.withNvcc
-        warning('m2c:CudaWithoutNVCC', ...
-            'Detected CUDA kernel function, but -nvcc was not specified.');
-    elseif ~iscuda && m2c_opts.withNvcc
-        warning('m2c:PlainCWithNVCC', ...
-            'No CUDA kernel function found, but nvcc was specified for compilation.');
-    end
+    post_codegen(func, cpath, m2c_opts);
     
     % Write Mex file to annotate the options used in codegen
-    writeMexFile(func, mpath, cpath, m2c_opts, iscuda);
+    writeMexFile(func, mpath, cpath, m2c_opts);
     
     % Write README file
-    writeREADME(func, cpath, m2c_opts.genExe, iscuda);
+    writeREADME(func, cpath, m2c_opts.genExe, m2c_opts);
     
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
@@ -538,7 +531,7 @@ if m2c_opts.genMex
         writeMexScript(func, mpath, cpath, m2c_opts);
         if m2c_opts.withNvcc
             % Also write a script for feval
-            writeFevalScript(func, mpath, cpath, m2c_opts);
+            writeEvalScript(func, mpath, cpath, m2c_opts);
         end
     end
     
@@ -574,10 +567,8 @@ if m2c_opts.genExe
 end
 end
 
-function [m2c_opts, func] = proc_options(varargin)
+function m2c_opts = proc_options(varargin)
 % Process input options from left to right.
-
-func = '';
 
 if nargin==0
     m2c_opts=[];
@@ -587,6 +578,7 @@ end
 % If default value is {}, use [] in place of {} and re-assign default
 % value to {} at the end.
 m2c_opts = struct('codegenArgs', [], ...
+    'funcName', '', ...
     'codegenConfig', '', ...
     'debugInfo', false, ...
     'chkMem', false, ...
@@ -685,7 +677,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 dirs = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 dirs = varargin(i+1);
                 i = i + 1;
             else
@@ -702,7 +694,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.outDir = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 m2c_opts.outDir = varargin(i+1);
                 i = i + 1;
             else
@@ -714,11 +706,17 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.mexFile = eval(varargin{i+1});
                 i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.mexFile = varargin(i+1);
+                i = i + 1;
             end
         case '-exe'
             m2c_opts.genExe = true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.exeFile = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.exeFile = varargin(i+1);
                 i = i + 1;
             end
         case '-g'
@@ -729,6 +727,7 @@ while i<=last_index
         case '-O0'
             m2c_opts.optimLevel = 0;
             m2c_opts.enableInline = false;
+            m2c_opts.chkMem = true;
             m2c_opts.presVars = 'All';
             m2c_opts.dynMem = 'AllVariableSizeArrays';
         case '-O1'
@@ -762,12 +761,18 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.timing = eval(varargin{i+1});
                 i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.timing = varargin(i+1);
+                i = i + 1;
             else
                 m2c_opts.timing = {' '};
             end
         case '-api'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.api = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.api = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.api = {' '};
@@ -786,6 +791,9 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.(opt(2:end)) = varargin(i+1);
+                i = i + 1;
             else
                 m2c_opts.(opt(2:end)) = {' '};
             end
@@ -793,7 +801,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.libRoot = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 m2c_opts.libRoot = varargin(i+1);
                 i = i + 1;
             end
@@ -803,7 +811,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 m2c_opts.(opt(2:end)) = varargin(i+1);
                 i = i + 1;
             else
@@ -817,16 +825,19 @@ while i<=last_index
                     m2c_opts.libs = [m2c_opts.libs, dylibdir(dirs{k})];
                 end
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 m2c_opts.libs = [m2c_opts.libs, dylibdir(varargin{i+1})];
                 i = i + 1;
             else
                 error('m2c:wrong_argument', ...
                     'Argument -L requires a cell-array argument after it.\n');
             end
-        case {'-cuda', '-nvcc'}
+        case {'-cuda', '-nvcc', '-cuda-kernel'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.cudaDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.cudaDir = varargin(i+1);
                 i = i + 1;
             else
                 if ~isempty(getenv('CUDA_PATH'))
@@ -844,12 +855,15 @@ while i<=last_index
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
             m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
                 '-lcusparse', '-lcudart'}; % -lcusolver
-            if isequal(opt, '-nvcc')
+            if ~isequal(opt, '-cuda')
                 m2c_opts.withNvcc = true;
             end
         case {'-mkl', 'mkl-seq', '-mkl-iomp', '-mkl-omp'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.mklDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.mklDir = varargin(i+1);
                 i = i + 1;
             else
                 if ~isempty(getenv('MKLROOT'))
@@ -883,6 +897,9 @@ while i<=last_index
         case '-petsc'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.petscDir = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.petscDir = varargin(i+1);
                 i = i + 1;
             else
                 if ~isempty(getenv('PETSC_DIR')) && ~isempty(getenv('PETSC_ARCH'))
@@ -930,6 +947,9 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.blaskLibs = eval(varargin{i+1});
                 i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.blaskLibs = varargin(i+1);
+                i = i + 1;
             elseif ismac
                 m2c_opts.blasLibs = {'-lblas'};
             else
@@ -940,6 +960,9 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.lapackLibs = eval(varargin{i+1});
                 i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.lapackLibs = varargin(i+1);
+                i = i + 1;
             elseif ismac
                 m2c_opts.lapackLibs = {'-llapack', '-lblas'};
             else
@@ -947,9 +970,12 @@ while i<=last_index
             end
             m2c_opts.withLapack = true;
         case '-omp'
-            m2c_opts.(['with' upper(opt(2:end))])= true;
+            m2c_opts.withOMP = true;
             if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.([opt(2:end) 'Libs']) = eval(varargin{i+1});
+                m2c_opts.ompLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.ompLibs = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.([opt(2:end) 'Libs']) = {' '};
@@ -958,6 +984,9 @@ while i<=last_index
             m2c_opts.withMPI= true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.mpiLibs = eval(varargin{i+1});
+                i = i + 1;
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
+                m2c_opts.mpiLibs = varargin(i+1);
                 i = i + 1;
             else
                 m2c_opts.mpiLibs = {' '};
@@ -982,7 +1011,7 @@ while i<=last_index
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.codegenConfig = eval(varargin{i+1});
                 i = i + 1;
-            elseif i<last_index-1 && varargin{i+1}(1) ~= '-'
+            elseif i<last_index-1 && varargin{i+1}(1) ~= '-' && ~isequal(varargin{i+1}(2), '-args')
                 m2c_opts.codegenConfig = varargin(i+1);
                 i = i + 1;
             else
@@ -1020,7 +1049,7 @@ while i<=last_index
                 if func_index==0
                     func_index = i;
                     if exist(opt, 'file') || exist([opt '.m'], 'file')
-                        func = opt;
+                        m2c_opts.funcName = {opt};
                     else
                         error('m2c:InvalidFileName', 'Function %s could not be found.\n', opt);
                     end
@@ -1060,6 +1089,10 @@ m2c_opts.debugInfo = m2c_opts.debugInfo || ~isempty(m2c_opts.gdb) || ...
 
 if m2c_opts.optimLevel<0
     m2c_opts.optimLevel=int32(~m2c_opts.debugInfo);
+end
+
+if ~m2c_opts.debugInfo
+    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/No_debug']];
 end
 
 m2c_opts.genExe = m2c_opts.genExe || ~isempty(m2c_opts.gdb) || ...
@@ -1105,10 +1138,8 @@ if m2c_opts.withMKL
 elseif m2c_opts.withBlas
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_BLAS=1'];
 end
-if m2c_opts.optimLevel==0
-    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_DEBUG=1'];
-else
-    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_DEBUG=0' '-DNDEBUG'];
+if m2c_opts.optimLevel
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DNDEBUG'];
 end
 if m2c_opts.withOMP
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_OPENMP=1'];

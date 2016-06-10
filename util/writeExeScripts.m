@@ -119,11 +119,12 @@ if ~isempty(m2c_opts.exeFile)
         exeFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
             m2c_opts.exeFile{1}];
     end
-    if exist([mpath m2c_opts.exeFile{1}], 'dir')
+    if exist([cpath exeFile ], 'dir')
+        exeDir = exeFile;
         exeFile = [exeFile '/' funcname '.exe'];
-        exeDir = [mpath m2c_opts.exeFile{1} '/'];
     else
-        exeDir = [fileparts([mpath m2c_opts.exeFile{1}]) '/'];
+        [exeDir, exeBase, ext] = fileparts(exeFile);
+        exeFile = [exeDir '/' exeBase ext];
     end
 else
     if isempty(mpath) || isequal(mpath, cpath(1:length(mpath)))

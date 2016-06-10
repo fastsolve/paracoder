@@ -8,22 +8,20 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Define M2C_DEBUG to be the opposite of NDEBUG by default. It can be overwritten
- * by compiler options -DM2C_DEBUG=1 or -DM2C_DEBUG=0 */
-#ifndef M2C_DEBUG
-#ifdef NDEBUG
-#define M2C_DEBUG  0
-#else
-#define M2C_DEBUG  1
-#endif /* NDEBUG */
-#endif /* M2C_DEBUG */
+#ifndef EXTERN_C
+#  ifdef __cplusplus
+#    define EXTERN_C extern "C"
+#  else
+#    define EXTERN_C extern
+#  endif
+#endif
 
 #if defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)
 
-extern void *mxMalloc(size_t n);
-extern void *mxCalloc(size_t n, size_t size);
-extern void *mxRealloc(void *ptr, size_t size);
-extern void mxFree(void *ptr);
+EXTERN_C void *mxMalloc(size_t n);
+EXTERN_C void *mxCalloc(size_t n, size_t size);
+EXTERN_C void *mxRealloc(void *ptr, size_t size);
+EXTERN_C void mxFree(void *ptr);
 
 /* Define macros to support building function into MATLAB executable. */
 #ifdef malloc
@@ -38,9 +36,9 @@ extern void mxFree(void *ptr);
 #endif /* MATLAB_MEX_FILE || BUILD_MAT */
 
 #if defined(MATLAB_MEX_FILE)
-extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
-extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
-extern int  mexPrintf(const char * msg, ...);
+EXTERN_C void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C int  mexPrintf(const char * msg, ...);
 
 #define M2C_error   mexErrMsgIdAndTxt
 #define M2C_warn    mexWarnMsgIdAndTxt
@@ -50,8 +48,8 @@ extern int  mexPrintf(const char * msg, ...);
 
 #elif defined(BUILD_MAT)
 
-extern void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
-extern void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
 
 #define M2C_error   mexErrMsgIdAndTxt
 #define M2C_warn    mexWarnMsgIdAndTxt
@@ -102,11 +100,11 @@ typedef struct emxArray__common emxArray__common;
 #endif
 
 #ifndef INLINE_ENSURE_CAPACITY
-#if !defined(M2C_DEBUG) && defined(_STDC_C99)
+#if defined(_STDC_C99)
 #define INLINE_ENSURE_CAPACITY  1
 #else
 #define INLINE_ENSURE_CAPACITY  0
-#endif /* M2C_DEBUG */
+#endif /* _STDC_C99 */
 #endif /* INLINE_ENSURE_CAPACITY */
 
 extern void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
