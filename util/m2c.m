@@ -125,10 +125,9 @@ function m2c(varargin)
 %           Specifies the output directory of the generated C code for the
 %           top-level MATLAB function. By default, if -cuda-kernel is enabled,
 %           the generated CUDA code will be in codegen/lib/<funcname>-cuda;
-%           if -omp is enabled, the generated OpenMP code will be in
-%           codegen/lib/<funcname>-omp; otherwise, the code is in the
-%           codegen/lib/<funcname>. All the path is relative to the M file.
-%           You can overwrite these default directory names.
+%           otherwise, the code is in codegen/lib/<funcname>. All the path
+%           is relative to the M file. You can overwrite these default
+%           directory names.
 %     -example
 %           Generate example main file.
 %     -config {'expression'}
@@ -366,8 +365,6 @@ end
 if isempty(m2c_opts.outDir)
     if m2c_opts.withNvcc
         m2c_opts.outDir = {['codegen/lib/' func '-cuda']};
-    elseif m2c_opts.withOMP
-        m2c_opts.outDir = {['codegen/lib/' func '-omp']};
     else
         m2c_opts.outDir = {['codegen/lib/' func]};
     end
@@ -488,7 +485,7 @@ if regen_c
     
     if m2c_opts.verbose; basecommand = [basecommand ' -v']; end
     basecommand = [basecommand sprintf(' %s ', ...
-        m2c_opts.addpath{:}, '-I ./codegen', '-d', m2c_opts.outDir{1})];
+        m2c_opts.addpath{:}, m2c_opts.m2cpath{:}, '-d', m2c_opts.outDir{1})];
     command = strtrim([basecommand ' ' opts ' ' func ' ' m2c_opts.codegenArgs]);
     
     try
@@ -588,6 +585,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'dynMem', '', ...
     'optimLevel', -1, ...
     'typeRep', false, ...
+    'm2cpath', '', ...
     'addpath', '', ...
     'api', '', ...
     'globals', '', ...
@@ -658,6 +656,7 @@ end
 
 m2croot = fileparts(which('m2c_printf.m'));
 m2c_opts.cppflags = {['-I' m2croot '/include']};
+m2c_opts.m2cpath={'-I ./codegen'};
 
 func_index = 0;
 i = 1;
@@ -1092,7 +1091,7 @@ if m2c_opts.optimLevel<0
 end
 
 if ~m2c_opts.debugInfo
-    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/No_debug']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/No_debug']];
 end
 
 m2c_opts.genExe = m2c_opts.genExe || ~isempty(m2c_opts.gdb) || ...
@@ -1109,7 +1108,7 @@ end
 if m2c_opts.withCuda
     mcudaroot = fileparts(which('startup_mcuda.m'));
     m2c_opts.cppflags = [m2c_opts.cppflags ['-I' mcudaroot '/include'] '-DM2C_CUDA=1'];
-    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/cuda']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/cuda']];
 
     if ~m2c_opts.withNvcc && (m2c_opts.withPetsc || m2c_opts.withMPI)
         warning('m2c:WarnCUDAwithMPI', ['You have enabled CUDA together with PETSc/MPI.\n', ...
@@ -1143,7 +1142,7 @@ if m2c_opts.optimLevel
 end
 if m2c_opts.withOMP
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_OPENMP=1'];
-    m2c_opts.addpath = [m2c_opts.addpath ['-I ' m2croot '/omp']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/omp']];
 end
 if m2c_opts.withMPI
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_MPI=1'];
