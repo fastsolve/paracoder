@@ -144,7 +144,7 @@ while ~isempty(regexp(cfile_str, pat, 'once'))
 end
 
 %% Process kernel functions
-if m2c_opts.withCuda && isequal(parmode(1:4), 'cuda')
+if m2c_opts.withCuda && strncmp(parmode, 'cuda', 4)
     [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts, parmode);
     % Remove rtwtypes from header file
     if ~m2c_opts.typeRep
