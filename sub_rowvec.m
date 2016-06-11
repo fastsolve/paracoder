@@ -12,7 +12,7 @@ if end_index<start_index;
 elseif isempty( coder.target)
     sub = A(:, start_index:end_index);
 else
-    sub = nullcopy(zeros(size(A,1),end_index-start_index+1, class(A)));
+    sub = coder.nullcopy(zeros(size(A,1),end_index-start_index+1, class(A)));
 
     for i=0:end_index-start_index
         sub(:,i+1) = A(:,start_index+i);
