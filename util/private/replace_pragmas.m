@@ -1,8 +1,31 @@
-function [cfile_str, hfile_str, changed] = replace_pragmas(cfile_str, hfile_str, m2c_opts)
+function [cfile_str, hfile_str, parmode] = ...
+    replace_pragmas(cfile_str, hfile_str, m2c_opts)
 %replace_pragmas
 %  This is a plugin for post_codegen.
 
-strin = cfile_str;
+parmode = '';
+if m2c_opts.withCuda
+    if ~isempty(strfind(cfile_str, 'threadIdx.x'))
+        if ~isempty(strfind(cfile_str, '#pragma mcuda'))
+            parmode = 'cuda';
+        else
+            parmode = 'cuda-kernel';
+        end
+    else
+        warning('m2c:NonCudaKernel', ...
+            'Function %s does not appear to be a valid CUDA kernel function.', ...
+            m2c_opts.funcName);
+    end
+elseif m2c_opts.withOMP && (~isempty(strfind(cfile_str, 'omp_get_thread_num')) || ...
+        ~isempty(regexp(cfile_str, '#pragma\s+omp', 'once')))
+    if ~isempty(regexp(cfile_str, '#pragma\s+omp\s+parallel', 'once'))
+        parmode = 'omp';
+    else
+        parmode = 'omp-kernel';
+    end
+end
+
+cfile_str = regexprep(cfile_str, '\n#ref\([^\)]+\);', '');
 
 %% Process pragma
 prag = '\n#pragma[^\n]+';
@@ -121,8 +144,8 @@ while ~isempty(regexp(cfile_str, pat, 'once'))
 end
 
 %% Process kernel functions
-if m2c_opts.withNvcc
-    [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts);
+if m2c_opts.withCuda && isequal(parmode(1:4), 'cuda')
+    [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts, parmode);
     % Remove rtwtypes from header file
     if ~m2c_opts.typeRep
         hfile_str = regexprep(hfile_str, '\n#include "rtwtypes.h"', '');
@@ -134,8 +157,7 @@ cfile_str = regexprep(cfile_str, '#{[^\n]+\n#}[^\n]+', '  {}');
 
 if m2c_opts.enableInline
     parregion = ['(\n)#{(parallel|section|sections)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-        '#}(parallel|section|sections)\(\s*\)[^\n]*'];
+        re_parregion '#}(parallel|section|sections)\(\s*\)[^\n]*'];
     while ~isempty(regexp(cfile_str, parregion, 'once'))
         [~,toks] = regexp(cfile_str, parregion, 'match', 'tokens');
         for i=1:length(toks)
@@ -159,20 +181,13 @@ if m2c_opts.enableInline
             '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4M2C_END_REGION(/*$6*/)$1');
     end
 
-    % Add ifdef around "#pragma momp ..."
-    cfile_str = regexprep(cfile_str, '(\n+)(\s*#pragma) momp ([^\n]+)', ...
-        '$1#if defined(M2C_OPENMP)\n$2 omp $3\n#endif');
-
     %% Process CUDA regions
     cudaregion = ['(\n)#{(cuda)\(\w+\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-        '#}(cuda)\(\s*\)[^\n]*'];
+        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
     async_region = ['(\n)#{(cuda)\(async\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-        '#}(cuda)\(\s*\)[^\n]*'];
+        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
     sync_region = ['(\n)#{(cuda)\(sync\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+)' ...
-        '#}(cuda)\(\s*\)[^\n]*'];
+        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
     while ~isempty(regexp(cfile_str, cudaregion, 'once'))
         [~,toks] = regexp(cfile_str, cudaregion, 'match', 'tokens');
         for i=1:length(toks)
@@ -189,9 +204,9 @@ if m2c_opts.enableInline
             '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4cudaThreadSynchronize();\n$4M2C_END_REGION(/*$6*/)$1');
     end
 
-    % Add ifdef around "#pragma momp ..."
+    % Replace "#pragma momp ..." by "#pragma omp ..." 
     cfile_str = regexprep(cfile_str, '(\n+)(\s*#pragma) momp ([^\n]+)', ...
-        '$1#if defined(M2C_OPENMP)\n$2 omp $3\n#endif');
+        '$1$2 omp $3');
 
     % Check mismatched regions
     marks = '(\n)#({|})(\w+)\(\s*\)[^\n]*\n';
@@ -212,24 +227,9 @@ else
     cfile_str = regexprep(cfile_str, '\n\s*#pragma momp [^\n]+\n', '');
 end
 
-%% Change whether the file has changed
-changed = ~isequal(strin, cfile_str);
 end
 
-function expr = funccall(func)
-expr = ['\n\s+[^\n;]+[^\w]' func '\s*\([^\};]+\)\s*;'];
-end
-
-function expr = basictype
-expr = ['(boolean_T|char_T|int8_T|int16_T|int32_T|int64_T|uint8_T|' ...
-    'uint16_T|uint32_T|uint64_T|real_T|real32_T|real64_T)'];
-end
-
-function expr = kernelfunc(funcname)
-expr = ['\w+\s+' funcname '\s*(\([^{}\)]+\))\s*{(?:([^}\n][^\n]*)?\n)*}'];
-end
-
-function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts)
+function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts, parmode)
 %% Find kernel functions
 
 synced = ~isempty(regexp(cfile_str, '\s+__syncthreads\(', 'once'));
@@ -242,7 +242,7 @@ if length(altapis)>1
 end
 
 funcname = altapis{1};
-[kernel, prototype] = regexp(cfile_str, kernelfunc(funcname), 'match', 'tokens', 'once');
+[kernel, prototype] = regexp(cfile_str, re_funcdef(funcname), 'match', 'tokens', 'once');
 funcdecl = regexp(hfile_str, ['\nextern\s+\w+\s+' funcname '\s*\([^\)]*\);'], 'match', 'once');
 
 if ~isempty(strfind(kernel, 'emxArray_Init'))
@@ -261,7 +261,7 @@ else
     args = args{1};
     append = false(length(args),1);
     for k=1:length(args)
-        arg = regexp(args{k}, ['emxArray_(' basictype ')\s*\*\s*(\w+)'], 'tokens', 'once');
+        arg = regexp(args{k}, ['emxArray_(' re_basictype ')\s*\*\s*(\w+)'], 'tokens', 'once');
         
         if ~isempty(arg)
             newfuncdecl = regexprep(newfuncdecl, ...
@@ -280,7 +280,7 @@ else
     
     %% Find function calls to the kernel functions
     while true
-        [calls,pos] = regexp(cfile_str, funccall(funcname), 'match', 'once');
+        [calls,pos] = regexp(cfile_str, re_funccall(funcname), 'match', 'once');
         if isempty(calls)
             break;
         end
@@ -305,17 +305,19 @@ else
         cfile_str = [cfile_str(1:pos-1) newcall cfile_str(pos+length(call):end)];
     end
     
-    %% Change the prototype of function    
-    newfuncdecl = sprintf('%s\n', '', ...
-        '#ifdef __NVCC__', ...
-        '__global__', ...
-        newfuncdecl(2:end), ...
-        '#endif');
-    newfunc = sprintf('%s\n', '', ...
-        '__global__', newfunc);
-    
-    [wrapper_decls, wrapper_defs] = write_cuda_wrapper(funcname, newargs(2:end-1), synced, m2c_opts);
-    newfunc = [newfunc wrapper_defs];
+    %% Change the prototype of function
+    if isequal(parmode, 'cuda-kernel')
+        newfuncdecl = sprintf('%s\n', '', ...
+            '#ifdef __NVCC__', ...
+            '__global__', ...
+            newfuncdecl(2:end), ...
+            '#endif');
+        newfunc = sprintf('%s\n', '', ...
+            '__global__', newfunc);
+        
+        [wrapper_decls, wrapper_defs] = write_cuda_wrapper(funcname, newargs(2:end-1), synced, m2c_opts);
+        newfunc = [newfunc wrapper_defs];
+    end
     
     hfile_str = strrep(hfile_str, funcdecl, [newfuncdecl, wrapper_decls]);
 end
@@ -462,37 +464,4 @@ while i<length(args)
     i = i + 1;
 end
 
-end
-
-function ctype = get_ctypename(basetype, nochange)
-if nochange
-    ctype = basetype;
-    return; 
-end
-switch basetype
-    case 'boolean_T'
-        ctype = 'boolean_T';
-    case 'char_T'
-        ctype = 'char';
-    case 'int8_T'
-        ctype = 'signed char';
-    case 'uint8_T'
-        ctype = 'unsigned char';
-    case 'int16_T'
-        ctype = 'short';
-    case 'uint16_T'
-        ctype = 'unsigned short';
-    case 'int32_T'
-        ctype = 'int';
-    case 'uint32_T'
-        ctype = 'unsigned int';
-    case 'int64_T'
-        ctype = 'signed long';
-    case 'uint64_T'
-        ctype = 'unsigned long';
-    case {'real_T', 'real64_T'}
-        ctype = 'double';
-    case 'real32_T'
-        ctype = 'float';
-end
 end
