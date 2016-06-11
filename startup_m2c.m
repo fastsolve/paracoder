@@ -10,6 +10,7 @@ addpath(m2croot); %#ok<*MCAP>
 addpath([m2croot '/util']);
 addpath([m2croot '/ctypes']);
 addpath([m2croot '/mtypes']);
+addpath([m2croot '/parallel']);
 
 if ~exist('coder.p', 'file')
     addpath([m2croot '/No_coder']);
