@@ -11,6 +11,7 @@
 
 #include "m2c.h"
 
+HOST_AND_DEVICE
 void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
                        int newNumel, int elementSize)
 {
@@ -43,6 +44,7 @@ void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
     emxArray->canFreeData = 1;
 }
 
+HOST_AND_DEVICE
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
         int elementSize) {
     int i;
@@ -55,6 +57,7 @@ void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
 }
 
 #define define_emxInit(emxtype) \
+HOST_AND_DEVICE \
 void emxInit_##emxtype(emxArray_##emxtype **pEmxArray, int numDimensions) \
 { \
     emxArray_##emxtype *emxArray; \
@@ -73,6 +76,7 @@ void emxInit_##emxtype(emxArray_##emxtype **pEmxArray, int numDimensions) \
 
 /* Define emxFree for standard data types */
 #define define_emxFree(emxtype) \
+HOST_AND_DEVICE \
 void emxFree_##emxtype(emxArray_##emxtype **pEmxArray) \
 { \
     if (*pEmxArray != (emxArray_##emxtype *)NULL) { \

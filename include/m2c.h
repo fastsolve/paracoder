@@ -16,12 +16,25 @@
 #  endif
 #endif
 
-#if defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)
+#ifdef __NVCC__
+#define HOST_AND_DEVICE __host__ __device__
+#else
+#define HOST_AND_DEVICE        
+#endif
+
+#if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(__NVCC__)
 
 EXTERN_C void *mxMalloc(size_t n);
 EXTERN_C void *mxCalloc(size_t n, size_t size);
 EXTERN_C void *mxRealloc(void *ptr, size_t size);
 EXTERN_C void mxFree(void *ptr);
+
+EXTERN_C void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
+EXTERN_C int  mexPrintf(const char * msg, ...);
+
+#define M2C_error   mexErrMsgIdAndTxt
+#define M2C_warn    mexWarnMsgIdAndTxt
 
 /* Define macros to support building function into MATLAB executable. */
 #ifdef malloc
@@ -33,48 +46,20 @@ EXTERN_C void mxFree(void *ptr);
 #define realloc mxRealloc
 #define free    mxFree
 
+#else
+
+EXTERN_C void M2C_error(const char * id, const char * msg, ...);
+EXTERN_C void M2C_warn(const char * id, const char * msg, ...);
+
 #endif /* MATLAB_MEX_FILE || BUILD_MAT */
 
-#if defined(MATLAB_MEX_FILE)
-EXTERN_C void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
-EXTERN_C void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
-EXTERN_C int  mexPrintf(const char * msg, ...);
-
-#define M2C_error   mexErrMsgIdAndTxt
-#define M2C_warn    mexWarnMsgIdAndTxt
+#if defined(MATLAB_MEX_FILE) && !defined(__NVCC__)
 #define M2C_printf  mexPrintf
-
 #define emlrtIsMATLABThread(s)  1
-
-#elif defined(BUILD_MAT)
-
-EXTERN_C void mexErrMsgIdAndTxt(const char * id, const char * msg, ...);
-EXTERN_C void mexWarnMsgIdAndTxt(const char * id, const char * msg, ...);
-
-#define M2C_error   mexErrMsgIdAndTxt
-#define M2C_warn    mexWarnMsgIdAndTxt
+#else
 #define M2C_printf  printf
-
 #define emlrtIsMATLABThread(s)  0
-
-#else /* MATLAB_MEX_FILE */
-
-extern void M2C_error(const char * id, const char * msg, ...);
-extern void M2C_warn(const char * id, const char * msg, ...);
-#define M2C_printf  printf
-
-#define emlrtIsMATLABThread(s)  0
-
 #endif /* MATLAB_MEX_FILE */
-
-#define M2C_OFFSET_PTR(ptr,offset)        ((ptr)+(offset))
-#define M2C_GET_FIELD(s,field)            (s)->field
-#define M2C_SET_FIELD(s,field,val)        (s)->field=val
-#define M2C_BEGIN_REGION()                {
-#define M2C_END_REGION()                  }
-#define M2C_BEGIN_REGION_MISMATCH()
-#define M2C_END_REGION_MISMATCH()
-#define M2C_INTDIV(a,b)                   ((int)(a) / (int)(b))
 
 /* Define emxArray__common and other standard emxInit and emxFree 
  * functions for basic data types. */
@@ -100,19 +85,20 @@ typedef struct emxArray__common emxArray__common;
 #endif
 
 #ifndef INLINE_ENSURE_CAPACITY
-#if defined(_STDC_C99)
+#if defined(_STDC_C99) || defined(__cplusplus)
 #define INLINE_ENSURE_CAPACITY  1
 #else
 #define INLINE_ENSURE_CAPACITY  0
 #endif /* _STDC_C99 */
 #endif /* INLINE_ENSURE_CAPACITY */
 
-extern void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
+HOST_AND_DEVICE extern
+void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
         int newNumel, int elementSize);
 
 /* emxEnsureCapacity is called very frequently, so better to inline it */
 #if INLINE_ENSURE_CAPACITY
-inline
+HOST_AND_DEVICE inline
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
         int elementSize) {
     int i;
@@ -123,16 +109,19 @@ void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
     if (newNumel > emxArray->allocatedSize)
         m2cExpandCapacity(emxArray, oldNumel, newNumel, elementSize);
 }
-#else
-extern void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
+#else /* INLINE_ENSURE_CAPACITY */
+HOST_AND_DEVICE extern 
+void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
         int elementSize);
-#endif
+#endif /* INLINE_ENSURE_CAPACITY */
 
 #define declare_emxInit(emxtype) \
-extern void emxInit_##emxtype(emxArray_##emxtype **pEmxArray, int numDimensions)
+HOST_AND_DEVICE extern \
+void emxInit_##emxtype(emxArray_##emxtype **pEmxArray, int numDimensions)
 
 #define declare_emxFree(emxtype) \
-extern void emxFree_##emxtype(emxArray_##emxtype **pEmxArray)
+HOST_AND_DEVICE extern \
+void emxFree_##emxtype(emxArray_##emxtype **pEmxArray)
 
 #ifdef struct_emxArray_boolean_T
 declare_emxInit(boolean_T);
@@ -200,6 +189,7 @@ declare_emxFree(real64_T);
 #endif
 
 #define define_emxCreate(emxInit, emxtype) \
+HOST_AND_DEVICE \
 emxArray_##emxtype *emxCreate_##emxtype(int rows, int cols) \
 { \
     emxArray_##emxtype *emx; \
@@ -215,6 +205,7 @@ emxArray_##emxtype *emxCreate_##emxtype(int rows, int cols) \
 }
 
 #define define_emxFreeStruct(emxFree, emxtype) \
+HOST_AND_DEVICE \
 void emxFree(emxArray_##emxtype **pEmxArray) \
 { \
     int numEl; \
@@ -240,6 +231,7 @@ void emxFree(emxArray_##emxtype **pEmxArray) \
 }
 
 #define define_emxCreateND(emxInit, emxtype) \
+HOST_AND_DEVICE \
 emxArray_##emxtype *emxCreateND_##emxtype(int numDimensions, int *size)  \
 { \
     emxArray_##emxtype *emx; \
@@ -260,6 +252,7 @@ emxArray_##emxtype *emxCreateND_##emxtype(int numDimensions, int *size)  \
 
 
 #define define_emxCreateWrapper(emxInit, emxtype, type) \
+HOST_AND_DEVICE \
 emxArray_##emxtype *emxCreateWrapper_##emxtype(type *data, int rows, int cols) \
 { \
     emxArray_##emxtype *emx; \
@@ -275,6 +268,7 @@ emxArray_##emxtype *emxCreateWrapper_##emxtype(type *data, int rows, int cols) \
 }
 
 #define define_emxCreateWrapperND(emxInit, emxtype, type) \
+HOST_AND_DEVICE \
 emxArray_##emxtype *emxCreateWrapperND_##emxtype(type *data, int numDimensions, \
         int *size) \
 { \
@@ -296,6 +290,7 @@ emxArray_##emxtype *emxCreateWrapperND_##emxtype(type *data, int numDimensions, 
 }
 
 #define define_emxDestroyArray(emxFree, type) \
+HOST_AND_DEVICE \
 void emxDestroyArray_##type(emxArray_##type *emxArray) \
 { \
     emxFree(&emxArray); \
