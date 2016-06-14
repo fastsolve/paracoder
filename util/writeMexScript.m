@@ -192,7 +192,7 @@ if m2c_opts.withNvcc
     
     NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
-    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -DMATLAB_MEX_FILE -dc ' funcname '.cu -o ' funcname '.o'];
+    nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dc ' funcname '.cu -o ' funcname '.o'];
     nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
     nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -ptx ' funcname '.cu -o ' funcname '.ptx'];
     

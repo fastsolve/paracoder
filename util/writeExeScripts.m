@@ -8,27 +8,19 @@ if ~isequal(cpath, '.')
 end
 clear(outMfile);
 
+CFLAGS = ' -fPIC -std=c99 ';
+CXXFLAGS = '-fPIC ';
+LDFLAGS = '';
+
 if m2c_opts.withPetsc
-    % If PETSC is used, enforce using the PCC or CXX commands used in
-    % PETSc for CC, and add the include path and libraries.
-    if m2c_opts.useCpp
-        CC = m2c_opts.petscCXX{1};
-    else
-        CC = m2c_opts.petscCC{1};
-    end
+    CC = m2c_opts.petscCXX{1};
+    CXX = m2c_opts.petscCC{1};
 elseif m2c_opts.withMPI
-    % If MPI is used, enforce using mpi compiler wrappers
-    if m2c_opts.useCpp
-        CC = m2c_opts.mpiCXX{1};
-    else
-        CC = m2c_opts.mpiCC{1};
-    end
+    CC = m2c_opts.mpiCC{1};
+    CXX = m2c_opts.mpiCXX{1};
 elseif isempty(m2c_opts.cc)
-    if m2c_opts.useCpp
-        CC = 'g++';
-    else
-        CC = 'gcc';
-    end
+    CC = 'gcc';
+    CXX = 'g++';
     
     if ismac && m2c_opts.withOMP
         % Try to locate gcc-mp, with support of OpenMP
@@ -39,60 +31,70 @@ elseif isempty(m2c_opts.cc)
                 warning('m2c:buildEXE', 'OpenMP is disabled.');
                 m2c_opts.ompLibs = {};
             end
-        elseif m2c_opts.useCpp
-            CC = CXX;
         end
     end
 else
     CC = sprintf(' %s ', m2c_opts.cc{:});
 end
 
-if m2c_opts.optimLevel==0
-    cflags = '-fPIC -O0 -g';
+if m2c_opts.optimLevel==0 || ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.gdb)
+    CFLAGS = [CFLAGS ' -O0 -g'];
+    CXXFLAGS = [CXXFLAGS ' -O0 -g'];
 else
-    cflags = ['-fPIC -O' num2str(m2c_opts.optimLevel) ' -g'];
-end
-
-if ~m2c_opts.useCpp
-    cflags = [cflags ' -std=c99 '];
+    CFLAGS = [CFLAGS '-O' num2str(m2c_opts.optimLevel) ' -g'];
+    CXXFLAGS = [CXXFLAGS '-O' num2str(m2c_opts.optimLevel) ' -g'];
 end
 
 if m2c_opts.withOMP
-    cflags = [cflags ' -fopenmp'];
+    CFLAGS = [CFLAGS ' -fopenmp'];
+    CXXFLAGS = [CXXFLAGS ' -fopenmp'];
+    LDFLAGS = [LDFLAGS ' -fopenmp'];
 end
 
 if ~isempty(m2c_opts.gprof)
-    cflags = [cflags ' -pg '];
+    CFLAGS = [CFLAGS ' -pg '];
+    CXXFLAGS = [CXXFLAGS ' -pg '];
 elseif ~isempty(m2c_opts.gcov)
-    cflags = [cflags ' -fprofile-arcs -ftest-coverage '];
+    CFLAGS = [CFLAGS ' -fprofile-arcs -ftest-coverage '];
+    CXXFLAGS = [CXXFLAGS ' -fprofile-arcs -ftest-coverage '];
     try delete([cpath '*.gcda']); catch; end
     try delete([cpath '*.gcno']); catch; end
 end
 
 if ~isempty(m2c_opts.cflags)
-    % Overwrite cflags
-    cflags = sprintf(' %s ', m2c_opts.cflags{:});
+    % Overwrite CFLAGS
+    CFLAGS = sprintf(' %s ', m2c_opts.cflags{:});
+    CXXFLAGS = sprintf(' %s ', m2c_opts.cflags{:});
 end
 if ~isempty(m2c_opts.cppflags)
-    cppflags = sprintf(' %s ', m2c_opts.cppflags{:});
+    CPPFLAGS = sprintf(' %s ', m2c_opts.cppflags{:});
 else
-    cppflags = '';
+    CPPFLAGS = '';
+end
+if ~isempty(m2c_opts.ldflags)
+    LDFLAGS = [LDFLAGS sprintf(' %s ', m2c_opts.ldflags{:})];
 end
 
 if m2c_opts.withPetsc
-    cflags = [cflags sprintf(' %s ', m2c_opts.petscInc{1})];
+    CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1}];
+    CXXFLAGS = [CXXFLAGS ' ' m2c_opts.petscCXXFLAGS{1}];
 end
 if m2c_opts.withMKL
-    cflags = [cflags sprintf(' %s ', m2c_opts.mklInc{1})];
+    CFLAGS = [CFLAGS sprintf(' %s ', m2c_opts.mklInc{1})];
+    CXXFLAGS = [CXXFLAGS sprintf(' %s ', m2c_opts.mklInc{1})];
 end
 if m2c_opts.withCuda
-    cflags = [cflags sprintf(' %s ', m2c_opts.cudaInc{1})];
+    CFLAGS = [CFLAGS sprintf(' %s ', m2c_opts.cudaInc{1})];
+    CXXFLAGS = [CXXFLAGS sprintf(' %s ', m2c_opts.cudaInc{1})];
 end
 if m2c_opts.withMPI
-    cflags = [cflags sprintf(' %s ', m2c_opts.mpiInc{1})];
+    CPPFLAGS = [CPPFLAGS sprintf(' %s ', m2c_opts.mpiInc{1})];
 end
 
-if m2c_opts.verbose; cflags = ['-v ' cflags]; end
+if m2c_opts.verbose; 
+    CFLAGS = ['-v ' CFLAGS]; 
+    CXXFLAGS = ['-v ' CXXFLAGS]; 
+end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
 
@@ -110,6 +112,18 @@ if m2c_opts.withCuda
 end
 libs = [libs sprintf(' %s ', m2c_opts.mpiLibs{:})];
 libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
+
+if m2c_opts.withNvcc
+    cuda_out = [funcname '_cuda.o'];
+    srcs = [funcname '.o ' cuda_out ' ' funcname '_mex.cpp ' funcname '_exe.cpp'];
+else
+    srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf];
+end
+
+if m2c_opts.enableInf
+    srcs = [srcs ' rtGetInf.' m2c_opts.suf  ' rtGetNaN.' m2c_opts.suf ' rt_nonfinite.' m2c_opts.suf];
+end
+
 
 % If m2c_opts.mexFile is nonempty, modify the output directory.
 if ~isempty(m2c_opts.exeFile)
@@ -144,9 +158,27 @@ filestr = sprintf('%s\n', ...
     ['if exist(''isnewer'', ''file'') && ~isnewer(''' exeFile ''', ''build_' ...
     funcname '_exe.m'', ''' funcname '_exe.' m2c_opts.suf ''')']);
 
-srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf];
-if m2c_opts.enableInf
-    srcs = [srcs ' rtGetInf.' m2c_opts.suf  ' rtGetNaN.' m2c_opts.suf ' rt_nonfinite.' m2c_opts.suf];
+if m2c_opts.withNvcc
+    NVCC = [m2c_opts.cudaDir{1} '/bin/nvcc'];
+    
+    NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
+    cuda_out = [funcname '_cuda.o'];
+    nvccCmd1 = [NVCC ' ' CPPFLAGS ' '  NVCC_CXXFLAGS ' -dc ' funcname '.cu -o ' funcname '.o'];
+    nvccCmd2 = [NVCC ' ' NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
+    
+    filestr = sprintf('%s\n', filestr, ...
+        ['    nvccCmd1 = [''' nvccCmd1 '''];'], ...
+        ['    nvccCmd2 = ''' nvccCmd2 ''';']);
+    
+    if ~m2c_opts.quiet
+        filestr = sprintf('%s\n', filestr, ...
+            '    disp(nvccCmd1); status = unix(nvccCmd1, ''-echo'');', ...
+            '    disp(nvccCmd2); status = unix(nvccCmd2, ''-echo'');');
+    else
+        filestr = sprintf('%s\n', ...
+            '    unix(nvccCmd1);', ...
+            '    unix(nvccCmd2);');
+    end
 end
 
 filestr = sprintf('%s\n', filestr, ...
@@ -158,9 +190,17 @@ filestr = sprintf('%s\n', filestr, ...
     '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
     '    else', ...
     '        error(''Building executable is not supported on %s\n'', computer);', ...
-    '    end', ...
-    ['    build_cmd = [''' CC ' ' cppflags cflags ' -DBUILD_MAT -I"'' incdir ''" '...
-    srcs ' -o ' exeFile libs '''  matlibs];']);
+    '    end');
+
+if m2c_opts.withNvcc
+    filestr = sprintf('%s\n', filestr, ...
+        ['    build_cmd = [''' CXX ' ' CPPFLAGS CXXFLAGS ' -DBUILD_MAT -I"'' incdir ''" '...
+        srcs ' -o ' exeFile ' ' LDFLAGS ' ' libs '''  matlibs];']);
+else
+    filestr = sprintf('%s\n', filestr, ...
+        ['    build_cmd = [''' CC ' ' CPPFLAGS CFLAGS ' -DBUILD_MAT -I"'' incdir ''" '...
+        srcs ' -o ' exeFile  ' ' LDFLAGS  ' ' libs '''  matlibs];']);
+end
 
 if ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
@@ -195,7 +235,7 @@ filestr = sprintf('%s\n', ...
     ['function varargout = run_' funcname '_exe(varargin)'], ...
     '% Invoke EXE file by passing variables through MAT files.', '',...
     'tmpdir = getenv(''TMPDIR'');', ...
-    'if isempty(tmpdir); tmpdir = ''/tmp/''; else tmpdir = [tmpdir ''/'']; end', '', ...
+    'if isempty(tmpdir); tmpdir = ''/tmp/''; elseif (tmpdir(end)~=''/'') tmpdir = [tmpdir ''/'']; end', '', ...
     'suf = [''_'' num2str(feature(''getpid'')) ''.mat''];', ...
     ['infile = [tmpdir ''' funcname '_in'' suf];'], ...
     ['outfile = [tmpdir ''' funcname '_out'' suf];'], '', ...
@@ -274,9 +314,9 @@ filestr = sprintf('%s\n', filestr, ...
 if isempty(cmdpre)
     filestr = sprintf('%s\n', filestr, ...
         'fprintf(1, ''Running command "%s" ...\n'', strtrim(cmd)); tic;', ...
-        ['[status,~] = system(cmd' echo ');'], ...
+        ['[status,result] = system(cmd' echo ');'], ...
         'if status', ...
-        ['    error(''' funcname '.exe failed'');'], ...
+        '    error(''%s'', result);', ...
         'else', ...
         ['fprintf(1, ''Excutable ' funcname ' completed in %g seconds.\n'', toc);'], ...
         'end');
