@@ -1,7 +1,11 @@
 function writeExeFile(funcname, cpath, m2c_opts)
 % Write out _exe.c file
 
-outCfile = [cpath funcname '_exe.' m2c_opts.suf];
+if m2c_opts.withNvcc
+    outCfile = [cpath funcname '_exe.cpp'];
+else
+    outCfile = [cpath funcname '_exe.' m2c_opts.suf];
+end
 
 str = sprintf('%s\n', ...
     '/*', ...
