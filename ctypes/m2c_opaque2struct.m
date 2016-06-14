@@ -21,8 +21,7 @@ else
     s = typecast(obj.data, class(s));
 end
 
-function size = sizeof(val) %#codegen
-
+function size = sizeof(val)
 if isa(val, 'double') || ...
         isa(val, 'int64') || isa(val, 'uint64')
     size = int32(8) * numel(val);
