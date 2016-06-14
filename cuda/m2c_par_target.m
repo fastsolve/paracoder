@@ -4,6 +4,6 @@ function trg = m2c_par_target(mode)
 if (nargin==0)
     trg = 'cuda';
 else
-    trg = isequal(mode, 'cuda');
+    trg = isequal(mode, 'cuda') || isequal(mode, 'gpu');
 end
 

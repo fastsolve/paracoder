@@ -19,7 +19,7 @@ coder.inline('never');
 
 if isempty(coder.target)
     warning(varargin{:});
-else   
+elseif ~m2c_par_target('gpu')
     if isequal(coder.target, 'mex')
         cmd = 'mexWarnMsgIdAndTxt';
     else
@@ -38,5 +38,18 @@ else
         
         fmt = coder.opaque('const char *', ['"' varargin{2} '"']);
         coder.ceval(cmd, msgid, fmt, varargin{3:end});
+    end
+else
+    coder.cinclude('m2c.h');
+    cmd = 'M2C_printf';
+    
+    if nargin==1 || ischar(varargin{1}) && ~ischar(varargin{2})
+        fmt = coder.opaque('const char *', ['"' varargin{1} '"']);
+        
+        coder.ceval(cmd, ...
+                    fmt, varargin{2:end});
+    else
+        fmt = coder.opaque('const char *', ['"' varargin{2} '"']);
+        coder.ceval(cmd, fmt, varargin{3:end});
     end
 end

@@ -1,5 +1,4 @@
-function quotient = m2c_intdiv(a, b) %#codegen
-
+function quotient = m2c_intdiv(a, b)
 coder.inline('always');
 
 if isempty(coder.target)
