@@ -4,7 +4,7 @@ function [cfile_str, hfile_str, parmode] = ...
 %  This is a plugin for post_codegen.
 
 parmode = '';
-if m2c_opts.withCuda
+if m2c_opts.withNvcc
     if ~isempty(strfind(cfile_str, 'threadIdx.x'))
         if ~isempty(strfind(cfile_str, '#pragma mcuda'))
             parmode = 'cuda';
@@ -14,7 +14,7 @@ if m2c_opts.withCuda
     else
         warning('m2c:NonCudaKernel', ...
             'Function %s does not appear to be a valid CUDA kernel function.', ...
-            m2c_opts.funcName);
+            m2c_opts.funcName{1});
     end
 elseif m2c_opts.withOMP && (~isempty(strfind(cfile_str, 'omp_get_thread_num')) || ...
         ~isempty(regexp(cfile_str, '#pragma\s+omp', 'once')))
@@ -144,29 +144,27 @@ while ~isempty(regexp(cfile_str, pat, 'once'))
 end
 
 %% Process kernel functions
-if m2c_opts.withCuda && strncmp(parmode, 'cuda', 4)
-    [cfile_str, hfile_str]= optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts, parmode);
-    % Remove rtwtypes from header file
-    if ~m2c_opts.typeRep
-        hfile_str = regexprep(hfile_str, '\n#include "rtwtypes.h"', '');
-    end
+if m2c_opts.withCuda && isequal(parmode, 'cuda-kernel')
+    [cfile_str, hfile_str]= replace_cuda_kernel(cfile_str, hfile_str, m2c_opts);
 end
 
 %% Process begin_region and end_region
 cfile_str = regexprep(cfile_str, '#{[^\n]+\n#}[^\n]+', '  {}');
 
 if m2c_opts.enableInline
-    parregion = ['(\n)#{(parallel|section|sections)\(\s*\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        re_parregion '#}(parallel|section|sections)\(\s*\)[^\n]*'];
+    parregion = ['(\n+)#{(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*' ...
+        '(\n|\n#[^\n]+)+([ \t]+)' re_parregion ...
+        '#}(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*'];
+    newline = sprintf('\n');
     while ~isempty(regexp(cfile_str, parregion, 'once'))
-        [~,toks] = regexp(cfile_str, parregion, 'match', 'tokens');
+        [matchedstr,toks] = regexp(cfile_str, parregion, 'match', 'tokens');
         for i=1:length(toks)
-            if strfind(toks{i}{5}, 'omp_get_thread_num')
+            if ~isempty(strfind(toks{i}{5}, 'omp_get_thread_num')) && (isequal(toks{i}{2}, 'parallel') || isequal(toks{i}{2}, 'section'))
                 fprintf(2,['It seems that you have private varilables in an OpenMP %s region:\n %s', ...
                     'Please make sure the region is contained in a function with coder.inline(''never'').\n'], ...
                     toks{i}{2}, [toks{i}{4},toks{i}{5}]);
             end
-            if strfind(toks{i}{5}, 'emxEnsureCapacity')
+            if ~isempty(strfind(toks{i}{5}, 'emxEnsureCapacity')) && (isequal(toks{i}{2}, 'parallel') || isequal(toks{i}{2}, 'section'))
                 fprintf(2,['It seems that you have memory allocation in an OpenMP %s region:\n %s', ...
                     'If you allocated a local buffer, make sure you call m2c_rref(buf) before OMP_begin_%s.\n'], ...
                     toks{i}{2}, [toks{i}{4},toks{i}{5}], toks{i}{2});
@@ -175,33 +173,35 @@ if m2c_opts.enableInline
                 fprintf(2, 'A %s region is marked with end_%s. Potential coding error:\n %s', ...
                     toks{i}{2}, toks{i}{6}, [toks{i}{4},toks{i}{5}]);
             end
-        end
 
-        cfile_str = regexprep(cfile_str, parregion, ...
-            '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4M2C_END_REGION(/*$6*/)$1');
+            cfile_str = strrep(cfile_str, matchedstr{i}, ...
+                [newline toks{i}{4} '{' ...
+                strrep(toks{i}{3}, [newline newline], newline), ...
+                toks{i}{4} '  ' ...
+                regexprep(strrep(toks{i}{5}, [newline '  '], [newline '    ']), '\n\n$', '\n') ...
+                toks{i}{4} '}' newline]);
+        end
     end
 
     %% Process CUDA regions
-    cudaregion = ['(\n)#{(cuda)\(\w+\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
-    async_region = ['(\n)#{(cuda)\(async\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
-    sync_region = ['(\n)#{(cuda)\(sync\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
+    cudaregion = ['(\n+)#{(cuda)\(\w+\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
         re_parregion '#}(cuda)\(\s*\)[^\n]*'];
     while ~isempty(regexp(cfile_str, cudaregion, 'once'))
-        [~,toks] = regexp(cfile_str, cudaregion, 'match', 'tokens');
+        [matchedstr,toks] = regexp(cfile_str, cudaregion, 'match', 'tokens');
         for i=1:length(toks)
             if strfind(toks{i}{5}, 'emxEnsureCapacity')
                 fprintf(2,['It seems that you have memory allocation in a CUDA parallel region:\n %s', ...
                     'If you allocated a local buffer, make sure you call m2c_rref(buf) before MCU_begin_parallle.\n'], ...
                     [toks{i}{4},toks{i}{5}]);
             end
+            
+            cfile_str = strrep(cfile_str, matchedstr{i}, ...
+                [newline toks{i}{4} '{' ...
+                strrep(toks{i}{3}, [newline newline], newline), ...
+                toks{i}{4} '  ' ...
+                regexprep(strrep(toks{i}{5}, [newline '  '], [newline '    ']), '\n\n$', '\n') ...
+                toks{i}{4} '}' newline]);
         end
-
-        cfile_str = regexprep(cfile_str, async_region, ...
-            '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4M2C_END_REGION(/*$6*/)$1');
-        cfile_str = regexprep(cfile_str, sync_region, ...
-            '$1$4M2C_BEGIN_REGION(/*$2*/)$3$4$5$4cudaThreadSynchronize();\n$4M2C_END_REGION(/*$6*/)$1');
     end
 
     % Replace "#pragma momp ..." by "#pragma omp ..." 
@@ -212,12 +212,12 @@ if m2c_opts.enableInline
     marks = '(\n)#({|})(\w+)\(\s*\)[^\n]*\n';
     if ~isempty(regexp(cfile_str, marks, 'once'))
         warning('m2c:MismatchRegions', ...
-            'Found mis-matched begin and end labels. Look for REGION_MISMATCH in the C code.\n');
+            'Found mis-matched begin and end labels. Look for "#error Mismatched" in C code.\n');
         
         cfile_str = regexprep(cfile_str, '(\n)#{(\w+)\(\s*\)[^\n]*\n', ...
-            '\nM2C_BEGIN_REGION_MISMATCH(/*$2*/)\n');
+            '\n#error Mismatched begin region for $2\n');
         cfile_str = regexprep(cfile_str, '(\n)#}(\w+)\(\s*\)[^\n]*\n', ...
-            '\nM2C_END_REGION_MISMATCH(/*$2*/)\n');
+            '\n#error Mismatched end region for $2\n');
     end
 else
     % Remove all m2c pragmas
@@ -229,7 +229,7 @@ end
 
 end
 
-function [cfile_str, hfile_str] = optimize_cuda_kernel(cfile_str, hfile_str, m2c_opts, parmode)
+function [cfile_str, hfile_str] = replace_cuda_kernel(cfile_str, hfile_str, m2c_opts)
 %% Find kernel functions
 
 synced = ~isempty(regexp(cfile_str, '\s+__syncthreads\(', 'once'));
@@ -245,89 +245,25 @@ funcname = altapis{1};
 [kernel, prototype] = regexp(cfile_str, re_funcdef(funcname), 'match', 'tokens', 'once');
 funcdecl = regexp(hfile_str, ['\nextern\s+\w+\s+' funcname '\s*\([^\)]*\);'], 'match', 'once');
 
-if ~isempty(strfind(kernel, 'emxArray_Init'))
-    warning('m2c:CannotProcessKernel', ['Function ' funcname ...
-        ' contains temporary emxArrays, so it cannot be converted into a kernel function.']);
-elseif ~isempty(regexp(kernel, '->sizes', 'once'))
-    warning('m2c:CannotProcessKernel', ['Function ' funcname ...
-        ' explicitly uses size information of arrays, so it cannot be converted into a kernel function.']);
-else
-    %% Find emxArray arguments and change them to plain pointers
-    newfuncdecl = funcdecl;
-    newfunc = kernel;
-    newargs = prototype{1};
-    
-    args = strtrim(textscan(strrep(newargs, sprintf('\n'), ' '), '%s', 'Delimiter', ','));
-    args = args{1};
-    append = false(length(args),1);
-    for k=1:length(args)
-        arg = regexp(args{k}, ['emxArray_(' re_basictype ')\s*\*\s*(\w+)'], 'tokens', 'once');
-        
-        if ~isempty(arg)
-            newfuncdecl = regexprep(newfuncdecl, ...
-                ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
-                [get_ctypename(arg{1}, m2c_opts.typeRep) ' *' [arg{2} '_data'] '$1']);
-            newargs = regexprep(newargs, ...
-                ['emxArray_' arg{1} '\s*\*\s*' arg{2} '\s*([,\)])'], ...
-                [get_ctypename(arg{1}, m2c_opts.typeRep)  ' *' [arg{2} '_data'] '$1']);
-            newfunc = regexprep(newfunc, [arg{2} '->\s*data'], [arg{2} '_data']);
-            
-            append(k) = true;
-        end
-    end
-    
-    newfunc = strrep(newfunc, prototype{1}, newargs);
-    
-    %% Find function calls to the kernel functions
-    while true
-        [calls,pos] = regexp(cfile_str, re_funccall(funcname), 'match', 'once');
-        if isempty(calls)
-            break;
-        end
-        if ~isempty(regexp(calls, '\s+static\s+', 'once'))
-            continue;
-        end
-        [call, newcall, args] = parsefunccall(calls, funcname);
-        assert(length(args)==length(append));
-        
-        for j=1:length(args)
-            if j>1
-                newcall = sprintf('%s, ', newcall);
-            end
-            
-            if append(j)
-                newcall = sprintf('%s%s', newcall, [args{j} '->data']);
-            else
-                newcall = sprintf('%s%s', newcall, args{j});
-            end
-        end
-        
-        cfile_str = [cfile_str(1:pos-1) newcall cfile_str(pos+length(call):end)];
-    end
-    
-    %% Change the prototype of function
-    if isequal(parmode, 'cuda-kernel')
-        newfuncdecl = sprintf('%s\n', '', ...
-            '#ifdef __NVCC__', ...
-            '__global__', ...
-            newfuncdecl(2:end), ...
-            '#endif');
-        newfunc = sprintf('%s\n', '', ...
-            '__global__', newfunc);
-        
-        [wrapper_decls, wrapper_defs] = write_cuda_wrapper(funcname, newargs(2:end-1), synced, m2c_opts);
-        newfunc = [newfunc wrapper_defs];
-    end
-    
-    hfile_str = strrep(hfile_str, funcdecl, [newfuncdecl, wrapper_decls]);
-end
+%% Change the prototype of function
+newfuncdecl = sprintf('%s\n', '', ...
+    '#ifdef __NVCC__', ...
+    '__global__', ...
+    funcdecl(2:end), ...
+    '#endif');
+newfunc = sprintf('%s\n', '', ...
+    '__global__', kernel);
 
+[wrapper_decls, wrapper_defs] = write_cuda_wrapper(funcname, prototype{1}(2:end-1), synced, m2c_opts);
+newfunc = [newfunc wrapper_defs];
+
+hfile_str = strrep(hfile_str, funcdecl, [newfuncdecl, wrapper_decls]);
 cfile_str = strrep(cfile_str, kernel, newfunc);
 
 end
 
 function [decls, defs] = write_cuda_wrapper(func, args, synced, m2c_opts)
-toks = regexp(args, '(?:const\s+)?\w+\s+(?:\*)?(\w+)', 'tokens');
+toks = regexp(args, '(?:const\s+)?\w+\s+(?:\*)?\s*(\w+)', 'tokens');
 
 vars = toks{1}{1};
 for i=2:length(toks)
@@ -360,7 +296,7 @@ if synced
         ['  ' func '<<<1, _threadsPB>>>(' vars ');'], ...
         '}');
     
-    defs = sprintf('%s\n', defs, ...
+    defs = sprintf('%s\n', defs, '', ...
         ['void ' func '_cuda1(' args ', int _nthreads)'], ...
         '{', ...
         '  int _threadsPB, _minGridSize;', ...
@@ -370,7 +306,7 @@ if synced
         ['  ' func '<<<1, _threadsPB>>>(' vars ');'], ...
         '}');
     
-    defs = sprintf('%s\n', defs, ...
+    defs = sprintf('%s\n', defs, '', ...
         ['void ' func '_cuda2(' args ', int _nthreads, int _threadsPB)'], ...
         '{', ...
         '  if (_threadsPB <= 0) {', ...
@@ -401,7 +337,7 @@ else
         ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
         '}');
     
-    defs = sprintf('%s\n', defs, ...
+    defs = sprintf('%s\n', defs, '', ...
         ['void ' func '_cuda1(' args ', int _nthreads)'], ...
         '{', ...
         '  int _threadsPB, _nblocks;', ...
@@ -419,7 +355,7 @@ else
         ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
         '}');
     
-    defs = sprintf('%s\n', defs, ...
+    defs = sprintf('%s\n', defs, '', ...
         ['void ' func '_cuda2(' args ', int _nthreads, int _threadsPB)'], ...
         '{', ...
         '  int _nblocks;', ...
@@ -440,28 +376,3 @@ else
 end
 end
 
-function [call, prefix, args] = parsefunccall(call, func)
-
-% Removed ');' at the end
-call = regexprep(call, ')\s*;', '');
-prefix = regexp(call, ['.*[^\w]' func '\s*\('], 'match');
-prefix = prefix{1};
-
-args = strtrim(textscan(strrep(call, sprintf('\n'), ' '), ...
-    '%s', 'Delimiter', ','));
-args = args{1};
-% remove func(from args{1}{1}
-args{1} = regexprep(args{1}, ['.*[^\w]?' func '\s*\((.+)'], '$1');
-
-% check whether there are '(' in the args
-i=1;
-while i<length(args)
-    % Merge arguments if parentheses do not match
-    if length(strfind(args{i}, '(')) < length(strfind(args{i}, ')'))
-        args{i} = [args{i} ', ' args{i+1}];
-        args = args{[1:i i+2:length(args)]};
-    end
-    i = i + 1;
-end
-
-end
