@@ -113,11 +113,15 @@ function m2c(varargin)
 %     -no-inline
 %           Disable function inlining in MATLAB Coder. This is the default
 %           when -O0 is specified.
-%     -typeRep
+%     -replace-type
 %           M2c uses the C built-in type names by default. This option requests
 %           code generation to use the numeric types defined by Coder instead
 %           of using the C built-in type names. This is the default if
 %           -cuda is enabled for better portability.
+%     -replace-emx
+%           Attempt to replace all emxArrays by plain pointers, This is 
+%           possible if there is no reference to the size field of emxArrays
+%           in the generated C code.
 %     -addpath {'dir1', 'dir2', ..., 'dirN'}
 %           Add the directory to the beginning of the search path for M files
 %           during code generation.
@@ -203,17 +207,15 @@ function m2c(varargin)
 %           source-level debug information when compiling C.
 %     -chkmem
 %           Generate code for runtime error checking of buffer overflow.
-%           It also enables -g.
+%           It also enables -g, and is automatically enabled with -valgrind.
 %     -gdb
 %     -gdb {'expression'}
 %           Generate a script for running the standalone executable in gdb.
 %           The gdb command can be specified after it in a cell array.
-%           It also activates -g and -chkmem.
 %     -ddd
 %     -ddd {'expression'}
 %           Generate a script for running the standalone executable in ddd.
 %           The ddd command can be specified after it in a cell array.
-%           It also activates -g and -chkmem.
 %     -valgrind
 %     -valgrind {'expression'}
 %           Generate a script for running the standalone executable in valgrind.
@@ -422,7 +424,7 @@ if regen_c
         cfg.PassStructByReference = true;
         co_cfg.EnableMemcpy = true;
         
-        if ~isempty(m2c_opts.dynMem)
+        if ~isempty(m2c_opts.dynMem) && ~m2c_opts.emxRep
             co_cfg.DynamicMemoryAllocation = m2c_opts.dynMem;
         else
             co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
@@ -450,8 +452,7 @@ if regen_c
             co_cfg.PreserveVariableNames = 'UserNames';
         end
         co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
-        co_cfg.RuntimeChecks = m2c_opts.chkMem || ~isempty(m2c_opts.gdb) || ...
-            ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind);
+        co_cfg.RuntimeChecks = m2c_opts.chkMem;
         if ~m2c_opts.exampleMain
             co_cfg.GenerateExampleMain = 'DoNotGenerate';
         else
@@ -601,6 +602,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'dynMem', '', ...
     'optimLevel', -1, ...
     'typeRep', false, ...
+    'emxRep', false, ...
     'm2cpath', '', ...
     'addpath', '', ...
     'api', '', ...
@@ -770,8 +772,10 @@ while i<=last_index
             m2c_opts.enableInf = false;
         case '-inf'
             m2c_opts.enableInf = true;
-        case '-typeRep'
-            m2c_opts.typeRep = true;
+        case '-replace-type'
+            m2c_opts.typeRep= true;
+        case '-replace-emx'
+            m2c_opts.emxRep= true;
         case '-time'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.timing = eval(varargin{i+1});
@@ -1099,15 +1103,16 @@ if exist('octave_config_info', 'builtin')
     m2c_opts.skipcg = true;
 end
 
-m2c_opts.debugInfo = m2c_opts.debugInfo || ~isempty(m2c_opts.gdb) || ...
-    ~isempty(m2c_opts.ddd) || ~isempty(m2c_opts.valgrind);
-
 if m2c_opts.optimLevel<0
     m2c_opts.optimLevel=int32(~m2c_opts.debugInfo);
 end
 
 if ~m2c_opts.debugInfo
     m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/No_debug']];
+end
+
+if ~isempty(m2c_opts.valgrind) && ~m2c_opts.withCuda
+    m2c_opts.chkMem = true;
 end
 
 m2c_opts.genExe = m2c_opts.genExe || ~isempty(m2c_opts.gdb) || ...
@@ -1133,6 +1138,11 @@ if m2c_opts.withCuda
             'Mixed compilation of CUDA with PETSc/MPI is not supported. Compilation \n', ...
             'and linking will be performeed using mpicc instead of nvcc. No CUDA kernel\n', ...
             'function will be generated. Use -nvcc instead of -cuda to force compilation with nvcc.'\n]);
+    end
+    
+    if m2c_opts.chkMem
+        warning('m2c:WarnCUDAwithMemChk', 'Memory check is not suported with CUDA. Disabled.\n');
+        m2c_opts.chkMem = false;
     end
 end
 
