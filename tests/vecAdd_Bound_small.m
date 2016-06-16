@@ -15,12 +15,12 @@ end
 %! assert(all(z==2));
 
 %!test
-%! m2c -force -replace-emx -O3 -exe tests/vecAdd_Bound_small
+%! m2c -force -remove-emx -O3 -exe tests/vecAdd_Bound_small
 %! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
 %!test
-%! m2c -replace-emx -omp -force -O3 -exe tests/vecAdd_Bound_small
+%! m2c -remove-emx -omp -force -O3 -exe tests/vecAdd_Bound_small
 %! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
@@ -30,6 +30,6 @@ end
 %! assert(all(z==2));
 
 %!test
-%! m2c -replace-emx -nvcc -force -O3 -exe tests/vecAdd_Bound_small
+%! m2c -remove-emx -nvcc -force -O3 -exe tests/vecAdd_Bound_small
 %! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));

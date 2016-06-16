@@ -15,12 +15,12 @@ end
 %! assert(all(z==2));
 
 %!test 
-%! m2c -force -replace-emx -O3 -exe tests/vecAdd_Fixed
+%! m2c -force -remove-emx -O3 -exe tests/vecAdd_Fixed
 %! z = run_vecAdd_Fixed_exe(ones(100000,1), ones(100000,1), rand(100000,1), int32(100000));
 %! assert(all(z==2));
 
 %!test
-%! m2c -replace-emx -omp -force -O3 -exe tests/vecAdd_Fixed
+%! m2c -remove-emx -omp -force -O3 -exe tests/vecAdd_Fixed
 %! z = run_vecAdd_Fixed_exe(ones(100000,1), ones(100000,1), rand(100000,1), int32(100000));
 %! assert(all(z==2));
 
@@ -30,6 +30,6 @@ end
 %! assert(all(z==2));
 
 %!test
-%! m2c -replace-emx -nvcc -force -O3 -exe tests/vecAdd_Fixed
+%! m2c -remove-emx -nvcc -force -O3 -exe tests/vecAdd_Fixed
 %! z = run_vecAdd_Fixed_exe(ones(100000,1), ones(100000,1), rand(100000,1), int32(100000));
 %! assert(all(z==2));
