@@ -81,7 +81,7 @@ cfile_str = regexprep(cfile_str, ['void\s+emxDestroyArray_' re_basictype ...
     '\([^,\)]+\)\s*' re_funcbody], '');
 
 %% Try to remove emxArrays
-if m2c_opts.emxRep
+if m2c_opts.remEmx
     [cfile_str, hfile_str, ctypes_str] = remove_emxArrays...
         (cfile_str, hfile_str, ctypes_str, m2c_opts);
 end

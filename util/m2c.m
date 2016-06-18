@@ -118,10 +118,10 @@ function m2c(varargin)
 %           code generation to use the numeric types defined by Coder instead
 %           of using the C built-in type names. This is the default if
 %           -cuda is enabled for better portability.
-%     -replace-emx
+%     -remove-emx
 %           Attempt to replace all emxArrays by plain pointers, This is 
 %           possible if there is no reference to the size field of emxArrays
-%           in the generated C code.
+%           in the generated C code. 
 %     -addpath {'dir1', 'dir2', ..., 'dirN'}
 %           Add the directory to the beginning of the search path for M files
 %           during code generation.
@@ -424,7 +424,7 @@ if regen_c
         cfg.PassStructByReference = true;
         co_cfg.EnableMemcpy = true;
         
-        if ~isempty(m2c_opts.dynMem) && ~m2c_opts.emxRep
+        if ~isempty(m2c_opts.dynMem) && ~m2c_opts.remEmx
             co_cfg.DynamicMemoryAllocation = m2c_opts.dynMem;
         else
             co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
@@ -602,7 +602,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'dynMem', '', ...
     'optimLevel', -1, ...
     'typeRep', false, ...
-    'emxRep', false, ...
+    'remEmx', false, ...
     'm2cpath', '', ...
     'addpath', '', ...
     'api', '', ...
@@ -774,8 +774,8 @@ while i<=last_index
             m2c_opts.enableInf = true;
         case '-replace-type'
             m2c_opts.typeRep= true;
-        case '-replace-emx'
-            m2c_opts.emxRep= true;
+        case '-remove-emx'
+            m2c_opts.remEmx= true;
         case '-time'
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.timing = eval(varargin{i+1});

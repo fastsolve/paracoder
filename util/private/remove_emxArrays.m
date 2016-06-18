@@ -4,6 +4,8 @@ function [cfile_str, hfile_str, ctypes_str, success] = remove_emxArrays ...
 %The emxArrays can be removed if there are no references to emxInit,
 %emxFree, emxEnsureCapacity, and size information.
 
+%TODO: Needs to add support for structs and add error checking.
+
 success = false;
 
 [~, func, ~] = fileparts(m2c_opts.funcName{1});
