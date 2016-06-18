@@ -6,6 +6,12 @@
 
 #include "mcuda.h"
 
+/*=================================================
+ *
+ * The first section is for copying from CPU to GPU
+ *
+ *=================================================*/
+
 /*****************************************************************
  * Copy emxArray from CPU to GPU
  *****************************************************************/
@@ -17,32 +23,32 @@ emxArray *copy_emxArray_to_GPU(const emxArray *a, int nElems=0, int nDims=0) {
     
     /* Allocate and copy size field */
     if (hasDim) {
-        nElems = a->size[0];
-        for (int i=1; i<nDims; ++i)
-            nElems *= a->size[i];
+        nDims = a_buf.numDimensions = a->numDimensions;
+        nElems = numElements(nDims, a->size);
         
         a_buf.allocatedSize = nElems;
         a_buf.canFreeData = true;
         
-        nDims = a_buf.numDimensions = a->numDimensions;
         ierr = cudaMalloc((void **)&a_buf.size, sizeof(int) * 
                     a_buf.numDimensions); CHKCUERR(ierr, "cudaMalloc");
         ierr = cudaMemcpyAsync(a_buf.size, a->size, sizeof(int) * a_buf.numDimensions,
                 cudaMemcpyHostToDevice); CHKCUERR(ierr, "cudaMemcpyAsync");
     }
     else {
-        nElems = a_buf.size[0] = a->size[0];
-        for (int i=1; i<nDims; ++i) {
-            nElems *= a_buf.size[i] = a->size[i];
+        nElems = numElements(nDims, a->size);
+        for (int i=0; i<nDims; ++i) {
+            a_buf.size[i] = a->size[i];
         }
     }
     
-    /* Allocate and copy data field */
-    ierr = cudaMalloc((void **)&a_buf.data, sizeof(a->data[0]) * nElems); 
-    CHKCUERR(ierr, "cudaMalloc");
-
-    ierr = cudaMemcpyAsync(a_buf.data, a->data, sizeof(a->data[0]) * nElems, cudaMemcpyHostToDevice);
-    CHKCUERR(ierr, "cudaMemcpyAsync");
+    if (nElems) {
+        /* Allocate and copy data field */
+        ierr = cudaMalloc((void **)&a_buf.data, sizeof(a->data[0]) * nElems);
+        CHKCUERR(ierr, "cudaMalloc");
+        
+        ierr = cudaMemcpyAsync(a_buf.data, a->data, sizeof(a->data[0]) * nElems, cudaMemcpyHostToDevice);
+        CHKCUERR(ierr, "cudaMemcpyAsync");
+    }
     
     /* Allocate and copy the emxArray */
     ierr = cudaMalloc((void **)&a_gpu, sizeof(emxArray)); 
@@ -88,8 +94,7 @@ type *copy_mxArray_to_gpuArray(const mxArray *mx, const char *name, int32_T dim)
 
     alias_mxArray_to_emxArray(mx, &a_buf, name, dim);
 
-    int nElems = a_buf.size[0];
-    for (int i=1; i<dim; ++i) nElems *= a_buf.size[i];
+    int nElems = numElements(dim, a_buf.size);
 
     /* Allocate and copy data field */
     cudaError_t ierr = cudaMalloc((void **)&ptr, sizeof(type) * nElems);
@@ -110,10 +115,9 @@ template <typename type>
 void copy_mxArray_to_gpuDataSize(type **data, int nDims, int **size, const mxArray *mx) {
 
     int *dims = (int*)mxMalloc(nDims);
-
-    int nElems = 1;
-    for (int i=0; i<nDims; ++i) 
-        nElems *= dims[i] = mxGetDimensions(mx)[i];
+    for (int i=0; i<nDims; ++i) dims[i] = mxGetDimensions(mx)[i];
+    
+    int nElems = numElements(nDims, dims);
 
     /* Allocate and copy data field */
     cudaError_t ierr = cudaMalloc((void **)data, sizeof(type) * nElems);
@@ -158,8 +162,7 @@ emxArray *wrap_mxArray_to_gpuEmxArray(const mxArray *mx) {
                 cudaMemcpyHostToDevice);
         CHKCUERR(ierr, "cudaMemcpy");
 
-        int nElems = dims[0];
-        for (int i=1; i<nDims; ++i) nElems *= dims[i];
+        int nElems = numElements(nDims, dims);
         
         a_buf.allocatedSize = nElems;
         /* The emxArray takes the ownership of the GPU Array*/
@@ -199,72 +202,113 @@ void wrap_mxArray_to_gpuDataSize(type **data, int **size, const mxArray *mx) {
     return;
 }
 
-/*****************************************************************
- * Copy a GPU DataSize to a CPU mxArray
- *****************************************************************/
+/*=================================================
+ *
+ * The second section is for copying from GPU to CPU
+ *
+ *=================================================*/
+
+/***********************************************
+ * Copy data and size from GPU to a CPU emxArray
+ ***********************************************/
+void copy_gpuDataSize_to_emxArray(emxArray__common *a_buf,
+        const void *data_gpu, int nDims, int *size_gpu, int sizepe) {
+    
+    init_emxArray(a_buf, nDims);
+    
+    cudaError_t ierr = cudaMemcpy(a_buf->size, size_gpu, sizeof(int) * nDims,
+            cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
+    
+    /* Copy data field */
+    int nElems = numElements(nDims, a_buf->size);
+    emxEnsureCapacity(a_buf, 0, sizepe);
+    ierr = cudaMemcpy(a_buf->data, data_gpu, sizepe * nElems,
+            cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
+}
+
+/********************************************************************
+ * Copy a GPU DataSize to a CPU emxArray and deallocate the GPU arrays
+ ********************************************************************/
 template <typename type>
-mxArray *copy_gpuDataSize_to_mxArray(type *data_gpu, int nDims, 
+mxArray *move_gpuDataSize_to_mxArray(type *data_gpu, int nDims, 
         int *size_gpu, mxClassID mtype) {
- 
     emxArray__common a_buf;
-    init_emxArray(&a_buf, nDims);
 
-    cudaError_t ierr = cudaMemcpy(a_buf.size, size_gpu, sizeof(int) * nDims,
-            cudaMemcpyDeviceToHost); CHKCUERR(ierr, "cudaMemcpy");
-
-    int nElems = a_buf.size[0];
-    for (int i=1; i<nDims; ++i) nElems *= a_buf.size[i];
-
-    /* Copy data field */    
-    emxEnsureCapacity(&a_buf, 0, sizeof(type));
-    ierr = cudaMemcpy(a_buf.data, data_gpu, sizeof(type) * nElems,
-            cudaMemcpyDeviceToHost); CHKCUERR(ierr, "cudaMemcpy");
-
+    copy_gpuDataSize_to_emxArray(&a_buf, data_gpu, nDims, size_gpu, sizeof(type));
     mxArray *mx = move_emxArray_to_mxArray(&a_buf, mtype);
-
-    mxFree(a_buf.size);    
+    mxFree(a_buf.size);
+ 
+    /* Deallocate storage on GPU */
+    cudaError_t ierr = cudaFree(size_gpu); CHKCUERR(ierr, "cudaFree");
+    ierr = cudaFree(data_gpu); CHKCUERR(ierr, "cudaFree");
+   
     return mx;
 }
 
-/*****************************************************************
- * Copy an emxArray on GPU to a CPU mxArray
- *****************************************************************/
+/*******************************************
+ * Copy an emxArray on GPU to a CPU emxArray
+ ******************************************/
 template <typename emxArray>
-mxArray *copy_gpuEmxArray_to_mxArray(emxArray *a_gpu, mxClassID type) {
-    emxArray__common a_buf;
-
+void get_gpuEmxArray_DataSize(const emxArray *a_gpu,
+        void **data_gpu=NULL, int **size_gpu=NULL) {
+    emxArray a_buf;
+    
     /* Copy emxArray */
-    cudaError_t ierr = cudaMemcpy(&a_buf, a_gpu, sizeof(emxArray), 
-                cudaMemcpyDeviceToHost); CHKCUERR(ierr, "cudaMemcpy");
-
-    /* Copy size field */
-    void *data_gpu = a_buf.data;
-    int *size_gpu = a_buf.size;
-    int nDims = a_buf.numDimensions;
+    cudaError_t ierr = cudaMemcpy(&a_buf, a_gpu, sizeof(emxArray),
+            cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
     
-    init_emxArray(&a_buf, nDims);
-    ierr = cudaMemcpy(a_buf.size, size_gpu, sizeof(int) * nDims,
-            cudaMemcpyDeviceToHost); CHKCUERR(ierr, "cudaMemcpy");
+    if (data_gpu) *data_gpu = a_buf->data;
+    if (size_gpu) *size_gpu = a_buf->size;
+}
+
+/*******************************************
+ * Copy an emxArray on GPU to a CPU emxArray
+ ******************************************/
+template <typename emxArray>
+void copy_gpuEmxArray_to_emxArray(emxArray__common *a_buf, 
+        const emxArray *a_gpu, int sizepe, 
+        void **data_gpu=NULL, int **size_gpu=NULL) {
+    /* Copy emxArray */
+    cudaError_t ierr = cudaMemcpy(a_buf, a_gpu, sizeof(emxArray),
+            cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
     
-    int nElems = a_buf.size[0];
-    for (int i=1; i<nDims; ++i) nElems *= a_buf.size[i];
+    if (data_gpu) *data_gpu = a_buf->data;
+    if (size_gpu) *size_gpu = a_buf->size;
+    
+    copy_gpuDataSize_to_emxArray(a_buf, a_buf->data, a_buf->numDimensions, 
+            a_buf->size, sizepe);
+}
 
-    /* Copy data field */    
-    emxEnsureCapacity(&a_buf, 0, sizeof(*a_gpu->data));
-    ierr = cudaMemcpy(a_buf.data, data_gpu, sizeof(*a_gpu->data) * nElems,
-            cudaMemcpyDeviceToHost); CHKCUERR(ierr, "cudaMemcpy");
+/***********************************************************************
+ * Copy an emxArray on GPU to a CPU mxArray and deallocate the GPU array
+ ***********************************************************************/
+template <typename emxArray>
+mxArray *move_gpuEmxArray_to_mxArray(emxArray *a_gpu, mxClassID type) {
+    emxArray__common a_buf;
+    void *data_gpu;
+    int *size_gpu;
 
+    copy_gpuEmxArray_to_emxArray(&a_buf, a_gpu, sizeof(*a_gpu->data),
+            &data_gpu, &size_gpu);
     mxArray *mx = move_emxArray_to_mxArray(&a_buf, type);
+    mxFree(a_buf.size);
 
-    mxFree(a_buf.size);    
+    /* Deallocate storage */
+    cudaError_t ierr = cudaFree(size_gpu); CHKCUERR(ierr, "cudaFree");
+    ierr = cudaFree(data_gpu); CHKCUERR(ierr, "cudaFree");
+
     return mx;
 }
 
 /*****************************************************************
- * Copy a plain GPU array to a CPU mxArray
+ * Copy a plain GPU array to a CPU mxArray and deallocate GPU array
  *****************************************************************/
 template <typename type>
-mxArray *copy_gpuArray_to_mxArray(type *a_gpu, const mxArray *mx_in) {
+mxArray *move_gpuArray_to_mxArray(type *a_gpu, const mxArray *mx_in) {
     mxArray *mx = mxDuplicateArray(mx_in);
     cudaError_t ierr;
     
@@ -276,6 +320,7 @@ mxArray *copy_gpuArray_to_mxArray(type *a_gpu, const mxArray *mx_in) {
         char *buf = (char *)mxMalloc(nElems+1);
         
         ierr = cudaMemcpy(buf, a_gpu, nElems, cudaMemcpyDeviceToHost);        
+        CHKCUERR(ierr, "cudaMemcpy");
 
         mxChar *data = (mxChar *)mxGetData(mx);
         for (int i=0; i<nElems; ++i) data[i] = buf[i];
@@ -285,9 +330,9 @@ mxArray *copy_gpuArray_to_mxArray(type *a_gpu, const mxArray *mx_in) {
     else {
         ierr = cudaMemcpyAsync(mxGetData(mx), a_gpu,
                 nElems * mxGetElementSize(mx), cudaMemcpyDeviceToHost);
+        CHKCUERR(ierr, "cudaMemcpy");
     }
-    
-    CHKCUERR(ierr, "cudaMemcpy");
+    cudaFree(a_gpu); CHKCUERR(ierr, "cudaFree");
     
     return mx;
 }
@@ -296,7 +341,7 @@ mxArray *copy_gpuArray_to_mxArray(type *a_gpu, const mxArray *mx_in) {
  * Copy GPU pointer and update size
  *****************************************************************/
 template <typename emxArray>
-mxArray *update_mxArray_from_gpuEmxArray(const emxArray *a_gpu, 
+mxArray *move_gpuEmxArray_to_gpuPointer(const emxArray *a_gpu, 
         const mxArray *mx_in) {
     emxArray__common a_buf;
 
@@ -312,32 +357,47 @@ mxArray *update_mxArray_from_gpuEmxArray(const emxArray *a_gpu,
     /* Update data and size field */    
     ierr = cudaMemcpy(mxGetData(mxGetFieldByNumber(mx, 0, 0)),
             a_buf.data, sizeof(int64_T), cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
     ierr = cudaMemcpy(mxGetData(mxGetFieldByNumber(mx, 0, 2)),
             a_buf.size, sizeof(int) * nDims, cudaMemcpyDeviceToHost);
     CHKCUERR(ierr, "cudaMemcpy");
 
+    /* Free up the size information on GPU, but data should not be freed */
+    ierr = cudaFree(a_buf.size); CHKCUERR(ierr, "cudaFree");
+    if (a_buf.canFreeData) {
+        ierr = cudaFree(a_buf.data); CHKCUERR(ierr, "cudaFree");
+    }
+
     return mx;
 }
 
 /*****************************************************************
- * Wrap GPU array into an emxArray
+ * Update size information in mxArray storing a GPU pointer
  *****************************************************************/
-mxArray *update_mxArray_from_gpuSize(int nDims, int *size_gpu,
+mxArray *move_gpuSize_to_gpuPointer(int nDims, int *size_gpu,
         const mxArray *mx_in) {
-    /* Update size field */    
+    /* Update size field */
     mxArray *mx = mxDuplicateArray(mx_in);
-
-    cudaError_t ierr = cudaMemcpy(mxGetData(mxGetFieldByNumber(mx, 0, 2)), 
-            size_gpu, sizeof(int) * nDims, cudaMemcpyDeviceToHost); 
+    
+    cudaError_t ierr = cudaMemcpy(mxGetData(mxGetFieldByNumber(mx, 0, 2)),
+            size_gpu, sizeof(int) * nDims, cudaMemcpyDeviceToHost);
     CHKCUERR(ierr, "cudaMemcpy");
+    
+    ierr = cudaFree(size_gpu); CHKCUERR(ierr, "cudaFree");
     return mx;
 }
+
+/*============================================
+ *
+ * The last section is for freeing GPU storage
+ *
+ *============================================*/
 
 /*****************************************************************
  * Destroy an array on GPU
  *****************************************************************/
-template <typename emxArray, bool hasDim>
-void destroy_gpuEmxArray(emxArray *a_gpu, bool freeData=true) {
+template <typename emxArray>
+void destroy_gpuEmxArray(emxArray *a_gpu) {
     cudaError_t ierr;
     emxArray a_buf;
 
@@ -345,13 +405,25 @@ void destroy_gpuEmxArray(emxArray *a_gpu, bool freeData=true) {
     CHKCUERR(ierr, "cudaMemcpy");
 
     /* Destroy size and data fields */
-    if (hasDim) {
-        ierr = cudaFree(a_buf.size); CHKCUERR(ierr, "cudaFree");
-        if (a_buf.canFreeData) {
-            ierr = cudaFree(a_buf.data); CHKCUERR(ierr, "cudaFree");
-        }
+    ierr = cudaFree(a_buf.size); CHKCUERR(ierr, "cudaFree");
+    if (a_buf.canFreeData) {
+        ierr = cudaFree(a_buf.data); CHKCUERR(ierr, "cudaFree");
     }
-    else if (freeData) {
+
+    ierr = cudaFree(a_gpu); CHKCUERR(ierr, "cudaFree");
+}
+
+template <typename emxArray>
+void destroy_gpuEmxArray_reduced(emxArray *a_gpu, bool freeData) {
+    cudaError_t ierr;
+    emxArray a_buf;
+
+    ierr = cudaMemcpy(&a_buf, a_gpu, sizeof(emxArray), cudaMemcpyDeviceToHost);
+    CHKCUERR(ierr, "cudaMemcpy");
+
+    /* Destroy size and data fields */
+    ierr = cudaFree(a_buf.size); CHKCUERR(ierr, "cudaFree");
+    if (freeData) {
         ierr = cudaFree(a_buf.data); CHKCUERR(ierr, "cudaFree");
     }
 

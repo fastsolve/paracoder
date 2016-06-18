@@ -27,6 +27,15 @@ typedef struct emxArray__common
 #endif
 #define CGEN_MAXDIM 10
 
+static int numElements(int nDims, const int *dims) {
+    int      i, nElems=dims[0];
+    
+    for (i=1; i<nDims; ++i)
+        nElems *= dims[i];
+    
+    return nElems;
+}
+
 /*****************************************************************
  * Initialize an emxArray.
  *****************************************************************/
@@ -49,21 +58,10 @@ void free_emxArray(emxArray__common *emx) {
 }
 
 /*****************************************************************
- * Obtain number of items of an emxArray.
- *****************************************************************/
-int32_T nelems_emxArray(const emxArray__common *emx) {
-    int32_T i, dim=emx->numDimensions;
-    int32_T nitems = emx->size[0];
-    
-    for (i=1; i<dim; ++i) nitems *= emx->size[i];
-    return nitems;
-}
-
-/*****************************************************************
  * Initialize dimension of emxArray from mxArray.
  *****************************************************************/
 void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
-                                const char *name, int32_T dim, int32_T sizeof_type) {
+        const char *name, int32_T dim) {
     
     const mwSize *dims = mxGetDimensions(a);
     int   i, mxdim = mxGetNumberOfDimensions(a);
@@ -77,7 +75,7 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
         for (i=dim; i<mxdim; ++i) {
             if (dims[i]!=1) {
                 M2C_error("m2c:WrongDimension",
-                          "Varialble %s has incorrect dimension.", name);
+                        "Varialble %s has incorrect dimension.", name);
             }
         }
         mxdim = dim;
@@ -86,19 +84,14 @@ void init_emxArray_from_mxArray(const mxArray *a, emxArray__common *emx,
     /* copy dimension */
     for (i=0; i<mxdim; ++i) emx->size[i] = dims[i];
     for (i=mxdim; i<dim; ++i) emx->size[i] = 1;
-    
-    if (sizeof_type>0) {
-        emx->allocatedSize = nelems_emxArray(emx);
-        emx->data = mxCalloc(emx->allocatedSize, sizeof_type);
-    }
 }
 
 /*****************************************************************
  * Alias an mxArray to data and size fields separately
  *****************************************************************/
-static void alias_mxArray_to_DataSize(const mxArray *a, void **data,
-        int32_T size[], int32_T dim, const char *name, int32_T maxlen) {
-
+static void alias_mxArray_to_DataSize(void **data, int32_T dim, int32_T *size,
+        const mxArray *a, const char *name, int32_T maxlen) {
+    
     mxClassID type=mxGetClassID(a);
     const mwSize *dims = mxGetDimensions(a);
     int   i, mxdim = mxGetNumberOfDimensions(a);
@@ -108,41 +101,46 @@ static void alias_mxArray_to_DataSize(const mxArray *a, void **data,
         for (i=dim; i<mxdim; ++i) {
             if (dims[i]!=1) {
                 M2C_error("m2c:WrongDimension",
-                          "Varialble %s has incorrect dimension.", name);
+                        "Varialble %s has incorrect dimension.", name);
             }
         }
         mxdim = dim;
     }
     
     /* copy dimension */
-    for (i=0; i<mxdim; ++i) size[i] = dims[i];
-    for (i=mxdim; i<dim; ++i) size[i] = 1;
+    if (size) {
+        for (i=0; i<mxdim; ++i) size[i] = dims[i];
+        for (i=mxdim; i<dim; ++i) size[i] = 1;
+    }
     
     switch (type) {
-    case mxLOGICAL_CLASS:
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS:
-        *data = mxGetData(a);
-        break;
-    case mxCHAR_CLASS: {
-        /* Data was preallocated by m2c to size maxsize+1. */
-        mxGetString(a, (char*)data, maxlen+1);
-        break;
-    }
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not supported.");
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+            *data = mxGetData(a);
+            break;
+        case mxCHAR_CLASS: {
+            if (maxlen==0)
+                maxlen = mxGetNumberOfElements(a);
+            
+            /* Data was preallocated by m2c to size maxsize+1. */
+            mxGetString(a, (char*)data, maxlen+1);
+            break;
+        }
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
 }
 
@@ -151,56 +149,108 @@ static void alias_mxArray_to_DataSize(const mxArray *a, void **data,
  * Data within emxArray is overwritten.
  *****************************************************************/
 static void alias_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
-                                      const char *name, int32_T dim) {
+        const char *name, int32_T dim) {
     mxClassID type=mxGetClassID(a);
     
-    init_emxArray_from_mxArray(a, emx, name, dim, 0);
+    init_emxArray_from_mxArray(a, emx, name, dim);
     
     switch (type) {
-    case mxLOGICAL_CLASS:
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS:
-        emx->allocatedSize = mxGetNumberOfElements(a);
-        if (emx->allocatedSize) emx->data = mxGetData(a);
-        emx->canFreeData = 0;
-        break;
-    case mxCHAR_CLASS:
-        emx->allocatedSize = mxGetNumberOfElements(a)+1;
-        emx->data = mxMalloc(emx->allocatedSize);
-        emx->canFreeData = 1;
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+            emx->allocatedSize = mxGetNumberOfElements(a);
+            if (emx->allocatedSize) emx->data = mxGetData(a);
+            emx->canFreeData = 0;
+            break;
+        case mxCHAR_CLASS:
+            emx->allocatedSize = mxGetNumberOfElements(a)+1;
+            emx->data = mxMalloc(emx->allocatedSize);
+            emx->canFreeData = 1;
             
-        mxGetString(a, (char*)emx->data, emx->allocatedSize);
-        break;
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not supported.");
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
+            mxGetString(a, (char*)emx->data, emx->allocatedSize);
+            break;
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
+    }
+}
+
+/*****************************************************************
+ * Copy data in mxArray into emxArray.
+ * Data within emxArray is overwritten.
+ *****************************************************************/
+static void copy_mxArray_to_emxArray(const mxArray *a, emxArray__common *emx,
+        const char *name, int32_T dim) {
+    mxClassID type=mxGetClassID(a);
+    int sizepe;
+    
+    switch (type) {
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+            init_emxArray_from_mxArray(a, emx, name, dim);            
+
+            sizepe = mxGetElementSize(a);
+            emx->allocatedSize = mxGetNumberOfElements(a);
+            emx->data = mxMalloc(emx->allocatedSize * sizepe);
+            emx->canFreeData = 1;
+
+            memcpy(emx->data, mxGetData(a), emx->allocatedSize * sizepe);
+            break;
+        case mxCHAR_CLASS:
+            init_emxArray_from_mxArray(a, emx, name, dim);
+            
+            emx->allocatedSize = mxGetNumberOfElements(a)+1;
+            emx->data = mxMalloc(emx->allocatedSize);
+            emx->canFreeData = 1;
+            
+            mxGetString(a, (char*)emx->data, emx->allocatedSize);
+            break;
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
 }
 
 /*****************************************************************
  * Copy size and data from mxArray to a preallocated static emxArray.
  *****************************************************************/
-static void copy_mxArray_to_DataSize(const mxArray *a, void *data,
-        int32_T size[], int32_T dim, const char *name, int32_T maxlen) {
+static void copy_mxArray_to_DataSize(void *data, int32_T dim, int32_T *size,
+        const mxArray *a, const char *name, int32_T maxlen) {
+    /* if maxlen==0, there is no limit. */
+    
     mxClassID type=mxGetClassID(a);
     int   i, mxdim = mxGetNumberOfDimensions(a);
     const mwSize *dims = mxGetDimensions(a);
     mwSize n = mxGetNumberOfElements(a);
     
     if (n==0) {
-        for (i=dim; i<mxdim; ++i)
-            size[i] = 0;
+        if (size) {
+            for (i=dim; i<mxdim; ++i)
+                size[i] = 0;
+        }
         return;
     }
     /* Check the compatibility of the mxArray */
@@ -208,128 +258,47 @@ static void copy_mxArray_to_DataSize(const mxArray *a, void *data,
         for (i=dim; i<mxdim; ++i) {
             if (dims[i]!=1) {
                 M2C_error("m2c:WrongDimension",
-                          "Varialble %s has incorrect dimension.", name);
+                        "Varialble %s has incorrect dimension.", name);
             }
         }
         mxdim = dim;
     }
     
     /* Copy the size from mxArray to emxArray */
-    for (i=0; i<mxdim; ++i) size[i] = dims[i];
-    for (i=mxdim; i<dim; ++i) size[i] = 1;
+    if (size) {
+        for (i=0; i<mxdim; ++i) size[i] = dims[i];
+        for (i=mxdim; i<dim; ++i) size[i] = 1;
+    }
     
     switch (type) {
-    case mxLOGICAL_CLASS:
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS: {
-        if (n>maxlen) n=maxlen;
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS: {
+            if (maxlen && n>maxlen) n=maxlen;
             
-        memcpy(data, mxGetData(a), n*mxGetElementSize(a));
-        break;
+            memcpy(data, mxGetData(a), n*mxGetElementSize(a));
+            break;
+        }
+        case mxCHAR_CLASS:
+            /* The space is allocated statically by MATLAB coder,
+             * so we cannot enlarge its size by 1 */
+            mxGetString(a, (char*)data, maxlen);
+            break;
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
-    case mxCHAR_CLASS:
-        /* The space is allocated statically by MATLAB coder, 
-         * so we cannot enlarge its size by 1 */
-        mxGetString(a, (char*)data, maxlen);
-        break;
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not supported.");
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
-    }
-}
-
-/*****************************************************************
- * Copy data in mxArray into a given array.
- *****************************************************************/
-static void copy_mxArray_to_array(const mxArray *a, void *data,
-                                  mwSize maxlen) {
-    mxClassID type=mxGetClassID(a);
-    
-    switch (type) {
-    case mxLOGICAL_CLASS:
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS: {
-        mwSize n = mxGetNumberOfElements(a);
-        if (n>maxlen) n=maxlen;
-            
-        memcpy(data, mxGetData(a), n*mxGetElementSize(a));
-        break;
-    }
-    case mxCHAR_CLASS:
-        /* The space is allocated statically by MATLAB coder, 
-         * so we cannot enlarge its size by 1 */
-        mxGetString(a, (char*)data, maxlen);
-        break;
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not supported.");
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
-    }
-}
-
-/*****************************************************************
- * Preallocate storage for mxArray.
- *****************************************************************/
-static void *prealloc_mxArray(mxArray **pa, mxClassID type,
-                              int32_T dim, const mwSize *size) {
-    mxArray *a=NULL;
-    mwSize   dims_buf[2];
-    mwSize  *dims=NULL;
-    
-    if  (dim==1) {
-        dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
-    }
-    else
-        dims = (mwSize *)size;
-    
-    switch (type) {
-    case mxLOGICAL_CLASS:
-        a = mxCreateLogicalArray(dim, dims);
-        break;
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS:
-        a = mxCreateNumericArray(dim, dims, type, mxREAL);
-        break;
-    case mxSTRUCT_CLASS:
-        a = mxCreateStructArray(dim, dims, 0, NULL);
-        break;
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
-    }
-    
-    *pa = a;
-    return mxGetData(a);
 }
 
 /*****************************************************************
@@ -341,47 +310,98 @@ static mxArray *copy_scalar_to_mxArray(const void *s, mxClassID type) {
     const mwSize  ones[2]={1,1};
     
     switch (type) {
-    case mxLOGICAL_CLASS:
-        a = mxCreateLogicalArray(2, ones);
-        *(boolean_T*)mxGetData(a) = *(const boolean_T*)s;
-        break;
-    case mxCHAR_CLASS: {
-        a = mxCreateCharArray(2, ones);
-        *(mxChar*)mxGetData(a) = *(const char_T*)s;
-        break;
+        case mxLOGICAL_CLASS:
+            a = mxCreateLogicalArray(2, ones);
+            *(boolean_T*)mxGetData(a) = *(const boolean_T*)s;
+            break;
+        case mxCHAR_CLASS: {
+            a = mxCreateCharArray(2, ones);
+            *(mxChar*)mxGetData(a) = *(const char_T*)s;
+            break;
+        }
+        case mxDOUBLE_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(real64_T*)mxGetData(a) = *(const real64_T*)s;
+            break;
+        case mxSINGLE_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(real32_T*)mxGetData(a) = *(const real32_T*)s;
+            break;
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(int8_T*)mxGetData(a) = *(const int8_T*)s;
+            break;
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(uint16_T*)mxGetData(a) = *(const uint16_T*)s;
+            break;
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(uint32_T*)mxGetData(a) = *(const uint32_T*)s;
+            break;
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+            a = mxCreateNumericArray(2, ones, type, mxREAL);
+            *(uint64_T*)mxGetData(a) = *(const uint64_T*)s;
+            break;
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
-    case mxDOUBLE_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(real64_T*)mxGetData(a) = *(const real64_T*)s;
-        break;
-    case mxSINGLE_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(real32_T*)mxGetData(a) = *(const real32_T*)s;
-        break;
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(int8_T*)mxGetData(a) = *(const int8_T*)s;
-        break;
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(uint16_T*)mxGetData(a) = *(const uint16_T*)s;
-        break;
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(uint32_T*)mxGetData(a) = *(const uint32_T*)s;
-        break;
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS:
-        a = mxCreateNumericArray(2, ones, type, mxREAL);
-        *(uint64_T*)mxGetData(a) = *(const uint64_T*)s;
-        break;
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
+    
+    return a;
+}
+
+/*****************************************************************
+ * Copy data from an array into mxArray.
+ *****************************************************************/
+static mxArray *copy_DataSize_to_mxArray(void *s, mxClassID type,
+        int32_T dim, const mwSize *dims) {
+    mxArray *a=NULL;
+    
+    switch (type) {
+        case mxLOGICAL_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS: {
+            a = (type==mxLOGICAL_CLASS) ?
+                mxCreateLogicalArray(dim, dims) :
+                mxCreateNumericArray(dim, dims, type, mxREAL);
+                
+                memcpy(mxGetData(a), s, mxGetNumberOfElements(a)*mxGetElementSize(a));
+                break;
+        }
+        case mxCHAR_CLASS: {
+            mxChar  *d;
+            char    *p = (char*)s;
+            mwSize  len=1, i;
+            int32_T j;
+            
+            a = mxCreateCharArray(dim, dims);
+            d = (mxChar*)mxGetData(a);
+            
+            for (j=0; j<dim; ++j) len*=dims[j];
+            for (i=0; i<len; ++i) d[i] = p[i];
+            break;
+        }
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not yet supported.");
+            break;
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not yet supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
     
     return a;
@@ -391,11 +411,10 @@ static mxArray *copy_scalar_to_mxArray(const void *s, mxClassID type) {
  * Copy data from an array into mxArray.
  *****************************************************************/
 static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
-                                      int32_T dim, const int32_T *size) {
+        int32_T dim, const int32_T *size) {
     mxArray *a=NULL;
     mwSize   dims_buf[CGEN_MAXDIM];
     mwSize  *dims=NULL;
-    int      i;
     
     if  (dim==1) {
         dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
@@ -403,50 +422,12 @@ static mxArray *copy_array_to_mxArray(void *s, mxClassID type,
     else if (sizeof(mwSize) == sizeof(*size))
         dims = (mwSize*)size;
     else {
+        int      i;
         dims = (dim<=CGEN_MAXDIM)? dims_buf: (mwSize *)mxMalloc(sizeof(mwSize)*dim);
         for (i=0; i<dim; ++i) dims[i] = size[i];
     }
     
-    switch (type) {
-    case mxLOGICAL_CLASS:
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS: {
-        a = (type==mxLOGICAL_CLASS) ?
-            mxCreateLogicalArray(dim, dims) :
-            mxCreateNumericArray(dim, dims, type, mxREAL);
-                
-        memcpy(mxGetData(a), s, mxGetNumberOfElements(a)*mxGetElementSize(a));
-        break;
-    }
-    case mxCHAR_CLASS: {
-        mxChar  *d;
-        char    *p = (char*)s;
-        mwSize  len=1, i;
-        int32_T j;
-            
-        a = mxCreateCharArray(dim, dims);
-        d = (mxChar*)mxGetData(a);
-            
-        for (j=0; j<dim; ++j) len*=size[j];
-        for (i=0; i<len; ++i) d[i] = p[i];
-        break;
-    }
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not yet supported.");
-        break;
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not yet supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
-    }
+    a = copy_DataSize_to_mxArray(s, type, dim, dims);
     
     if (dims != (mwSize*)size && dim>CGEN_MAXDIM) mxFree(dims);
     return a;
@@ -479,7 +460,7 @@ static void resize_mxArray(mxArray *a, int32_T dim, const int32_T *size) {
  * create struct array.
  *****************************************************************/
 static mxArray *create_struct_mxArray(int32_T dim, const int32_T *size,
-                                      int32_T nfields, const char **fields) {
+        int32_T nfields, const char **fields) {
     mxArray *a=NULL;
     mwSize   dims_buf[CGEN_MAXDIM];
     mwSize  *dims=NULL;
@@ -501,114 +482,164 @@ static mxArray *create_struct_mxArray(int32_T dim, const int32_T *size,
 }
 
 /*****************************************************************
- * Move data from emxArray into mxArray. The function should be used
- * only at the end of a mex wrapper to transfer ownership of data.
- * It is assumed that the data in mxArray are allocated using mxMalloc,
- * mxCalloc, or mxRelloc.
+ * Move data and size into mxArray.
  *****************************************************************/
-static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) {
+static mxArray *move_array_to_mxArray(void *data, mxClassID type,
+        int dim, const int *size) {
     mxArray *a=NULL;
-    int      dim = emx->numDimensions;
     mwSize   dims_buf[CGEN_MAXDIM];
     mwSize  *dims;
     int      i;
     
     /* Always use copy for robustness */
 #ifdef HAVE_OCTAVE
-    a = copy_array_to_mxArray(emx->data, type,
-                              emx->numDimensions, emx->size);
-    free_emxArray(emx);
+    a = copy_array_to_mxArray(data, type, dim, size);
+    mxFree(data);
     return a;
-#else
-    if (!emx->canFreeData) {
-        a = copy_array_to_mxArray(emx->data, type,
-                                  emx->numDimensions, emx->size);
-        free_emxArray(emx);
-        return a;
-    }
 #endif
     
     if  (dim==1) {
-        dims = dims_buf; dims[0] = emx->size[0]; dims[1] = 1; dim = 2;
+        dims = dims_buf; dims[0] = size[0]; dims[1] = 1; dim = 2;
     }
-    else if (sizeof(mwSize) == sizeof(*emx->size))
-        dims = (mwSize*)emx->size;
+    else if (sizeof(mwSize) == sizeof(int))
+        dims = (mwSize*)size;
     else {
         dims = (dim<=CGEN_MAXDIM)? dims_buf: (mwSize *)mxMalloc(sizeof(mwSize)*dim);
-        for (i=0; i<dim; ++i) dims[i] = emx->size[i];
+        for (i=0; i<dim; ++i) dims[i] = size[i];
     }
     
     switch (type) {
-    case mxDOUBLE_CLASS:
-    case mxSINGLE_CLASS:
-    case mxINT8_CLASS:
-    case mxUINT8_CLASS:
-    case mxINT16_CLASS:
-    case mxUINT16_CLASS:
-    case mxINT32_CLASS:
-    case mxUINT32_CLASS:
-    case mxINT64_CLASS:
-    case mxUINT64_CLASS: {
-        /* The allocated size must be equal to the dimension */
-        a = mxCreateNumericArray(0, 0, type, mxREAL);
-        if (emx->data) {
-            /* Set pointer */
-            mxSetData(a, emx->data);
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+        case mxLOGICAL_CLASS: {
+            /* The allocated size must be equal to the dimension */
+            a = (type != mxLOGICAL_CLASS) ? mxCreateNumericArray(0, 0, type, mxREAL) :
+                mxCreateLogicalArray(0, 0);
+                
+                if (data) {
+                    /* Set pointer */
+                    mxSetData(a, data);
+                }
+                /* Set size */
+                mxSetDimensions(a, dims, dim);
+                break;
         }
-        /* Set size */
-        mxSetDimensions(a, dims, dim);
-        emx->canFreeData = 0;
+        case mxCHAR_CLASS: {
+            mxChar  *d;
+            char    *p = (char*)data;
+            mwSize  len=1;
+            int     i;
             
-        free_emxArray(emx);
-        break;
-    }
-    case mxLOGICAL_CLASS: {
-        mxLogical  *d;
-        boolean_T  *p = (boolean_T*)emx->data;
-        mwSize  len=1;
-        int     i;
+            a = mxCreateCharArray(dim, dims);
+            for (i=0; i<dim; ++i) len*=dims[i];
             
-        a = mxCreateLogicalArray(dim, dims);
-        for (i=0; i<dim; ++i) len*=dims[i];
-            
-        if (p) {
-            mwSize  i;
-            d = (mxLogical*)mxGetLogicals(a);
-            for (i=0; i<len; ++i) d[i] = p[i];
+            if (p) {
+                mwSize  i;
+                d = (mxChar*)mxGetData(a);
+                for (i=0; i<len; ++i) d[i] = p[i];
+            }
+            break;
         }
-            
-        /* Free up emx */
-        free_emxArray(emx);
-        break;
-    }
-    case mxCHAR_CLASS: {
-        mxChar  *d;
-        char    *p = (char*)emx->data;
-        mwSize  len=1;
-        int     i;
-            
-        a = mxCreateCharArray(dim, dims);
-        for (i=0; i<dim; ++i) len*=dims[i];
-            
-        if (p) {
-            mwSize  i;
-            d = (mxChar*)mxGetData(a);
-            for (i=0; i<len; ++i) d[i] = p[i];
-        }
-            
-        /* Free up emx */
-        free_emxArray(emx);
-        break;
-    }
-    case mxSTRUCT_CLASS:
-        mxAssert(0, "mxSTRUCT_CLASS is not supported.");
-    case mxFUNCTION_CLASS:
-        mxAssert(0, "mxFUNCTION_CLASS is not supported.");
-    default:
-        mxAssert(0, "Unsupported data type.");
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
     }
     
-    if (dims != (mwSize*)emx->size && dim>CGEN_MAXDIM) mxFree(dims);
+    if (dims != (mwSize*)size && dim>CGEN_MAXDIM) mxFree(dims);
+    return a;
+}
+
+/*****************************************************************
+ * Move data from emxArray into mxArray. The function should be used
+ * only at the end of a mex wrapper to transfer ownership of data.
+ * It is assumed that the data in mxArray are allocated using mxMalloc,
+ * mxCalloc, or mxRelloc.
+ *****************************************************************/
+static mxArray *move_emxArray_to_mxArray(emxArray__common *emx, mxClassID type) {
+    mxArray *a;
+    
+    a = move_array_to_mxArray(emx->data, type, emx->numDimensions, emx->size);
+    emx->canFreeData = 0;
+    
+    return a;
+}
+
+/*****************************************************************
+ * Move data from an array into mxArray.
+ *****************************************************************/
+static mxArray *move_ioArray_to_mxArray(void *s, mxClassID type,
+        const mxArray *rhs) {
+    mxArray *a=NULL;
+    int      dim = mxGetNumberOfDimensions(rhs);
+    const mwSize  *dims = mxGetDimensions(rhs);
+    int      i;
+    
+    /* Always use copy for robustness */
+#ifdef HAVE_OCTAVE
+    a = copy_DataSize_to_mxArray(emx->data, type, dim, dims);
+    mxFree(s);
+    return a;
+#endif
+    
+    switch (type) {
+        case mxDOUBLE_CLASS:
+        case mxSINGLE_CLASS:
+        case mxINT8_CLASS:
+        case mxUINT8_CLASS:
+        case mxINT16_CLASS:
+        case mxUINT16_CLASS:
+        case mxINT32_CLASS:
+        case mxUINT32_CLASS:
+        case mxINT64_CLASS:
+        case mxUINT64_CLASS:
+        case mxLOGICAL_CLASS: {
+            /* The allocated size must be equal to the dimension */
+            a = (type != mxLOGICAL_CLASS) ? mxCreateNumericArray(0, 0, type, mxREAL) :
+                mxCreateLogicalArray(0, 0);
+                
+                /* Set pointer */
+                mxSetData(a, s);
+                
+                /* Set size */
+                mxSetDimensions(a, dims, dim);
+                break;
+        }
+        case mxCHAR_CLASS: {
+            mxChar  *d;
+            char    *p = (char*)s;
+            mwSize  len=1;
+            int     i;
+            
+            a = mxCreateCharArray(dim, dims);
+            for (i=0; i<dim; ++i) len*=dims[i];
+            
+            if (p) {
+                mwSize  i;
+                d = (mxChar*)mxGetData(a);
+                for (i=0; i<len; ++i) d[i] = p[i];
+            }
+            mxFree(s);
+            break;
+        }
+        case mxSTRUCT_CLASS:
+            mxAssert(0, "mxSTRUCT_CLASS is not supported.");
+        case mxFUNCTION_CLASS:
+            mxAssert(0, "mxFUNCTION_CLASS is not supported.");
+        default:
+            mxAssert(0, "Unsupported data type.");
+    }
+    
     return a;
 }
 
