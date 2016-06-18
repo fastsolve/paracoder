@@ -31,10 +31,10 @@ end
 %! z = run_spVecAdd_Fixed_exe(x, y, z);
 %! assert(all(z.vals==2));
 
-% %!test
-% %! m2c -nvcc -force -O3 -exe tests/spVecAdd_Fixed
-% %! z = run_spVecAdd_Fixed_exe(x, y, z);
-% %! assert(all(z.vals==2));
+%!test
+%! m2c -nvcc -force -O3 -exe tests/spVecAdd_Fixed
+%! z = run_spVecAdd_Fixed_exe(x, y, z);
+%! assert(all(z.vals==2));
 % 
 % %!test
 % %! m2c -remove-emx -nvcc -force -O3 -exe tests/spVecAdd_Fixed

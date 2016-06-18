@@ -1,5 +1,5 @@
 function [str2, same] = mergeStr_Fixed(str0, str1)
-% Example function for returning a scalar value.
+% Example function for merging two strings and returning a scalar value.
 
 %#codegen -args {m2c_string(3), m2c_string(1)}
 
