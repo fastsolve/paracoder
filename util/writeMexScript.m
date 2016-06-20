@@ -52,7 +52,9 @@ if m2c_opts.withOMP
     LDFLAGS = [LDFLAGS ' -fopenmp'];
 end
 
-CFLAGS = [CFLAGS ' -Wno-unused-variable -Wno-unused-function -Wno-null-character -Wno-invalid-pp-token'];
+if ~m2c_opts.verbose
+    CFLAGS = [CFLAGS ' -Wno-unused-function -Wno-null-character -Wno-invalid-pp-token'];
+end
 
 if ismac
     LDFLAGS = [LDFLAGS ' -dynamiclib'];

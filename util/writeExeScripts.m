@@ -13,8 +13,8 @@ CXXFLAGS = '-fPIC ';
 LDFLAGS = '';
 
 if m2c_opts.withPetsc
-    CC = m2c_opts.petscCXX{1};
-    CXX = m2c_opts.petscCC{1};
+    CC = m2c_opts.petscCC{1};
+    CXX = m2c_opts.petscCXX{1};
 elseif m2c_opts.withMPI
     CC = m2c_opts.mpiCC{1};
     CXX = m2c_opts.mpiCXX{1};
@@ -76,8 +76,8 @@ if ~isempty(m2c_opts.ldflags)
 end
 
 if m2c_opts.withPetsc
-    CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1}];
-    CXXFLAGS = [CXXFLAGS ' ' m2c_opts.petscCXXFLAGS{1}];
+    CFLAGS = [CFLAGS ' ' m2c_opts.petscCFLAGS{1} sprintf(' %s ', m2c_opts.petscInc{1})];
+    CXXFLAGS = [CXXFLAGS ' ' m2c_opts.petscCXXFLAGS{1} sprintf(' %s ', m2c_opts.petscInc{1})];
 end
 if m2c_opts.withMKL
     CFLAGS = [CFLAGS sprintf(' %s ', m2c_opts.mklInc{1})];
@@ -94,6 +94,9 @@ end
 if m2c_opts.verbose; 
     CFLAGS = ['-v ' CFLAGS]; 
     CXXFLAGS = ['-v ' CXXFLAGS]; 
+else
+    CFLAGS = [CFLAGS ' -Wno-unused-function'];
+    CXXFLAGS = [CXXFLAGS ' -Wno-unused-function'];
 end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});

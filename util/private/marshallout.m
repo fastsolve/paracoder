@@ -1,12 +1,12 @@
 function [str, structDefs, hasDim, hasCuError] = marshallout(vars, pruned_vars, iscuda, ...
-    structDefs, cprefix, mx_index, readonly_mode)
+    structDefs, cprefix, mx_index, readonly)
 % Marshall function output arguments.
-% In readonly_mode, the variables are readonly and are not marshallled out.
+% In readonly, the variables are readonly and are not marshallled out.
 
 if nargin<6; 
     cprefix = ''; 
     mx_index = [];
-    readonly_mode = false;
+    readonly = false;
 end
 
 str=char(10);
@@ -20,40 +20,40 @@ for i=1:length(vars)
         continue;
     end
     
-    rmode_var = readonly_mode || isempty(cprefix) && isempty(var.oindex);
+    readonly_var = readonly || isempty(cprefix) && isempty(var.oindex);
     j = var.oindex;
     cvarname = [cprefix var.cname];
     
     if isempty(cprefix)
-        if ~rmode_var
+        if ~readonly_var
             lhs = ['plhs[' num2str(j-1) '] = '];
         else
             lhs = '';
         end
-        if ~isempty(var.iindex) && ~rmode_var
+        if ~isempty(var.iindex)
             rhs = ['prhs[' num2str(var.iindex-1) ']'];
         else
             rhs = '';
         end
         
         closeParen = '';
-        if ~iscuda
+
+        if ~iscuda && (strncmp(var.type, 'emxArray_', 9) || prod(var.size)==1 && ...
+                ~var.vardim && (~isempty(var.subfields) || isempty(var.modifier)))
             cvarname_ptr = ['&' cvarname];
         else
             cvarname_ptr = cvarname;
         end
     else
-        if ~rmode_var && ~rmode_var
+        if ~readonly_var && ~readonly_var
             lhs = ['mxSetField(mx, ' mx_index ', "' var.mname '", '];
             closeParen = ')';
         else
             lhs = '';
             closeParen = '';
         end
-        if iscuda && ~rmode_var
-            str = sprintf('%s\n', str, ...
-                ['    sub_mx = mxGetField(mx, ' mx_index  ', "' var.mname '")']);
-            rhs = 'sub_mx';
+        if iscuda
+            rhs = ['mxGetField(mx_in, ' mx_index  ', "' var.mname '")'];
         else
             rhs = '';
         end
@@ -64,161 +64,265 @@ for i=1:length(vars)
             cvarname_ptr = cvarname;
         end
     end
-    
-    if ~isempty(var.subfields)
-        hasArray = ~strncmp(var.type, 'emxArray_', 9) && (prod(var.size)>1 || any(var.vardim));
-        [marshalloutFuncName, structDefs] = gen_marshalloutFunc(structDefs, var.type, ...
-            hasArray, iscuda, rmode_var);
 
-        if ~hasArray || rmode_var
-            str = sprintf('%s%s\n', str, ...
-                ['    ' lhs marshalloutFuncName '(' cvarname_ptr ')' closeParen ';']);
-        elseif ~isempty(var.sizefield) && ~ischar(var.sizefield)
-            args = [cvarname_ptr ', ' num2str(var.size) ', ' ...
-                cprefix vars(var.sizefield).cname];
-            str = sprintf('%s%s\n', str, ...
-                ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
-        else
-            sizes = sprintf(', %d', var.size);
-            args = [cvarname_ptr ', ' num2str(var.size) ', _dims'];
-            
-            str = sprintf('%s\n', str(1:end-1), ...
-                ['    {int _dims[] = {' sizes(3:end) '};'], ...
-                ['    ' lhs marshalloutFuncName '(' args ')' closeParen '; }']);
-        end
-    elseif isequal(var.type, ['emxArray_', var.basetype])
+    if ~isempty(var.subfields)
+        hasArray = ~strncmp(var.type, 'emxArray_', 9) && (prod(var.size)>1 || any(var.vardim));        
+        [marshalloutFuncName, structDefs] = gen_marshalloutFunc(structDefs, var.type, ...
+            hasArray, iscuda, readonly_var);
+    end
+        
+    str_gpu = '';
+    str_mx = '';
+    
+    if isequal(var.type, ['emxArray_', var.basetype]) || ...
+            isequal(var.type, ['emxArray_', var.structname])
         % Case 1: A full emxArray
-        if ~rmode_var && ~iscuda
-            str = sprintf('%s\n', str(1:end-1), ...
-                ['    ' lhs 'move_emxArray_to_mxArray((emxArray__common*)' ...
-                cvarname_ptr ', ' getMxClassID(var.basetype) closeParen ');']);
-        elseif ~rmode_var
-            str = sprintf('%s\n', str, ...
-                ['    if (!mxIsClass(' rhs ', "m2c_gpuArray"))'], ...0
-                ['        ' lhs 'move_gpuEmxArray_to_mxArray(' ...
-                cvarname_ptr ', ' getMxClassID(var.basetype) ')' closeParen ';'], ...
-                '    else', ...
-                ['        ' lhs 'move_gpuEmxArray_to_gpuPointer(' ...
-                cvarname_ptr ', ' rhs closeParen ');']);
-        elseif ~iscuda
-            str = sprintf('%s%s\n', str, ...
-                ['    free_emxArray((emxArray__common*)' cvarname_ptr ');']);
+        if ~iscuda
+            if ~isempty(var.subfields)
+                str = sprintf('%s%s\n', str, ...
+                    ['    ' lhs marshalloutFuncName '(' cvarname_ptr ')' closeParen ';']);
+            else
+                if ~readonly_var
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    ' lhs 'move_emxArray_to_mxArray((emxArray__common*)(' ...
+                        cvarname_ptr '), ' getMxClassID(var.basetype) closeParen ');']);
+                    if cvarname_ptr(1) == '&'
+                        str = sprintf('%s\n', str(1:end-1), ...
+                            ['    mxFree(' cvarname '.size);']);
+                    else
+                        str = sprintf('%s\n', str(1:end-1), ...
+                            ['    mxFree(' cvarname '->size);']);
+                    end
+                else
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    free_emxArray((emxArray__common*)(' cvarname_ptr '));']);
+                end
+                if ~isempty(cprefix)
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    mxFree(' cvarname_ptr ');'], '', '');
+                end
+            end
         else
-            str = sprintf('%s%s\n', str, ...
-                ['    destroy_gpuEmxArray<' var.type ', true>(' cvarname_ptr ');']);
+            if ~isempty(var.subfields)
+                str = sprintf('%s%s\n', str, ...
+                    ['    ' lhs marshalloutFuncName '(' cvarname_ptr ', ' rhs ')' closeParen ';']);
+            elseif ~readonly_var
+                str_gpu = sprintf('%s\n', str_gpu, ...
+                    ['        ' lhs 'move_gpuEmxArray_to_gpuPointer(' ...
+                    cvarname_ptr ', ' rhs closeParen ');']);
+                str_mx = sprintf('%s%s\n', str_mx, ...
+                    ['        ' lhs 'move_gpuEmxArray_to_mxArray(' ...
+                    cvarname_ptr ', ' getMxClassID(var.basetype) ')' closeParen ';']);
+            else
+                str = sprintf('%s%s\n', str, ...
+                    ['    destroy_gpuEmxArray(' cvarname_ptr ');']);
+            end
         end
     elseif var.isemx && (isempty(var.sizefield) || isempty(var.modifier))
         % Case 2. A reduced emxArray with only data and size fields
-        if ~rmode_var && ~iscuda
+        assert(~isempty(cprefix));
+            
+        if ~readonly_var && ~iscuda
             str = sprintf('%s%s\n', str, ...
                 ['    ' lhs 'copy_array_to_mxArray(' ...
                 cvarname '.data, ' getMxClassID(var.basetype) ', ' ...
                 num2str(length(var.size)) ', ' cvarname, '.size)' closeParen ';']);
-        elseif ~rmode_var
-            str = sprintf('%s\n', str(1:end-1), ...
-                ['    if (!mxIsClass(' rhs ', "m2c_gpuArray"))'], ...
-                ['        ' lhs 'move_gpuDataSize_to_mxArray(' ...
-                cvarname '.data, ' num2str(length(var.size)) ', ' ...
-                cvarname '.size, ' getMxClassID(var.basetype) ');'], ...
-                '    else', ...
+        elseif ~readonly_var
+            str_gpu = sprintf('%s\n', str_gpu, ...
                 ['        ' lhs 'move_gpuSize_to_gpuPointer(' num2str(length(var.size)) ', ' ...
                 cvarname '.size, ' rhs closeParen ');']);
+            str_mx = sprintf('%s%s\n', str_mx, ...
+                ['        ' lhs 'move_gpuDataSize_to_mxArray(' ...
+                cvarname '.data, ' num2str(length(var.size)) ', ' ...
+                cvarname '.size, ' getMxClassID(var.basetype) ');']);
         elseif iscuda && isempty(cprefix)
-            str = sprintf('%s%s\n', str, ...
-                ['    destroy_gpuEmxArray<' var.type ', false>('  cvarname_ptr ');']);
+            str_gpu = sprintf('%s%s\n', str_gpu, ...
+                ['        destroy_gpuEmxArray_reduced(' cvarname_ptr ', false);']);
+            str_mx = sprintf('%s%s\n', str_mx, ...
+                ['        destroy_gpuEmxArray_reduced(' cvarname_ptr ', true);']);
         else
             str = sprintf('%s%s\n', str, ...
                 ['    /* Nothing to be done for ' var.mname ' */']);
         end
     elseif var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield)
         % Case 3. emxArray split into _data and _size arguments
-        if ~rmode_var && ~iscuda
-            str = sprintf('%s%s\n', str, ...
-                ['    ' lhs 'copy_array_to_mxArray(' ...
-                cvarname_ptr ', ' getMxClassID(var.basetype) ', ' ...
-                num2str(vars(var.sizefield).size) ', ' ...
-                cprefix vars(var.sizefield).cname closeParen ');']);
-        elseif ~rmode_var
-            str = sprintf('%s\n', str, ...
-                ['    if (!mxIsClass(' rhs ', "m2c_gpuArray"))'], ...
-                ['        ' lhs 'move_gpuDataSize_to_mxArray(' ...
-                cvarname_ptr ', ' num2str(length(var.size)) ', ' ...
-                cprefix vars(var.sizefield).cname ', ' getMxClassID(var.basetype) ');'], ...
-                '    else', ...
-                ['        ' lhs 'move_gpuSize_to_gpuPointer(' num2str(length(var.size)) ', ' ...
-                cprefix vars(var.sizefield).cname ', ' rhs closeParen ');']);
-        elseif iscuda && isempty(cprefix)
-            str = sprintf('%s\n%s', str, ...
-                ['    _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr);'], ...
-                ['    _ierr = cudaFree(' cprefix vars(var.sizefield).cname '); CHKCUERR(_ierr);']);
-            hasCuError = true;
-        elseif any(var.vardim)
-            str = sprintf('%s%s\n', str, ...
-                ['    mxFree(' cvarname_ptr ');']);
-        else
-            str = sprintf('%s%s\n', str, ...
-                ['    /* Nothing to be done for ' var.mname ' */']);
-        end
-    elseif var.isemx || prod(var.size)~=1 || any(var.vardim)
-        % Case 4: emxArray simplified to _data without _size field
-        if ~rmode_var && ~iscuda
-            if any(var.vardim)
-                assert(isempty(var.modifier));
+        if ~iscuda
+            if ~isempty(var.subfields)
+                if ~readonly_var
+                    args = [cvarname_ptr ', ' num2str(length(var.size)) ', ' ...
+                        cprefix vars(var.sizefield).cname];                    
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
+                else
+                    args = [cvarname_ptr ', ' num2str(prod(var.size))];
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
+                end
+                if isempty(cprefix) && prod(var.size)>1 || var.vardim
+                    str = sprintf('%s%s\n', str, ...
+                        ['    mxFree(' cvarname_ptr ');']);
+                end
+            elseif ~readonly_var
+                if ~isempty(cprefix)
+                    copyFunc = 'copy_array_to_mxArray';
+                else
+                    copyFunc = 'move_array_to_mxArray';
+                end
                 str = sprintf('%s%s\n', str, ...
-                    ['    ' lhs 'copy_array_to_mxArray(' ...
-                    cvarname '.data, ' getMxClassID(var.basetype) ', ' ...
-                    num2str(length(var.size)) ', ' cvarname '.size' closeParen ');']);
-            elseif length(var.size)>1
-                str = sprintf('%s\n', str, ...
-                    '    {', ...
-                    ['        int _dims[] = {' regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};'], ...
-                    ['        ' lhs 'copy_array_to_mxArray(' cvarname_ptr ', ' ...
-                    getMxClassID(var.basetype) ', ' num2str(length(var.size)) ', _dims' closeParen ');'], ...
-                    '    }');
+                    ['    ' lhs copyFunc '(' ...
+                    cvarname_ptr ', ' getMxClassID(var.basetype) ', ' ...
+                    num2str(vars(var.sizefield).size) ', ' ...
+                    cprefix vars(var.sizefield).cname closeParen ');']);
+            elseif isempty(cprefix) && (var.iscomplex || isequal(var.basetype, 'char_T'))
+                str = sprintf('%s%s\n', str, ...
+                    ['    mxFree(' cvarname_ptr ');']);
             else
-                hasDim = true;
-                str = sprintf('%s\n', str(1:end-1), ...
-                    ['    _dim = ' num2str(var.size) ';'], ...
-                    ['    ' lhs 'copy_array_to_mxArray(' cvarname_ptr ', ' ...
-                    getMxClassID(var.basetype) ', ' num2str(length(var.size)) ', &_dim' closeParen ');']);
+                str = sprintf('%s%s\n', str, ...
+                    ['    /* Nothing to be done for ' var.mname ' */']);
             end
-        elseif ~rmode_var
-            str = sprintf('%s\n', str, ...
-                ['    if (!mxIsClass(' rhs ', "m2c_gpuArray"))'], ...
-                ['        ' lhs 'move_gpuArray_to_mxArray(' ...
-                cvarname_ptr ', ' rhs closeParen ');'], ...
-                '    else', ...
-                ['        ' lhs 'mxDuplicateArray(' rhs closeParen ');']);
-        elseif iscuda && isempty(cprefix)
+        else
+            if ~isempty(var.subfields)
+                assert(false);
+            elseif ~readonly_var
+                str_gpu = sprintf('%s\n', str_gpu, ...
+                    ['        ' lhs 'move_gpuSize_to_gpuPointer(' num2str(length(var.size)) ', ' ...
+                    cprefix vars(var.sizefield).cname ', ' rhs closeParen ');']);
+                str_mx = sprintf('%s\n', str_mx, ...
+                    ['        ' lhs 'move_gpuDataSize_to_mxArray(' ...
+                    cvarname_ptr ', ' num2str(length(var.size)) ', ' ...
+                    cprefix vars(var.sizefield).cname ', ' getMxClassID(var.basetype) ');']);
+            elseif isempty(cprefix)
+                str = sprintf('%s\n', str, ...
+                    ['    _ierr = cudaFree(' cprefix vars(var.sizefield).cname '); CHKCUERR(_ierr, "cudaFree");']);
+                str_mx = sprintf('%s\n', str_mx, ...
+                    ['        _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr, "cudaFree");']);
+                hasCuError = true;
+            end
+        end
+    elseif var.isemx || prod(var.size)~=1 || any(var.vardim) || ...
+            ~isempty(var.modifier) && ~isempty(var.oindex) && ...
+            (isempty(var.subfields) || ~isequal(var.size, 1) || any(var.vardim))
+        % Case 4: emxArray simplified to _data without _size field
+        if ~iscuda
+            if ~isempty(var.subfields)
+                if ~readonly_var
+                    sizes = sprintf(', %d', var.size);
+                    args = [cvarname_ptr ', ' num2str(length(var.size)) ', _dims'];
+                    
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    {int _dims[] = {' sizes(3:end) '};'], ...
+                        ['    ' lhs marshalloutFuncName '(' args ')' closeParen '; }']);
+                else
+                    args = [cvarname_ptr ', ' num2str(prod(var.size))];
+                    str = sprintf('%s\n', str(1:end-1), ...
+                        ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
+                end
+                if isempty(cprefix) && prod(var.size)>1 || var.vardim
+                    str = sprintf('%s%s\n', str, ...
+                        ['    mxFree(' cvarname_ptr ');']);
+                end                
+            elseif ~readonly_var
+                if ~isempty(rhs)
+                    str = sprintf('%s%s\n', str, ...
+                        ['    ' lhs 'move_ioArray_to_mxArray(' cvarname_ptr ', ' ...
+                        getMxClassID(var.basetype) ', ' rhs closeParen ');']);
+                elseif prod(var.size)==1 && ~var.vardim
+                    if ~isempty(cprefix)
+                        copyFunc = 'copy_scalar_to_mxArray';
+                    else
+                        copyFunc = 'move_scalar_to_mxArray';
+                    end
+                    str = sprintf('%s\n', str, ...
+                        ['    ' lhs copyFunc '(' cvarname_ptr ', ' ...
+                        getMxClassID(var.basetype) closeParen ');']);
+                else
+                    if ~isempty(cprefix)
+                        copyFunc = 'copy_array_to_mxArray';
+                    else
+                        copyFunc = 'move_array_to_mxArray';
+                    end
+                    if length(var.size)>1
+                        str = sprintf('%s\n', str, ...
+                            '    {', ...
+                            ['        int _dims[] = {' regexprep(strtrim(sprintf('%d ', var.size)), ' ', ', '), '};'], ...
+                            ['        ' lhs copyFunc '(' cvarname_ptr ', ' ...
+                            getMxClassID(var.basetype) ', ' num2str(length(var.size)) ', _dims' closeParen ');'], ...
+                            '    }');
+                    else
+                        hasDim = true;
+                        str = sprintf('%s\n', str(1:end-1), ...
+                            ['    _dim = ' num2str(var.size) ';'], ...
+                            ['    ' lhs copyFunc '(' cvarname_ptr ', ' ...
+                            getMxClassID(var.basetype) ', ' num2str(length(var.size)) ', &_dim' closeParen ');']);
+                    end
+                end
+            elseif isempty(cprefix) && (var.iscomplex || isequal(var.basetype, 'char_T'))
+                str = sprintf('%s%s\n', str, ...
+                    ['    mxFree(' cvarname_ptr ');']);
+            else
+                str = sprintf('%s%s\n', str, ...
+                    ['    /* Nothing to be done for ' var.mname ' */']);
+            end
+        else
+            if ~isempty(var.subfields)
+                assert(false);
+            elseif ~readonly_var
+                str_gpu = sprintf('%s\n', str_gpu, ...
+                    ['        ' lhs 'mxDuplicateArray(' rhs closeParen ');']);
+                str_mx = sprintf('%s%s\n', str_mx, ...
+                    ['        ' lhs 'move_gpuArray_to_mxArray(' ...
+                    cvarname_ptr ', ' rhs closeParen ');']);
+            elseif isempty(cprefix)
+                str_mx = sprintf('%s%s\n', str_mx, ...
+                    ['        _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr, "cudaFree");']);
+                hasCuError = true;
+            end
+        end        
+    else
+        if ~isempty(var.subfields)
             str = sprintf('%s%s\n', str, ...
-                ['    _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr);']);
-            hasCuError = true;
-        elseif any(var.vardim)
+                ['    ' lhs marshalloutFuncName '(' cvarname_ptr ')' closeParen ';']);
+        elseif ~readonly_var && (~isempty(cprefix) || ~isempty(var.oindex))
             str = sprintf('%s%s\n', str, ...
-                ['    mxFree(' cvarname_ptr ');']);
+                ['    ' lhs 'copy_scalar_to_mxArray(' cvarname_ptr, ', '...
+                getMxClassID(var.basetype) closeParen ');']);
+        elseif readonly_var && iscuda
+            if isempty(cprefix) && ~isempty(var.modifier)
+                % Need to deallocate size field on CUDA
+                str = sprintf('%s%s\n', str, ...
+                    ['    _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr, "cudaFree");']);
+                hasCuError = true;
+            elseif ~isempty(var.modifier)
+                str_mx = sprintf('%s\n', str_mx, ...
+                    ['        _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr, "cudaFree");']);
+                hasCuError = true;
+            end
         else
             str = sprintf('%s%s\n', str, ...
                 ['    /* Nothing to be done for ' var.mname ' */']);
-        end        
-    elseif ~rmode_var && isempty(var.modifier)
-        str = sprintf('%s%s\n', str, ...
-            ['    ' lhs 'copy_scalar_to_mxArray(' cvarname_ptr, ', '...
-            getMxClassID(var.basetype) closeParen ');']);
-    elseif rmode_var && iscuda
-        if isempty(cprefix) && isempty(var.modifier)
-            % Need to deallocate size field on CUDA
-            str = sprintf('%s%s\n', str, ...
-                ['    _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr);']);
-            hasCuError = true;
-        elseif ~isempty(var.modifier)
-            str = sprintf('%s\n', str(1:end-1), ...
-                ['    if (!mxIsClass(' mx_field ', "m2c_gpuArray"))', ...
-                '        _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr);']);
-            hasCuError = true;
         end
-    else
-        str = sprintf('%s%s\n', str, ...
-            ['    /* Nothing to be done for ' var.mname ' */']);
+    end
+    
+    if ~isempty(str_gpu) && ~isempty(str_mx)
+        assert(~isempty(rhs));
+        str = sprintf('%s\n', str, ...
+            ['    if (mxIsClass(' rhs ', "m2c_gpuArray")) {'], ...
+            str_gpu, ...
+            '    } else {', ...
+            str_mx, ...
+            '    }');
+    elseif ~isempty(str_mx)
+        assert(~isempty(rhs));
+        str = sprintf('%s\n', str, ...
+            ['    if (!mxIsClass(' rhs ', "m2c_gpuArray")) {'], ...
+            str_mx, ...
+            '    }');
+    elseif ~isempty(str_gpu)
+        assert(~isempty(rhs));
+        str = sprintf('%s\n', str, ...
+            ['    if (mxIsClass(' rhs ', "m2c_gpuArray")) {'], ...
+            str_gpu, ...
+            '    }');
     end
 end
 
@@ -236,20 +340,21 @@ for k=1:length(pruned_vars)
 end
 
 if isempty(cprefix) && ~isempty(str)
-    str = ['    /* Deallocate input and marshall out function outputs */' str];
+    str = ['    /* Deallocate input and marshall out function outputs */', ...
+        regexprep(str, '\n\n', '\n')];
 end
 
 end
 
 function [funcname, structDefs] = gen_marshalloutFunc(structDefs, type, ...
-    hasArray, iscuda, readonly_mode)
+    hasArray, iscuda, readonly)
 % Generate function for marshalloutg out a struct or an array of struct objects.
 % It may recursively generate additional marshallout functions for other structs.
 
-if hasArray && ~readonly_mode
+if hasArray && ~readonly
     funcField = 'marshalloutArrayFunc';
     funcname = ['marshallout_'  type '_Array'];
-elseif ~readonly_mode
+elseif ~readonly
     funcField = 'marshalloutFunc';
     funcname = ['marshallout_'  type];
 elseif hasArray
@@ -267,7 +372,7 @@ else
     return;
 end
 
-if ~readonly_mode
+if ~readonly
     fieldstr = sprintf(', "%s"', structDefs.(type).fields.mname);
     decl_vars = sprintf('    %-20s %s;', 'const char', ['*fields[] = {' fieldstr(3:end) '}']);
 else
@@ -275,48 +380,51 @@ else
 end
 
 if strncmp(type, 'emxArray_', 9)
-    varname = 'pArr';
+    varname = 'pEmx';
     args = [type ' *' varname];
-    if ~readonly_mode
+    if ~readonly
         decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', 'mxArray', ...
-            ['*mx = create_struct_mxArray(pArr->numDimensions, pArr->size, ' ...
+            ['*mx = create_struct_mxArray(pEmx->numDimensions, pEmx->size, ' ...
             num2str(length(structDefs.(type).fields)) ', fields)']), ...
-            sprintf('    %-20s %s;', 'int', 'nElems = numElements(nDims, dims)'));
-        mx_index = 'i';
+            sprintf('    %-20s %s;', 'int', 'nElems = mxGetNumberOfElements(mx)'));
     else
-        mx_index = '';
+        decl_vars = sprintf('%s\n', decl_vars, ...
+            sprintf('    %-20s %s;', 'int', 'nElems = numElements(pEmx->numDimensions, pEmx->size)'));
     end
+    
+    mx_index = 'i';
     decl_vars = sprintf('%s\n', decl_vars, ...
         sprintf('    %-20s %s;', 'int', 'i'));
-    cprefix = 'pArr->data[i].';
+    cprefix = 'pEmx->data[i].';
 elseif hasArray
     varname = 'pArr';
-    args = [type ' *' varname ', int nDims, const int *dims'];
-    if ~readonly_mode
+    if ~readonly
+        args = [type ' *' varname ', int nDims, const int *dims'];
         decl_vars = sprintf('%s\n', decl_vars, ...
-            sprintf('    %-20s %s;', 'mxArray', ['*mx = create_struct_mxArray(nDim, dims, ' ...
-            num2str(length(structDefs.(type).fields)) ', fields)']), ...
+            sprintf('    %-20s %s;', 'mxArray', ['*mx = create_struct_mxArray(nDims, dims, ' ...
+            num2str(length(structDefs.(type).fields)) ', fields)']));
+        decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', 'int', 'nElems = numElements(nDims, dims)'));
-        mx_index = 'i';
-    else
-        mx_index = '';
+    else        
+        args = [type ' *' varname ', int nElems'];
     end
+    
+    mx_index = 'i';
     decl_vars = sprintf('%s\n', decl_vars, ...
         sprintf('    %-20s %s;', 'int', 'i'));
     cprefix = 'pArr[i].';
 else
     varname = 'pStruct';
-    args = [type ' *' varname];
-    if ~readonly_mode
+    if ~readonly
         decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', 'int', 'one=1'), ...
             sprintf('    %-20s %s;', 'mxArray', ['*mx = create_struct_mxArray(1, &one, ' ...
             num2str(length(structDefs.(type).fields)) ', fields)']));
-        mx_index = '0';
-    else
-        mx_index = '';
     end
+    
+    args = [type ' *' varname];
+    mx_index = '0';
     cprefix = 'pStruct->';
 end
 
@@ -325,17 +433,17 @@ if iscuda
         sprintf('    %-20s %s;\n', 'mxArray', '*sub_mx')];
     if strncmp(type, 'emxArray_', 9)
         decl_vars = sprintf('%s\n', decl_vars, ...
-            sprintf('    %-20s %s;', type, 'pArr_buf'), ...
+            sprintf('    %-20s %s;', type, 'pEmx_buf'), ...
             sprintf('    %-20s %s;', structDefs.(type).structname, '*data_gpu'), ...
             sprintf('    %-20s %s;', 'int', '*size_gpu'));
-        if ~readonly_mode
+        if ~readonly
             decl_vars = sprintf('%s\n', decl_vars, ...
-                '    copy_gpuEmxArray_to_emxArray(pArr, pArr_buf, &data_gpu, &size_gpu);');
+                '    copy_gpuEmxArray_to_emxArray(pEmx, pEmx_buf, &data_gpu, &size_gpu);');
         else
             decl_vars = sprintf('%s\n', decl_vars, ...
-            '    get_gpuEmxArray_DataSize(pArr, &data_gpu, &size_gpu);');
+            '    get_gpuEmxArray_DataSize(pEmx, &data_gpu, &size_gpu);');
         end
-        cprefix = 'pArr_buf.data[i].';
+        cprefix = 'pEmx_buf.data[i].';
     elseif hasArray
         decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', type, ['*pArr_buf = (' type '*)mxMalloc(sizeof(type) * nElems);']), ...
@@ -345,35 +453,23 @@ if iscuda
         cprefix = 'pArr_buf[i].';
     else
         decl_vars = sprintf('%s\n', decl_vars, ...
-            ['    ' type '    obj;'], ...
-            ['    cudaStatus_T _ierr = cudaMemcpy(&obj, pStruct, sizeof(' type ...
-            ')' times ', cudaMemcpyDeviceToHost);'], ...
-            '    CHKCUERR(_ierr, "cudaMemcpy");');
+            sprintf('    %-20s %s;', type, 'obj'));
         cprefix = 'obj.';
     end
 end
 
-if readonly_mode && ~iscuda && structDefs.(type).hasInit
-    loopBody = '';
-else
-    [loopBody, structDefs, hasDim, hasCuError] = marshallout(structDefs.(type).fields, [], iscuda, ...
-        structDefs, cprefix, mx_index, readonly_mode);
+[loopBody, structDefs, hasDim, hasCuError_struct] = marshallout(structDefs.(type).fields, [], iscuda, ...
+    structDefs, cprefix, mx_index, readonly);
 
-    if hasDim
-        decl_vars = sprintf('%s\n', decl_vars, ...
-            sprintf('    %-20s %s;', 'int', '_dim'));
-    end
-    
-    if hasCuError
-        decl_vars = sprintf('%s\n', decl_vars, ...
-            sprintf('    %-20s %s;', 'cudaError_t', '_ierr'));
-    end
+if hasDim
+    decl_vars = sprintf('%s\n', decl_vars, ...
+        sprintf('    %-20s %s;', 'int', '_dim'));
 end
 
+hasCuError_local = false;
 if strncmp(type, 'emxArray_', 9) || hasArray
-    if structDefs.(type).hasInit
-        loopBody = sprintf('%s\n', loopBody, ...
-            ['    emxDestroy_' type '(' cprefix(1:end-1) ');']);
+    if iscuda
+        assert(false);
     end
     % Add loop if there are arrays
     funcBody = sprintf('%s\n%s%s\n', ...
@@ -381,15 +477,18 @@ if strncmp(type, 'emxArray_', 9) || hasArray
         regexprep(loopBody, '\n    ', '\n        '), ...
         '    }');
 else
-    if structDefs.(type).hasInit
-        loopBody = sprintf('%s\n', loopBody, ...
-            ['    emxDestroy_' type '(*pStruct);']);
+    if iscuda
+        loopBody = sprintf('%s\n', ...
+            ['    _ierr = cudaMemcpy(&obj, pStruct, sizeof(' type '), cudaMemcpyDeviceToHost);'], ...
+            '    CHKCUERR(_ierr, "cudaMemcpy");', ...
+            loopBody);
+        hasCuError_local = true;
     end
     funcBody = loopBody;
 end
 
-if strncmp(type, 'emxArray_', 9)
-    dealloc = '    mxFree(pArr->size);';
+if isequal(type, ['emxArray_', structDefs.(type).structname])
+    dealloc = '    free_emxArray((emxArray__common *)pEmx);';
 else
     dealloc = '';
 end
@@ -400,8 +499,8 @@ if iscuda
         dealloc = sprintf('%s\n', dealloc, ...
             '    _ierr = cudaFree(data_gpu); CHKCUERR(_ierr, "cudaFree");', ...
             '    _ierr = cudaFree(size_gpu); CHKCUERR(_ierr, "cudaFree");', ...
-            '    _ierr = cudaFree(pArr); CHKCUERR(_ierr, "cudaFree");', ...
-            '    mxFree(pArr_buf.size);');
+            '    _ierr = cudaFree(pEmx); CHKCUERR(_ierr, "cudaFree");', ...
+            '    mxFree(pEmx_buf.size);');
     elseif hasArray
         dealloc = sprintf('%s\n', dealloc, ...
             '    _ierr = cudaFree(pArr); CHKCUERR(_ierr, "cudaFree");', ...
@@ -411,8 +510,13 @@ if iscuda
             '    _ierr = cudaFree(pStruct); CHKCUERR(_ierr, "cudaFree");');
     end
 end
+    
+if hasCuError_local || hasCuError_struct
+    decl_vars = sprintf('%s%s\n', decl_vars, ...
+        sprintf('    %-20s %s;', 'cudaError_t', '_ierr'));
+end
 
-if ~readonly_mode
+if ~readonly
     return_val = 'mxArray *';
     return_mx = '    return mx;';
 else
@@ -422,9 +526,9 @@ end
 
 func = sprintf('%s\n', '', ...
     ['static ' return_val funcname '(' args ') {'], ...
-    [decl_vars, funcBody, dealloc, return_mx], ...
+    decl_vars, '', [funcBody, dealloc], return_mx, ...
     '}');
 
-structDefs.(type).(funcField) = func;
+structDefs.(type).(funcField) = regexprep(func, '\n\n', '\n');
 
 end
