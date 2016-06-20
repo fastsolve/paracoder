@@ -17,26 +17,26 @@ end
 %! y= struct('is', int32(1:1000000)', 'vals', ones(1000000,1), 'len', int32(1000000));
 %! z= struct('is', int32(1:1000000)', 'vals', rand(1000000,1), 'len', int32(1000000));
 %! 
-%! m2c -force -O3 -exe tests/spVecAdd_Bound_large
-%! z = run_spVecAdd_Bound_large_exe(x, y, z);
+%! m2c -force -O3 -mex tests/spVecAdd_Bound_large
+%! z = spVecAdd_Bound_large(x, y, z);
 %! assert(all(z.vals==2));
 
 % %!test
-% %! m2c -remove-emx -force -O3 -exe tests/spVecAdd_Bound_large
-% %! z = run_spVecAdd_Bound_large_exe(x, y, z);
+% %! m2c -remove-emx -force -O3 -mex tests/spVecAdd_Bound_large
+% %! z = spVecAdd_Bound_large(x, y, z);
 % %! assert(all(z.vals==2));
 
 %!test
-%! m2c -omp -force -O3 -exe tests/spVecAdd_Bound_large
-%! z = run_spVecAdd_Bound_large_exe(x, y, z);
+%! m2c -omp -force -O3 -mex tests/spVecAdd_Bound_large
+%! z = spVecAdd_Bound_large(x, y, z);
 %! assert(all(z.vals==2));
 
-%!test
-%! m2c -nvcc -force -O3 -exe tests/spVecAdd_Bound_large
-%! z = run_spVecAdd_Bound_large_exe(x, y, z);
-%! assert(all(z.vals==2));
-% 
 % %!test
-% %! m2c -remove-emx -nvcc -force -O3 -exe tests/spVecAdd_Bound_large
-% %! z = run_spVecAdd_Bound_large_exe(x, y, z);
+% %! m2c -nvcc -force -O3 -mex tests/spVecAdd_Bound_large
+% %! z = spVecAdd_Bound_large(x, y, z);
+% %! assert(all(z.vals==2));
+
+% %!test
+% %! m2c -remove-emx -nvcc -force -O3 -mex tests/spVecAdd_Bound_large
+% %! z = spVecAdd_Bound_large(x, y, z);
 % %! assert(all(z.vals==2));

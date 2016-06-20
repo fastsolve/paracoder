@@ -1,8 +1,8 @@
 function [y, z] = structCopy_Bound_large(x, y)
 % Example function for adding two vectors.
 
-%#codegen -args {coder.typeof(struct('a', m2c_intvec, 'b', m2c_mat, 'c', m2c_string), [100000,1], [1,0]),
-%#codegen coder.typeof(struct('a', m2c_intvec, 'b', m2c_mat, 'c', m2c_string))}
+%#codegen -args {coder.typeof(struct('a', m2c_intvec(100000,1), 'b', m2c_vec(100000,1), 'c', m2c_string(10000,1)), [100000,1], [1,0]),
+%#codegen coder.typeof(struct('a', m2c_intvec(1000000,1), 'b', m2c_vec(100000,1), 'c', m2c_string(10000,1)))}
 
 z = x;
 y.c = x(1).c;

@@ -10,26 +10,26 @@ for i=istart:iend
 end
 
 %!test
-%! m2c -force -O3 -exe tests/vecAdd_Bound_small
-%! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
+%! m2c -force -O3 -mex tests/vecAdd_Bound_small
+%! z = vecAdd_Bound_small(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
 %!test
-%! m2c -force -remove-emx -O3 -exe tests/vecAdd_Bound_small
-%! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
+%! m2c -force -remove-emx -O3 -mex tests/vecAdd_Bound_small
+%! z = vecAdd_Bound_small(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
 %!test
-%! m2c -remove-emx -omp -force -O3 -exe tests/vecAdd_Bound_small
-%! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
+%! m2c -remove-emx -omp -force -O3 -mex tests/vecAdd_Bound_small
+%! z = vecAdd_Bound_small(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
 %!test
-%! m2c -nvcc -force -O3 -exe tests/vecAdd_Bound_small
-%! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
+%! m2c -nvcc -force -O3 -mex tests/vecAdd_Bound_small
+%! z = vecAdd_Bound_small(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));
 
 %!test
-%! m2c -remove-emx -nvcc -force -O3 -exe tests/vecAdd_Bound_small
-%! z = run_vecAdd_Bound_small_exe(ones(100,1), ones(100,1), rand(100,1), int32(100));
+%! m2c -remove-emx -nvcc -force -O3 -mex tests/vecAdd_Bound_small
+%! z = vecAdd_Bound_small(ones(100,1), ones(100,1), rand(100,1), int32(100));
 %! assert(all(z==2));

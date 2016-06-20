@@ -17,26 +17,26 @@ end
 %! y= struct('is', int32(1:10000)', 'vals', ones(10000,1), 'len', int32(10000));
 %! z= struct('is', int32(1:10000)', 'vals', rand(10000,1), 'len', int32(10000));
 %! 
-%! m2c -force -O3 -exe tests/spVecAdd_Fixed
-%! z = run_spVecAdd_Fixed_exe(x, y, z);
+%! m2c -force -O3 -mex tests/spVecAdd_Fixed
+%! z = spVecAdd_Fixed(x, y, z);
 %! assert(all(z.vals==2));
 
 % %!test
-% %! m2c -remove-emx -force -O3 -exe tests/spVecAdd_Fixed
-% %! z = run_spVecAdd_Fixed_exe(x, y, z);
+% %! m2c -remove-emx -force -O3 -mex tests/spVecAdd_Fixed
+% %! z = spVecAdd_Fixed(x, y, z);
 % %! assert(all(z.vals==2));
 
 %!test
-%! m2c -omp -force -O3 -exe tests/spVecAdd_Fixed
-%! z = run_spVecAdd_Fixed_exe(x, y, z);
+%! m2c -omp -force -O3 -mex tests/spVecAdd_Fixed
+%! z = spVecAdd_Fixed(x, y, z);
 %! assert(all(z.vals==2));
 
-%!test
-%! m2c -nvcc -force -O3 -exe tests/spVecAdd_Fixed
-%! z = run_spVecAdd_Fixed_exe(x, y, z);
-%! assert(all(z.vals==2));
-% 
 % %!test
-% %! m2c -remove-emx -nvcc -force -O3 -exe tests/spVecAdd_Fixed
-% %! z = run_spVecAdd_Fixed_exe(x, y, z);
+% %! m2c -nvcc -force -O3 -mex tests/spVecAdd_Fixed
+% %! z = spVecAdd_Fixed(x, y, z);
+% %! assert(all(z.vals==2));
+
+% %!test
+% %! m2c -remove-emx -nvcc -force -O3 -mex tests/spVecAdd_Fixed
+% %! z = spVecAdd_Fixed(x, y, z);
 % %! assert(all(z.vals==2));

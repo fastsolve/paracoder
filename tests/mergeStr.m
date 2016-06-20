@@ -8,6 +8,6 @@ same = strcmp(str0, str1);
 str2 = [str0, str1];
 
 %!test
-%! m2c -force -O3 -exe tests/mergeStr
-%! [str2, same] = run_mergeStr_exe('abc', 'def');
+%! m2c -force -O3 -mex tests/mergeStr
+%! [str2, same] = mergeStr('abc', 'def');
 %! assert(isequal(str2, 'abcdef') && ~same);

@@ -12,6 +12,6 @@ end
 str2 = [str0, str1];
 
 %!test
-%! m2c -force -O3 -exe tests/mergeStr_Fixed
-%! [str2, same] = run_mergeStr_Fixed_exe('abc', 'd');
+%! m2c -force -O3 -mex tests/mergeStr_Fixed
+%! [str2, same] = mergeStr_Fixed('abc', 'd');
 %! assert(isequal(str2, 'abcd') && same=='0');

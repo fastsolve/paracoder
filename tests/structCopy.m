@@ -11,6 +11,6 @@ y.c = x(1).c;
 %! x = repmat(struct('a', int32(1:100)', 'b', ones(100,1), 'c', 'abc'), 3,1);
 %! y = struct('a', int32(1:100)', 'b', ones(100,1), 'c', 'def');
 %!
-%! m2c -force -O3 -exe tests/structCopy
-%! [y, z] = run_structCopy_exe(x, y);
+%! m2c -force -O3 -mex tests/structCopy
+%! [y, z] = structCopy(x, y);
 %! assert(isequal(z, x) && isequal(y.c, x(1).c));
