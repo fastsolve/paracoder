@@ -127,12 +127,14 @@ void copy_mxArray_to_gpuDataSize(type **data, int nDims, int **size, const mxArr
             cudaMemcpyHostToDevice);
     CHKCUERR(ierr, "cudaMemcpyAsync");
     
-    ierr = cudaMalloc((void **)size, sizeof(int) * nDims);
-    CHKCUERR(ierr, "cudaMalloc");
-    
-    ierr = cudaMemcpyAsync(*size, dims, sizeof(int) * nDims,
-            cudaMemcpyHostToDevice);
-    CHKCUERR(ierr, "cudaMemcpyAsync");
+    if (size) {
+        ierr = cudaMalloc((void **)size, sizeof(int) * nDims);
+        CHKCUERR(ierr, "cudaMalloc");
+        
+        ierr = cudaMemcpyAsync(*size, dims, sizeof(int) * nDims,
+                cudaMemcpyHostToDevice);
+        CHKCUERR(ierr, "cudaMemcpyAsync");
+    }
             
     mxFree(dims);
     return;
@@ -192,12 +194,13 @@ void wrap_mxArray_to_gpuDataSize(type **data, int **size, const mxArray *mx) {
     int nDims = mxGetNumberOfElements(mxGetFieldByNumber(mx, 0, 2));
     int *dims = (int*)mxGetData(mxGetFieldByNumber(mx, 0, 2));
 
-    cudaError_t ierr = cudaMalloc((void **)size, sizeof(int) * nDims);
-    CHKCUERR(ierr, "cudaMalloc");
-
-    ierr = cudaMemcpy(*size, dims, sizeof(int) * nDims,
-            cudaMemcpyHostToDevice); 
-    CHKCUERR(ierr, "cudaMemcpy");
+    if (size) {
+        cudaError_t ierr = cudaMalloc((void **)size, sizeof(int) * nDims);
+        CHKCUERR(ierr, "cudaMalloc");
+        ierr = cudaMemcpy(*size, dims, sizeof(int) * nDims,
+                cudaMemcpyHostToDevice);
+        CHKCUERR(ierr, "cudaMemcpy");
+    }
 
     return;
 }
