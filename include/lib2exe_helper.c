@@ -42,9 +42,9 @@ int readInputArgs(const char *filename, const int nrhs, mxArray *prhs[]) {
 /* Write output MAT file. Returns 0 if successful. */
 int writeOuputArgs(const char *filename, const int nOut, mxArray *plhs[]) {
     int  i;
-    char varname[65];
+    char varname[64];
     
-    MATFile *pmat = matOpen(filename, "w");
+    MATFile *pmat = matOpen(filename, "w7");
     
     if (!pmat) {
         fprintf(stderr, "Error in opening output file %s\n", filename);
