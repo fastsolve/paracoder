@@ -452,7 +452,8 @@ if regen_c
             co_cfg.PreserveVariableNames = 'UserNames';
         end
         co_cfg.MATLABSourceComments = m2c_opts.debugInfo;
-        co_cfg.RuntimeChecks = m2c_opts.chkMem;
+        try co_cfg.RuntimeChecks = m2c_opts.chkMem;
+        catch; end
         if ~m2c_opts.exampleMain
             co_cfg.GenerateExampleMain = 'DoNotGenerate';
         else
@@ -1165,7 +1166,7 @@ if m2c_opts.withMKL
 elseif m2c_opts.withBlas
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_BLAS=1'];
 end
-if m2c_opts.optimLevel
+if m2c_opts.optimLevel && isempty(m2c_opts.gdb) && isempty(m2c_opts.ddd)
     m2c_opts.cppflags = [m2c_opts.cppflags '-DNDEBUG'];
 end
 if m2c_opts.withOMP
