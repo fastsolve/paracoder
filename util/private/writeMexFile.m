@@ -117,10 +117,10 @@ for i = 1:length(fields)
     f = structDefs.(fields{i});
     filestr = sprintf('%s\n%s\n', filestr, ...
         [f.marshallinFunc, f.marshallinArrayFunc, ...
-        f.marshallinRWFunc, f.marshallinRWArrayFunc, ...
-        f.preallocFunc, f.preallocArrayFunc, ...        
+        f.marshallinConstFunc, f.marshallinConstArrayFunc, ...
+        strtrim(f.preallocFunc), strtrim(f.preallocArrayFunc), ...
         f.marshalloutFunc, f.marshalloutArrayFunc, ...
-        f.destroyFunc, f.destroyArrayFunc]);
+        strtrim(f.destroyFunc), strtrim(f.destroyArrayFunc)]);
 end
 
 % Print out API and Mex functions.
@@ -151,10 +151,10 @@ end
 
 iscuda = strncmp(parmode, 'cuda', 4);
 
-[marshallin_substr, structDefs, useDims, hasCuError_in] = marshallin ...
+[marshallin_substr, structDefs, useNDims, hasCuError_in] = marshallin ...
     (vars_ret, altname, iscuda, structDefs);
 
-[marshallout_substr, structDefs, hasDim, hasCuError_out] = marshallout ...
+[marshallout_substr, structDefs, maxDim, hasCuError_out] = marshallout ...
     (vars_ret, pruned_vars, iscuda, structDefs);
 
 hasCuError = hasCuError_in || hasCuError_out;
@@ -179,7 +179,7 @@ end
 
 str = sprintf('%s\n', ...
     ['static void __' altname '_api(mxArray **plhs, const mxArray ** prhs) {'], ...
-    declareVars(vars, ret, timing, iscuda, useDims, hasDim, hasCuError), ...
+    declareVars(vars, ret, timing, iscuda, useNDims, maxDim, hasCuError), ...
     [marshallin_substr, prealloc_substr], '', ...
     '    /* Invoke the target function */');
 
@@ -309,7 +309,7 @@ end
 
 end
 
-function str = declareVars(vars, ret, timing, iscuda, useDims, hasDim, hasCuError)
+function str = declareVars(vars, ret, timing, iscuda, useNDims, maxDim, hasCuError)
 % Produce variable declarations
 decl_args = '';
 decl_tmps = '';
@@ -324,7 +324,7 @@ for i=1:length(vars)
             decl_args = sprintf('%s    %-20s %s;\n', decl_args, ...
                 var.type, var.cname);
         else
-            decl_args = sprintf('%s    %-20s*%s=NULL; /* on GPU */\n', decl_args, ...
+            decl_args = sprintf('%s    %-20s*%s; /* on GPU */\n', decl_args, ...
                 var.type, var.cname);
         end
     elseif isempty(var.iindex) && isempty(var.oindex)
@@ -334,19 +334,19 @@ for i=1:length(vars)
             decl_args = sprintf('%s    %-20s %s[%d];\n', decl_args, ...
                 var.type, var.cname, prod(var.size));
         else
-            decl_args = sprintf('%s    %-20s*%s=NULL; /* on GPU */\n', decl_args, ...
+            decl_args = sprintf('%s    %-20s*%s; /* on GPU */\n', decl_args, ...
                 var.type, var.cname);
         end
     elseif ~iscuda || isempty(var.modifier)
         if ~isempty(var.modifier)
-            decl_args = sprintf('%s    %-20s*%s=NULL;\n', decl_args, ...
+            decl_args = sprintf('%s    %-20s*%s;\n', decl_args, ...
                 var.type, var.cname);
         else
             decl_args = sprintf('%s    %-20s %s;\n', decl_args, ...
                 var.type, var.cname);
         end
     else
-        decl_args = sprintf('%s    %-20s*%s=NULL; /* on GPU */\n', decl_args, ...
+        decl_args = sprintf('%s    %-20s*%s; /* on GPU */\n', decl_args, ...
             var.type, var.cname);
     end
 end
@@ -361,12 +361,13 @@ if ~isempty(timing);
     decl_tmps = sprintf('%s    %-20s _timestamp;\n', decl_tmps, 'double');
 end
 
-if useDims
+if useNDims
     decl_tmps = sprintf('%s    %-20s _nDims;\n', decl_tmps, 'int');
 end
 
-if hasDim
-    decl_tmps = sprintf('%s    %-20s _dim;\n', decl_tmps, 'int');
+if maxDim
+    decl_tmps = sprintf('%s\n', decl_tmps, ...
+        sprintf('    %-20s %s;', 'int', ['_dims[' num2str(maxDim) ']']));
 end
 
 if iscuda

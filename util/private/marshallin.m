@@ -1,4 +1,4 @@
-function [str, structDefs, useDims, hasCuError, hasAlias] = marshallin(vars, ...
+function [str, structDefs, useNDims, hasCuError, hasAlias] = marshallin(vars, ...
     funcname, iscuda, structDefs, cprefix, mx_index, rw_mode, writeonly)
 % Marshall function input arguments and preallocate output arguments.
 
@@ -10,7 +10,7 @@ if nargin<6
 end
 
 str = '';
-useDims = false;
+useNDims = false;
 hasCuError = false;
 hasAlias = false;
 
@@ -97,7 +97,7 @@ for i=1:length(vars)
         if ~iscuda && length(var.size)>2
             str = sprintf('%s\n', str, ...
                 ['    _nDims = mxGetNumberOfDimensions(' rhs ');']);
-            useDims = true;
+            useNDims = true;
         elseif iscuda
             str_gpu = sprintf('%s\n', str_gpu, ...
                 ['        int _nDims = mxGetNumberOfElements(mxGetFieldByNumber(' rhs ', 0, 2));'], ...
@@ -198,7 +198,7 @@ for i=1:length(vars)
         end
     end
     
-    if ~isempty(var.subfields) && (~writeonly_var || ~strncmp(var.type, 'emxArray_', 9))
+    if ~isempty(var.subfields) && ~writeonly_var
         hasArray = ~strncmp(var.type, 'emxArray_', 9) && (prod(var.size)>1 || any(var.vardim));
         [marshallinFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
             hasArray, iscuda, rwmode_var, writeonly_var);
@@ -206,7 +206,7 @@ for i=1:length(vars)
         
     if var.isemx || prod(var.size)>1 || any(var.vardim) || ...
             ~isempty(var.modifier) && ~isempty(var.oindex) && ...
-            (isempty(var.subfields) || ~isequal(var.size, 1) || any(var.vardim))
+            (isempty(var.subfields) || ~isequal(var.size, 1))
         if isequal(var.type, ['emxArray_', var.basetype]) || ...
                 isequal(var.type, ['emxArray_', var.structname])
             % Case 1: A full emxArray
@@ -331,8 +331,13 @@ for i=1:length(vars)
                             else
                                 % Copy in size information
                                 for k=1:length(var.size)
-                                    str = sprintf('%s\n', str(1:end-1), ...
-                                        ['    ' sizefield '[' num2str(k-1) '] = ' num2str(var.size(k)) ';']);
+                                    if var.vardim(k)
+                                        str = sprintf('%s\n', str(1:end-1), ...
+                                            ['    ' sizefield '[' num2str(k-1) '] = 0;']);
+                                    else
+                                        str = sprintf('%s\n', str(1:end-1), ...
+                                            ['    ' sizefield '[' num2str(k-1) '] = ' num2str(var.size(k)) ';']);
+                                    end
                                 end
                             end
                         end
@@ -349,11 +354,15 @@ for i=1:length(vars)
                                 num2str(length(var.size)) ', ' sizefield ', ' rhs ', "' ...
                                 var.mname '", ' maxlen ');']);
                         end
-                    elseif ~isempty(var.subfields)
-                        % Preallocate structures
-                        assert(all(isfinite(var.size)));
-                        str = sprintf('%s%s\n', str, ...
-                            ['    ' marshallinFunc '(' cvarname_ptr ', ', maxlen ');']);
+                    elseif ~isempty(var.subfields) && ~any(var.vardim)
+                        [preallocFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
+                            true, false, rwmode_var, writeonly_var);
+
+                        if ~isempty(preallocFunc)
+                            % Preallocate structures
+                            str = sprintf('%s%s\n', str, ...
+                                ['    ' preallocFunc '(' cvarname_ptr ', ', maxlen ');']);
+                        end
                     end
                 else
                     % Alias an input-only array
@@ -405,9 +414,14 @@ for i=1:length(vars)
                         ['    ' marshallinFunc '(' cvarname_ptr ...
                         ', ' rhs ', "' var.mname '");']);
                 elseif ~isempty(var.subfields)
-                    % Preallocate structure
-                    str = sprintf('%s%s\n', str, ...
-                        ['    ' marshallinFunc '(' cvarname_ptr ');']);
+                    [preallocFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
+                        false, iscuda, rwmode_var, writeonly_var);
+                    
+                    if ~isempty(preallocFunc)
+                        % Preallocate a structure
+                        str = sprintf('%s%s\n', str, ...
+                            ['    ' preallocFunc '(' cvarname_ptr ');']);
+                    end
                 end
             else
                 % For CUDA with modifier, we need to preallocate the object on CUDA
@@ -418,9 +432,14 @@ for i=1:length(vars)
                     str_mx = sprintf('%s\n', str_mx(1:end-1), ...
                         ['    ' marshallinFunc '(' cvarname_ptr ', ' rhs ', "' var.mname '");']);
                 elseif ~isempty(var.subfields)
-                    % Preallocate structure
-                    str_mx = sprintf('%s%s\n', str_mx, ...
-                        ['    ' marshallinFunc '(' cvarname_ptr ', "' var.mname  '");']);
+                    [preallocFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
+                        false, iscuda, rwmode_var, writeonly_var);
+                    
+                    if ~isempty(preallocFunc)
+                        % Preallocate a structure
+                        str_mx = sprintf('%s%s\n', str_mx, ...
+                            ['    ' preallocFunc '(' cvarname_ptr ');']);
+                    end
                 end
                 hasCuError = true;
             end
@@ -461,17 +480,17 @@ function [funcname, structDefs] = gen_marshallinFunc(structDefs, type, ...
 
 if ~writeonly
     if ~iscuda && hasArray && rw_mode
-        funcField = 'marshallinRWArrayFunc';
-        funcname = ['marshallinRW_'  type '_Array'];
-    elseif ~iscuda && ~hasArray && rw_mode
-        funcField = 'marshallinRWFunc';
-        funcname = ['marshallinRW_'  type];
-    elseif hasArray && ~rw_mode
         funcField = 'marshallinArrayFunc';
         funcname = ['marshallin_'  type '_Array'];
-    else
+    elseif ~iscuda && ~hasArray && rw_mode
         funcField = 'marshallinFunc';
         funcname = ['marshallin_'  type];
+    elseif hasArray && ~rw_mode
+        funcField = 'marshallinConstArrayFunc';
+        funcname = ['marshallin_const_'  type '_Array'];
+    else
+        funcField = 'marshallinConstFunc';
+        funcname = ['marshallin_const_'  type];
     end
 else
     if hasArray
@@ -483,14 +502,20 @@ else
     end    
 end
 
-if isempty(structDefs.(type).(funcField))
-    structDefs.(type).(funcField) = ...
-        '/* Set it to nonempty to prevent the same function being created again */';
-else
-    if isnumeric(structDefs.(type).(funcField))
-        funcname = regexprep(funcname, '^marshallinRW_', 'marshallin_');
+if isnumeric(structDefs.(type).(funcField))
+    % A read-write function may be the same as readonly
+    funcname = regexprep(funcname, '^marshallin_const_', 'marshallin_');
+    return;
+elseif ~isempty(structDefs.(type).(funcField))
+    if isempty(strtrim(structDefs.(type).(funcField)))
+        % A preallocation routine may be empty
+        assert(strncmp(funcname, 'prealloc_', 9));
+        funcname = '';
     end
     return;
+else
+    structDefs.(type).(funcField) = ...
+        '/* Set it to nonempty to prevent the same function being created again */';
 end
 
 % Check struct type and fields
@@ -598,7 +623,7 @@ if iscuda
 end
 
 % Obtain the main loop body for each object
-[loopBody, structDefs, useDims, hasCuError_struct, hasAlias] = marshallin ...
+[loopBody, structDefs, useNDims, hasCuError_struct, hasAlias] = marshallin ...
     (structDefs.(type).fields, funcname, iscuda, structDefs, cprefix, mx_index, rw_mode, writeonly);
 
 % Add loop if there are arrays
@@ -634,7 +659,7 @@ elseif iscuda
     hasCuError_local = true;
 end
 
-if useDims
+if useNDims
     decl_vars = sprintf('%s\n    %-20s _nDims;', decl_vars, 'int32_T');
 end
 if hasCuError_local || hasCuError_struct
@@ -649,9 +674,10 @@ else
     dealloc = '';
 end
 
-if ~rw_mode && ~hasAlias
-    funcField_RW = strrep(funcField, 'marshallin', 'marshallinRW');
-    structDefs.(type).(funcField_RW) = [];
+if ~rw_mode && ~hasAlias && ~writeonly
+    structDefs.(type).(funcField) = [];
+    funcField = regexprep(funcField, '^marshallinConst', 'marshallin');
+    funcname = regexprep(funcname, '^marshallin_const_', 'marshallin_');
 end
 
 if ~isempty(strtrim(funcBody))
@@ -659,12 +685,13 @@ if ~isempty(strtrim(funcBody))
         ['static ' return_type funcname '(' args ') {'], ...
         decl_vars, '', str_chk, [funcBody, dealloc, return_str], ...
         '}');
-else
-    func = sprintf('%s\n', '', ...
-        ['static ' return_type funcname '(' args ') {'], ...
-        '}');
-end
 
-structDefs.(type).(funcField) = regexprep(func, '\n\n', '\n');
+    structDefs.(type).(funcField) = regexprep(func, '\n\n', '\n');
+else
+    assert(strncmp(funcname, 'prealloc_', 9));
+    % No preallocation needed for the given structure
+    funcname = '';
+    structDefs.(type).(funcField) = ' ';
+end
 
 end
