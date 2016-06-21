@@ -61,12 +61,12 @@ for i=1:length(fields)
     end
 end
 
-str = ['%#m2c options:' str];
+str = ['%#m2c options:' getMD5(str)];
 
 end
 
 
-function [str, contained_opaque] = extractSignature(fame)
+function [str, isold] = extractSignature(fame)
 
 file = readFile(fame);
 
@@ -78,6 +78,18 @@ else
     str = '';
 end
 
-contained_opaque = ~isempty(strfind(file, 'opaque_obj.m'')'));
+isold = ~isempty(strfind(file, 'opaque_obj'')'));
+
+end
+
+function md5hash = getMD5(str)
+% Compute MD5 checksum
+
+if exist('octave_config_info', 'builtin')
+    md5hash = md5sum(str, true);
+else
+    md = java.security.MessageDigest.getInstance('MD5');
+    md5hash = sprintf('%.2x', typecast(md.digest(uint8(str)), 'uint8'));
+end
 
 end
