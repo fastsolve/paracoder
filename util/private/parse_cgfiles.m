@@ -415,9 +415,9 @@ if isempty(toks)
         mname = cname(3:end);
     else
         mname = '';
-        vardim = [];
+        vardim = 0;
         basetype = '';
-        sz = [];
+        sz = 1;
         return;
     end
 else
