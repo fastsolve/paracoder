@@ -16,13 +16,6 @@ if m2c_opts.withNvcc
             'Function %s does not appear to be a valid CUDA kernel function.', ...
             m2c_opts.funcName{1});
     end
-elseif m2c_opts.withOMP && (~isempty(strfind(cfile_str, 'omp_get_thread_num')) || ...
-        ~isempty(regexp(cfile_str, '#pragma\s+omp', 'once')))
-    if ~isempty(regexp(cfile_str, '#pragma\s+omp\s+parallel', 'once'))
-        parmode = 'omp';
-    else
-        parmode = 'omp-kernel';
-    end
 end
 
 cfile_str = regexprep(cfile_str, '\n#ref\([^\)]+\);', '');
@@ -225,6 +218,15 @@ else
     cfile_str = regexprep(cfile_str, '\n#{[\w\s]*\(\s*\)[^\n]*\n', '');
     cfile_str = regexprep(cfile_str, '\n#}[\w\s]*\(\s*\)[^\n]*\n', '');
     cfile_str = regexprep(cfile_str, '\n\s*#pragma momp [^\n]+\n', '');
+end
+
+if m2c_opts.withOMP && (~isempty(strfind(cfile_str, 'omp_get_thread_num')) || ...
+        ~isempty(regexp(cfile_str, '#pragma\s+omp', 'once')))
+    if ~isempty(regexp(cfile_str, '#pragma\s+omp\s+parallel', 'once'))
+        parmode = 'omp';
+    else
+        parmode = 'omp-kernel';
+    end
 end
 
 end
