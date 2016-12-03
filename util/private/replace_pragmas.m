@@ -60,7 +60,7 @@ while ~isempty(regexp(cfile_str, pat, 'once'))
 end
 
 while true
-    bbegin = '\n#{[\w\s]*\(\s*\)[^\n]*';
+    bbegin = '\n#\{[\w\s]*\(\s*\)[^\n]*';
     pragcont = '\n#\+\+[^\n]*';
     changed = false;
     
@@ -106,7 +106,7 @@ end
 
 % Switch statements "#pragma momp for" and #{
 pragfor = '\n#pragma momp\s+(parallel\s+)?for[^\n]*';
-bbegin = '\n#{[\w\s]*\(\s*\)[^\n]*';
+bbegin = '\n#\{[\w\s]*\(\s*\)[^\n]*';
 pat = ['(' pragfor ')\s*(' bbegin ')'];
 while ~isempty(regexp(cfile_str, pat, 'once'))
     cfile_str = regexprep(cfile_str, pat, '$2$1 ');
@@ -127,11 +127,11 @@ part2 = ['(' var ')'];
 part3 = '(<=?)';
 part4 = '\s*([^;\s]+)\s*';
 cfile_str = regexprep(cfile_str, [part1 '\+' part2 part3 part4 ';'], '$1$3($4)-($2);');
-cfile_str = regexprep(cfile_str, {'(\n)#{for\(\s*\);','(\n)#}for\(\s*\);'}, {'',''});
-cfile_str = regexprep(cfile_str, {'(\n)#{parfor\(\s*\);','(\n)#}parfor\(\s*\);'}, {'',''});
+cfile_str = regexprep(cfile_str, {'(\n)#\{for\(\s*\);','(\n)#\}for\(\s*\);'}, {'',''});
+cfile_str = regexprep(cfile_str, {'(\n)#\{parfor\(\s*\);','(\n)#\}parfor\(\s*\);'}, {'',''});
 
 % Move emxFree and *emxInit_*_T after "#}(parallel)"
-pat = '(\n+[ \t]+(emxFree_|[a-z]?_?emxInit_)\w+\([&\w\s,]+\);)\s*(\n#}parallel\(\s*\);)';
+pat = '(\n+[ \t]+(emxFree_|[a-z]?_?emxInit_)\w+\([&\w\s,]+\);)\s*(\n#\}parallel\(\s*\);)';
 while ~isempty(regexp(cfile_str, pat, 'once'))
     cfile_str = regexprep(cfile_str, pat, '$2$1');
 end
@@ -142,12 +142,11 @@ if m2c_opts.withCuda && isequal(parmode, 'cuda-kernel')
 end
 
 %% Process begin_region and end_region
-cfile_str = regexprep(cfile_str, '#{[^\n]+\n#}[^\n]+', '  {}');
+cfile_str = regexprep(cfile_str, '\n+#\{(parallel|section|sections|master|single|critical)\(\)\n+#\}\1\(\)', '\n  {}');
 
 if m2c_opts.enableInline
-    parregion = ['(\n+)#{(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*' ...
-        '(\n|\n#[^\n]+)+([ \t]+)' re_parregion ...
-        '#}(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*'];
+    parregion = ['(\n+)#\{(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*' ...
+        '(\n|\n#[^\n]+)+([ \t]+)' re_parregion '#\}(\2)\(\s*\)[^\n]*'];
     newline = sprintf('\n');
     while ~isempty(regexp(cfile_str, parregion, 'once'))
         [matchedstr,toks] = regexp(cfile_str, parregion, 'match', 'tokens');
@@ -162,10 +161,6 @@ if m2c_opts.enableInline
                     'If you allocated a local buffer, make sure you call m2c_rref(buf) before OMP_begin_%s.\n'], ...
                     toks{i}{2}, [toks{i}{4},toks{i}{5}], toks{i}{2});
             end
-            if ~isequal(toks{i}{2}, toks{i}{6})
-                fprintf(2, 'A %s region is marked with end_%s. Potential coding error:\n %s', ...
-                    toks{i}{2}, toks{i}{6}, [toks{i}{4},toks{i}{5}]);
-            end
 
             cfile_str = strrep(cfile_str, matchedstr{i}, ...
                 [newline toks{i}{4} '{' ...
@@ -177,8 +172,8 @@ if m2c_opts.enableInline
     end
 
     %% Process CUDA regions
-    cudaregion = ['(\n+)#{(cuda)\(\w+\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
-        re_parregion '#}(cuda)\(\s*\)[^\n]*'];
+    cudaregion = ['(\n+)#\{(cuda)\(\w+\)[^\n]*(\n|\n#[^\n]+)+([ \t]+)' ...
+        re_parregion '#\}(cuda)\(\s*\)[^\n]*'];
     while ~isempty(regexp(cfile_str, cudaregion, 'once'))
         [matchedstr,toks] = regexp(cfile_str, cudaregion, 'match', 'tokens');
         for i=1:length(toks)
@@ -202,21 +197,21 @@ if m2c_opts.enableInline
         '$1$2 omp $3');
 
     % Check mismatched regions
-    marks = '(\n)#({|})(\w+)\(\s*\)[^\n]*\n';
+    marks = '(\n)#(\{|\})(\w+)\(\s*\)[^\n]*\n';
     if ~isempty(regexp(cfile_str, marks, 'once'))
         warning('m2c:MismatchRegions', ...
             'Found mis-matched begin and end labels. Look for "#error Mismatched" in C code.\n');
         
-        cfile_str = regexprep(cfile_str, '(\n)#{(\w+)\(\s*\)[^\n]*\n', ...
+        cfile_str = regexprep(cfile_str, '(\n)#\{(\w+)\(\s*\)[^\n]*\n', ...
             '\n#error Mismatched begin region for $2\n');
-        cfile_str = regexprep(cfile_str, '(\n)#}(\w+)\(\s*\)[^\n]*\n', ...
+        cfile_str = regexprep(cfile_str, '(\n)#\}(\w+)\(\s*\)[^\n]*\n', ...
             '\n#error Mismatched end region for $2\n');
     end
 else
     % Remove all m2c pragmas
     cfile_str = regexprep(cfile_str, '\n#\+\+[^\n]*\n', '');
-    cfile_str = regexprep(cfile_str, '\n#{[\w\s]*\(\s*\)[^\n]*\n', '');
-    cfile_str = regexprep(cfile_str, '\n#}[\w\s]*\(\s*\)[^\n]*\n', '');
+    cfile_str = regexprep(cfile_str, '\n#\{[\w\s]*\(\s*\)[^\n]*\n', '');
+    cfile_str = regexprep(cfile_str, '\n#\}[\w\s]*\(\s*\)[^\n]*\n', '');
     cfile_str = regexprep(cfile_str, '\n\s*#pragma momp [^\n]+\n', '');
 end
 
@@ -376,5 +371,11 @@ else
         ['  ' func '<<<_nblocks, _threadsPB>>>(' vars ');'], ...
         '}');
 end
+end
+
+function expr = re_parregion
+% The code fragment between begin_parallel/section/sections and 
+% end_parallel/section/sections
+expr = '((\n|#pragma [^{}][^\n]+\n|\s*[^#][^\n]+\n)+?)';
 end
 
