@@ -90,13 +90,19 @@ function mmex(varargin)
 bindir = octave_config_info ('bindir');
 ext = octave_config_info('EXEEXT');
 
-shell_script = fullfile (bindir, ...
+shell_script_ver = fullfile(bindir, ...
     sprintf ('mkoctfile-%s%s', OCTAVE_VERSION, ext));
 
-if (~ exist (shell_script, 'file'))
-    error('m2c:mkoctfile', ['Could not locate %s. If you used a package manager ' ...
-        'to install octave, make sure octave-devel is also installed.'], ...
-        shell_script);
+if exist(shell_script_ver, 'file')
+    shell_script = shell_script_ver;
+else
+    shell_script = fullfile (bindir, sprintf ('mkoctfile%s', ext));
+
+    if ~exist(shell_script, 'file')
+        error('m2c:mkoctfile', ['Could not locate %s or %s. If you used a package manager ' ...
+            'to install octave, make sure octave-devel or liboctave-devl is also installed.'], ...
+            shell_script, shell_script_ver);
+    end
 end
 
 defs = struct('CC', '', 'CXX', '', 'CFLAGS', '', 'COPTIMFLAGS', '', ...
