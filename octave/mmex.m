@@ -87,7 +87,7 @@ function mmex(varargin)
 %           http://www.mathworks.com/help/matlab/ref/mex.html
 
 %% Look for mkoctfile
-bindir = octave_config_info ('bindir');
+bindir = octave_config_info('bindir');
 ext = octave_config_info('EXEEXT');
 
 shell_script_ver = fullfile(bindir, ...

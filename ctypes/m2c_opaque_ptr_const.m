@@ -10,7 +10,7 @@ coder.inline('always');
 
 if isempty(coder.target)
     dir = fileparts(which('m2c_opaque_ptr_const.m'));
-    if exist('octave_config_info', 'builtin')
+    if exist('OCTAVE_VERSION', 'builtin')
         mex([dir '/m2c_opaque_ptr_const.c'], '-o', ...
             [dir '/m2c_opaque_ptr_const.' mexext]);
     else

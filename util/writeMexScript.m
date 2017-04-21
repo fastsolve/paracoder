@@ -3,7 +3,7 @@ function writeMexScript(funcname, mpath, cpath, m2c_opts)
 
 % Nested function for writing out mex script
 
-if exist('octave_config_info', 'builtin')
+if exist('OCTAVE_VERSION', 'builtin')
     prefix = 'oct_';
 else
     prefix = 'mex_';
@@ -53,8 +53,11 @@ if m2c_opts.withOMP
 end
 
 if ~m2c_opts.verbose
-    CFLAGS = [CFLAGS ' -Wno-unused-function -Wno-null-character -Wno-invalid-pp-token'];
-end
+    CFLAGS = [CFLAGS ' -Wno-unused-function'];
+    if ismac
+       CFLAGS = [CFLAGS ' -Wno-null-character -Wno-invalid-pp-token'];
+    end
+ end
 
 if ismac
     LDFLAGS = [LDFLAGS ' -dynamiclib'];
@@ -223,7 +226,7 @@ if m2c_opts.withNvcc
     end
 end
 
-if exist('octave_config_info', 'builtin')
+if exist('OCTAVE_VERSION', 'builtin')
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = ''mmex ' mexflags ' ' ...
         srcs ' -output ' mexFile LINKLIBS ''';']);

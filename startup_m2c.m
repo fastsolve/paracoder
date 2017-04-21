@@ -15,7 +15,7 @@ addpath([m2croot '/parallel']);
 if ~exist('coder.p', 'file')
     addpath([m2croot '/No_coder']);
     
-    if exist('octave_config_info', 'builtin')
+    if exist('OCTAVE_VERSION', 'builtin')
         % If using Octave, add the Octave path
         addpath([m2croot '/octave']);
         more('off');

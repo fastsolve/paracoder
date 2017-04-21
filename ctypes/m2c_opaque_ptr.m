@@ -31,7 +31,7 @@ function ptr = m2c_opaque_ptr(var, type, offset, varargin) %#codegen
 
 if isempty(coder.target)
     dir = fileparts(which('m2c_opaque_ptr.m'));
-    if exist('octave_config_info', 'builtin')
+    if exist('OCTAVE_VERSION', 'builtin')
         mex([dir '/m2c_opaque_ptr.c'], '-o', ...
             [dir '/m2c_opaque_ptr.' mexext]);
     else

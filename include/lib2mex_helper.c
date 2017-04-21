@@ -603,7 +603,7 @@ static mxArray *move_ioArray_to_mxArray(void *s, mxClassID type,
     
     /* Always use copy for robustness */
 #ifdef HAVE_OCTAVE
-    a = copy_DataSize_to_mxArray(emx->data, type, dim, dims);
+    a = copy_DataSize_to_mxArray(s, type, dim, dims);
     mxFree(s);
     return a;
 #endif

@@ -21,7 +21,7 @@ else
 end
 if isempty(a2); error('File %s does not exist.', mfile); end
 
-if exist('octave_config_info', 'builtin')
+if exist('OCTAVE_VERSION', 'builtin')
     % In octave, cannot check dependence
     OK=a1.datenum>=a2.datenum;
     return;

@@ -536,7 +536,7 @@ if regen_c
 end
 
 %% Generate MATLAB scripts for mex
-if exist('octave_config_info', 'builtin')
+if exist('OCTAVE_VERSION', 'builtin')
     mexbuild = [cpath  'oct_' func '.m'];
 else
     mexbuild = [cpath  'mex_' func '.m'];
@@ -569,7 +569,7 @@ if m2c_opts.genExe
         writeExeScripts(func, mpath, cpath, m2c_opts);
     end
     
-    if ~exist('octave_config_info', 'builtin')
+    if ~exist('OCTAVE_VERSION', 'builtin')
         build_exe(cpath, func);
         if m2c_opts.verbose
             fprintf(['To run the EXE file in MATLAB, ', ...
@@ -1099,7 +1099,7 @@ for i=1:length(names)
     end
 end
 
-if exist('octave_config_info', 'builtin')
+if exist('OCTAVE_VERSION', 'builtin')
     % When running in octave, always skip codegen
     m2c_opts.skipcg = true;
 end

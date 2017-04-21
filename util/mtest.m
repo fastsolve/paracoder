@@ -416,8 +416,8 @@ for i__ = 1:length(blockidx__)-1
         %% TESTIF
     elseif (strcmp (type__, 'testif'))
         [e__, feat__] = regexp (code__, '^\s*([^\s]+)', 'end', 'tokens');
-        if (exist('octave_config_info','builtin') && ...
-                isempty (findstr (octave_config_info ('DEFS'), feat__{1}{1})))
+        if (exist('OCTAVE_VERSION','builtin') && ...
+                isempty (findstr (octave_config_info('DEFS'), feat__{1}{1})))
             xskip__ = xskip__ + 1;
             success__ = 0;
             istest__ = 0;

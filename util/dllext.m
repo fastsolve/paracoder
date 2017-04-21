@@ -1,7 +1,7 @@
 function ext = dllext
 % Obtain the extension of the DLL
 
-if exist('octave_config_info','builtin')
+if exist('OCTAVE_VERSION','builtin')
     ext = octave_config_info('SHLEXT');
 elseif ispc
     ext = 'dll';
