@@ -8,16 +8,18 @@ warning('off', 'MATLAB:mex:GccVersion')
 
 addpath(m2croot); %#ok<*MCAP>
 addpath([m2croot '/util']);
-addpath([m2croot '/ctypes']);
-addpath([m2croot '/mtypes']);
-addpath([m2croot '/parallel']);
+addpath([m2croot '/api']);
+addpath([m2croot '/api/ctypes']);
+addpath([m2croot '/api/mtypes']);
+addpath([m2croot '/api/parallel']);
 
 if ~exist('coder.p', 'file')
-    addpath([m2croot '/No_coder']);
+    addpath([m2croot '/api/No_coder']);
     
     if exist('OCTAVE_VERSION', 'builtin')
         % If using Octave, add the Octave path
-        addpath([m2croot '/octave']);
+        addpath([m2croot '/util/octave']);
+        addpath([m2croot '/util/octave']);
         more('off');
     end
 end
