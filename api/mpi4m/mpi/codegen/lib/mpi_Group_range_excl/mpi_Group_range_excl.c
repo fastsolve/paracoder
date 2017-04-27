@@ -1,6 +1,6 @@
 #include "mpi_Group_range_excl.h"
 #include "m2c.h"
-#include "mmpi.h"
+#include "mpi4m.h"
 #include "mpi.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);

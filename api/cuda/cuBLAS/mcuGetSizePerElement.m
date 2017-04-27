@@ -1,4 +1,4 @@
-function sizepe = mcuGetSizePerElement(type)
+function sizepe = cuGetSizePerElement(type)
 % Obtains the number of bypets for each data type.
 
 coder.inline('always');
@@ -14,6 +14,6 @@ elseif type == MCU_INT8 || type == MCU_UINT8
 elseif type == MCU_DOUBLE_COMPLEX
     sizepe = int32(16);
 else
-    m2c_error('mcuGetSizePerElement:WrongType', 'Unknow data type %d.\n', type);
+    m2c_error('cuGetSizePerElement:WrongType', 'Unknow data type %d.\n', type);
     sizepe = int32(0);
 end

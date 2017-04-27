@@ -15,7 +15,7 @@ toplevel = nargout>2;
 
 if nargin<3; type = MCU_DOUBLE; end
 
-sizepe = mcuGetSizePerElement(type);
+sizepe = cuGetSizePerElement(type);
 t_mat = coder.opaque('void *');
 errCode = int32(0);  %#ok<NASGU>
 errCode = coder.ceval('cudaMalloc', coder.wref(t_mat), m*n*sizepe);

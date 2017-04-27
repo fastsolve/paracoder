@@ -9,22 +9,9 @@ function ptr = m2c_opaque_ptr_const(var, type, offset) %#codegen
 coder.inline('always');
 
 if isempty(coder.target)
-    dir = fileparts(which('m2c_opaque_ptr_const.m'));
-    if exist('OCTAVE_VERSION', 'builtin')
-        mex([dir '/m2c_opaque_ptr_const.c'], '-o', ...
-            [dir '/m2c_opaque_ptr_const.' mexext]);
-    else
-        mex([dir '/m2c_opaque_ptr_const.c'], '-outdir', dir);
-    end
-    
-    if nargin==0
-        ptr = m2c_opaque_ptr_type;
-        return;
-    else
-        error('m2c_opaque_ptr_const:shadow', ['The M function should have been ' ...
-            'shadowed by the mex file, which was missing. I have rebuilt the mex file.' ...
-            'Please try to rerun your last function again.']);
-    end
+    error('m2c_opaque_ptr_const:shadow', ['The M function should have been ' ...
+        'shadowed by the mex file, which was missing.' ...
+        'Please rebuild th.']);
 end
 
 if nargin<2; type = 'const char *'; end

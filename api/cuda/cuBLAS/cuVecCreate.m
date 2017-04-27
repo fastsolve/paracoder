@@ -15,7 +15,7 @@ toplevel = nargout>2;
 
 if nargin<2; type = MCU_DOUBLE; end
 
-sizepe = mcuGetSizePerElement(type);
+sizepe = cuGetSizePerElement(type);
 
 t_vec = coder.opaque('void *');
 errCode = int32(0);  %#ok<NASGU>

@@ -30,22 +30,9 @@ function ptr = m2c_opaque_ptr(var, type, offset, varargin) %#codegen
 % See also m2c_opaque_obj, m2c_opaque_array, m2c_opaque_ptr_const
 
 if isempty(coder.target)
-    dir = fileparts(which('m2c_opaque_ptr.m'));
-    if exist('OCTAVE_VERSION', 'builtin')
-        mex([dir '/m2c_opaque_ptr.c'], '-o', ...
-            [dir '/m2c_opaque_ptr.' mexext]);
-    else
-        mex([dir '/m2c_opaque_ptr.c'], '-outdir', dir);
-    end
-    
-    if nargin==0
-        ptr = m2c_opaque_ptr_type;
-        return;
-    else
-        error('m2c_opaque_ptr:shadow', ['The M function should have been ' ...
-            'shadowed by the mex file, which was missing. I have rebuilt the mex file.' ...
-            'Please try to rerun your last function again.']);
-    end
+    error('m2c_opaque_ptr:shadow', ['The M function should have been ' ...
+        'shadowed by the mex file, which was missing. I have rebuilt the mex file.' ...
+        'Please try to rerun your last function again.']);
 end
 
 if nargin<2; type = 'char *'; end

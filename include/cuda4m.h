@@ -1,5 +1,5 @@
 /*
- * Some kernel macros for CUDA and CUBLAS
+ * Some kernel macros for CUDA and cuBLAS
  */
 
 #ifndef _CU_KERNEL_
@@ -11,16 +11,16 @@
 #define M2C_CUDA    0
 #endif
 
-/* MCUDA Type constants */
-enum MCU_Types { MCU_SINGLE=4, MCU_DOUBLE=8, 
-                 MCU_INT8=11, MCU_INT16=12, MCU_INT32=13, MCU_INT64=14, 
-                 MCU_UINT8=21, MCU_UINT16=22, MCU_UINT32=23,MCU_UINT64=24, 
-                 MCU_CHAR=31, MCU_BOOL=41, MCU_COMPLEX=108, MCU_DOUBLE_COMPLEX=116};
+/* cuBLAS Type constants */
+enum CUB_Types { CUB_SINGLE=4, CUB_DOUBLE=8, 
+                 CUB_INT8=11, CUB_INT16=12, CUB_INT32=13, CUB_INT64=14, 
+                 CUB_UINT8=21, CUB_UINT16=22, CUB_UINT32=23,CUB_UINT64=24, 
+                 CUB_CHAR=31, CUB_BOOL=41, CUB_COMPLEX=108, CUB_DOUBLE_COMPLEX=116};
 
 #if __NVCC__
-#define MCU_SET_THREADS(nBlks, threadsPB)    <<<nBlks, threadsPB>>>
+#define CU_SET_THREADS(nBlks, threadsPB)    <<<nBlks, threadsPB>>>
 #else
-#define MCU_SET_THREADS(nBlks, threadsPB)
+#define CU_SET_THREADS(nBlks, threadsPB)
 #endif /* M2C_CUDA && __NVCC__ */
 
 #if M2C_CUDA

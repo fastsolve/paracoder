@@ -1,7 +1,7 @@
-function [nthreads,threadsPB] = mcuGetMaxThreads
+function [nthreads,threadsPB] = cuGetMaxThreads
 %Returns a recommended values for the maximum number concurrent threads and
 % threads per block.
-%   [nthreads,threadsPB] = mcuGetMaxThreads
+%   [nthreads,threadsPB] = cuGetMaxThreads
 %
 %This function can only be called on the host.
 

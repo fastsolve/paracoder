@@ -188,7 +188,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
 
 static void d_m2c_error(int varargin_3)
 {
-  M2C_error("mcuGetSizePerElement:WrongType", "Unknow data type %d.\n",
+  M2C_error("cuGetSizePerElement:WrongType", "Unknow data type %d.\n",
             varargin_3);
 }
 

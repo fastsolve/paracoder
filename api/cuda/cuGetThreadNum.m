@@ -1,6 +1,6 @@
-function n = mcuGetThreadNum
+function n = cuGetThreadNum
 %Returns the thread number of the current CUDA thread.
-% This number will be between 0 and mcuGetNumThreads-1.
+% This number will be between 0 and cuGetNumThreads-1.
 %
 % Note: This function can only be called from a CUDA kernel function.
 

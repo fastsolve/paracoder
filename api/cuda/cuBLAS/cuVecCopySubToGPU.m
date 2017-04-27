@@ -36,7 +36,7 @@ elseif n>m2c_intdiv(cuVec.dims(1),incCuVec) && (toplevel || m2c_debug)
     m2c_error('cuVecCopyToGPU:SizeMismatch', 'Target array is too small.');
 end
 
-sizepe = mcuGetSizePerElement(cuVec.type);
+sizepe = cuGetSizePerElement(cuVec.type);
 
 errCode = int32(0); %#ok<NASGU>
 if isempty(varargin)

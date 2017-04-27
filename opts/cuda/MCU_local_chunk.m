@@ -15,13 +15,13 @@ function [istart, iend, threadID] = MCU_local_chunk(m, nthreads)
 coder.inline('always');
 
 if nargin<2
-    nthreads = mcuGetNumThreads;
+    nthreads = cuGetNumThreads;
 end
 
 if nthreads==1
     istart = int32(1); iend = int32(m); threadID = int32(0);
 else
-    threadID =  mcuGetThreadNum;
+    threadID =  cuGetThreadNum;
     
     if nargin>1 && threadID>=nthreads
         % The excess threads would not be assigned any task

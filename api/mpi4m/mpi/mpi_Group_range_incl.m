@@ -19,7 +19,7 @@ function [newgroup, info, toplevel] = mpi_Group_range_incl(group, n, ranges)
 
 %#codegen -args {MPI_Group, int32(0), coder.typeof(int32(0), [inf,1])}
 
-coder.cinclude('mmpi.h');
+coder.cinclude('mpi4m.h');
     
 info = int32(0); %#ok<NASGU>
 newgroup0 = coder.opaque('MPI_Group');

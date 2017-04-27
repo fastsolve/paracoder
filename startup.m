@@ -1,3 +1,3 @@
 % Startup script for M2C.
 
-startup_m2c;
+load_m2c;

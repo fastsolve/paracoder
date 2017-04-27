@@ -1,7 +1,7 @@
-function n = mcuGetNumThreads()
+function n = cuGetNumThreads()
 % Returns the number of CUDA threads that are currently running.
 %
-% n = mcuGetNumThreads
+% n = cuGetNumThreads
 %
 % Note: This function should only be called from a CUDA kernel function.
 

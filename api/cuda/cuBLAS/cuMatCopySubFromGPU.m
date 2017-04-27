@@ -48,7 +48,7 @@ if (toplevel || m2c_debug)
     end
 end
 
-sizepe = mcuGetSizePerElement(cuMat.type);
+sizepe = cuGetSizePerElement(cuMat.type);
 
 errCode = int32(0); %#ok<NASGU>
 if isempty(varargin)

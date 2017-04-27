@@ -11,14 +11,14 @@ if ~isempty(a2) && a1.datenum<a2.datenum
     b=0; return;
 end
 
-if nargin>2; 
+if nargin>2
     a3 = dir(file3); 
     if ~isempty(a3) && a1.datenum<a3.datenum
         b=0; return;
     end
 end
 
-if nargin>3; 
+if nargin>3 
     a4 = dir(file4); 
     if ~isempty(a4) && a1.datenum<a4.datenum
         b=0; return;

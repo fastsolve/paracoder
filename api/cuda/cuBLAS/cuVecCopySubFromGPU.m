@@ -46,7 +46,7 @@ if toplevel || m2c_debug
     end
 end
 
-sizepe = mcuGetSizePerElement(cuVec.type);
+sizepe = cuGetSizePerElement(cuVec.type);
 errCode = int32(0); %#ok<NASGU>
 if isempty(varargin)
     errCode = coder.ceval('cublasGetVector', n, sizepe, ...

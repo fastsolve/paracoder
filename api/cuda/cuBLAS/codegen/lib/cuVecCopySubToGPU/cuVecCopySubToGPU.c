@@ -17,7 +17,7 @@ static void b_m2c_error(void)
 
 static void c_m2c_error(int varargin_3)
 {
-  M2C_error("mcuGetSizePerElement:WrongType", "Unknow data type %d.\n",
+  M2C_error("cuGetSizePerElement:WrongType", "Unknow data type %d.\n",
             varargin_3);
 }
 

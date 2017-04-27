@@ -111,6 +111,7 @@ defs = struct('CC', '', 'CXX', '', 'CFLAGS', '', 'COPTIMFLAGS', '', ...
 
 cmd = ['"' shell_script '" --mex -DMATLAB_MEX_FILE -DOCTAVE_MEX_FILE '];
 
+objs = [];
 dryrun = false;
 verbose = false;
 i=1;
