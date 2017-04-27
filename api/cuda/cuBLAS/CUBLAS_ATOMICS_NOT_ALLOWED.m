@@ -1,0 +1,2 @@
+function val = CUBLAS_ATOMICS_NOT_ALLOWED
+val = cuBlasGetEnum('CUBLAS_ATOMICS_NOT_ALLOWED');

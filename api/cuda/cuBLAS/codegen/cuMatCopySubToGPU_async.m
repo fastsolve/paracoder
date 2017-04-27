@@ -1,0 +1,3 @@
+function [errCode, toplevel] = cuMatCopySubToGPU_async ...
+    (nrows, ncols, mat, cuMat, strm)
+[errCode, toplevel] = cuMatCopySubToGPU(nrows, ncols, mat, cuMat, strm);

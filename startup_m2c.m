@@ -11,7 +11,8 @@ addpath([m2croot '/util']);
 addpath([m2croot '/api']);
 addpath([m2croot '/api/ctypes']);
 addpath([m2croot '/api/mtypes']);
-addpath([m2croot '/api/parallel']);
+addpath([m2croot '/api/multicore']);
+addpath([m2croot '/api/omp']);
 
 if ~exist('coder.p', 'file')
     addpath([m2croot '/api/No_coder']);
@@ -19,7 +20,7 @@ if ~exist('coder.p', 'file')
     if exist('OCTAVE_VERSION', 'builtin')
         % If using Octave, add the Octave path
         addpath([m2croot '/util/octave']);
-        addpath([m2croot '/util/octave']);
+        addpath([m2croot '/api/octave']);
         more('off');
     end
 end
