@@ -3,7 +3,7 @@ function writeMexScript(funcname, mpath, cpath, m2c_opts)
 
 % Nested function for writing out mex script
 
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave
     prefix = 'oct_';
 else
     prefix = 'mex_';
@@ -238,7 +238,6 @@ end
 
 if ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
-        '    fprintf(''Entering %s\n'', pwd);', ...
         '    disp(build_cmd);', ...
         '    eval(build_cmd);', ...
         'else', ['    fprintf(''' funcname '.%s is up to date.\n'', mexext);'], 'end');

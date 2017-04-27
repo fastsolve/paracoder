@@ -2,4 +2,24 @@ warning('off', 'Octave:precedence-change');
 warning('off', 'Octave:resize-on-range-error');
 more off;
 
-startup
+% Set path for M2C
+load_m2c
+addpath([m2croot '/util/octave']);
+addpath([m2croot '/opts/No_coder/octave']);
+
+% Initialize OpenMP
+if isempty(getenv('OMP_NUM_THREADS'))
+    warning('OMP_NUM_THREADS was not set')
+    if ismac
+        [~, nprocs] = system('sysctl -n hw.ncpu');
+    elseif isunix
+        [~, nprocs] = system('nproc');
+    end
+
+    nprocs = strtrim(nprocs);
+    fprintf(1, ['Set OMP_NUM_THREADS to ' nprocs '.\n']);
+    setenv('OMP_NUM_THREADS', nprocs);
+end
+
+% Initialize MPI
+init_mpi

@@ -1,13 +1,14 @@
-function build_momp(varargin)
-%BUILD_MOMP Build script for MOMP functions.
+function build_omp(varargin)
+%BUILD_OMP Build script for OpenMP functions.
 
-momproot = fileparts(which('startup_momp'));
+omproot = [m2croot '/api/omp4m'];
+
 curpath = pwd;
-cd(momproot);
+cd(omproot);
 
 try
-    % First, compile test scripts
-    lines = grep_pattern('omp/omp*.m', '\n%#codegen -args');
+    % First, compile omp commands
+    lines = grep_pattern('omp*.m', '\n%#codegen -args');
     files = regexp(lines, '[\w\\\/]+\.m', 'match');
     
     for j=1:length(files)
@@ -19,5 +20,4 @@ catch ME
     rethrow(ME);
 end
 
-load_momp;
 cd(curpath);

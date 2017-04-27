@@ -1,8 +1,9 @@
-function build_mmpi(varargin)
+function build_mpi(varargin)
 
-mmpiroot = fileparts(which('startup_mmpi'));
+mpiroot = [m2croot '/api/mpi4m'];
+
 curpath = pwd;
-cd(mmpiroot);
+cd(mpiroot);
 
 try
     lines = [grep_pattern('util/*.m', '\n%#codegen\s+-args') ...
@@ -18,5 +19,4 @@ catch ME
     rethrow(ME);
 end
 
-load_mmpi;
 cd(curpath);

@@ -16,3 +16,8 @@ for j=1:length(funcs)
     end
 end
 
+% Build OpenMP
+build_omp
+
+% Build MPI
+build_mpi
