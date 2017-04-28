@@ -6,7 +6,7 @@ language: C
 before_install:
   - sudo add-apt-repository -y ppa:octave/stable
   - sudo apt-get update -q
-  - sudo apt-get install -y octave bsdtar liboctave-dev
+  - sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev
   - curl -L "$URL" | sudo bsdtar zxf - -C /usr/local --strip-components 2
   - sudo ln -s -f /usr/local/MATLAB/R2016b/bin/matlab /usr/local/bin
   - sudo ln -s -f /usr/local/MATLAB/R2016b/bin/mex /usr/local/bin
