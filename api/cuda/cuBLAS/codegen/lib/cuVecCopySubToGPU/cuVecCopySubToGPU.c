@@ -1,6 +1,6 @@
 #include "cuVecCopySubToGPU.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void b_m2c_error(void);
 static void c_m2c_error(int varargin_3);

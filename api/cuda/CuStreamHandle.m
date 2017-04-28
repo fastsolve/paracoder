@@ -10,6 +10,6 @@ function hdl = CuStreamHandle(varargin) %#codegen
 %  object. This should be used if the opaque object needs to be returned to MATLAB.
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 hdl = m2c_opaque_obj('cudaStream_t', varargin{:});

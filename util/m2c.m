@@ -872,8 +872,12 @@ while i<=last_index
             
             m2c_opts.withCuda = true;
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
-            m2c_opts.cudaLibs = {['-L' m2c_opts.cudaDir{1} '/lib'], '-lcublas', ...
-                '-lcusparse', '-lcudart'}; % -lcusolver
+            if exist([m2c_opts.cudaDir{1} '/lib64'], 'dir')
+                cudaLibDir = [m2c_opts.cudaDir{1} '/lib64'];
+            else
+                cudaLibDir = [m2c_opts.cudaDir{1} '/lib'];
+            end
+            m2c_opts.cudaLibs = {['-L' cudaLibDir], '-lcublas', '-lcusparse', '-lcudart'};
             if ~isequal(opt, '-cuda')
                 m2c_opts.withNvcc = true;
             end

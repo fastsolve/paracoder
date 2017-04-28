@@ -1,6 +1,6 @@
 #include "cuBlasGetEnum.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 int cuBlasGetEnum(const emxArray_char_T *str)
 {

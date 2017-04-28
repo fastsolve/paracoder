@@ -7,7 +7,6 @@ curpath = pwd;
 cd(omproot);
 
 try
-    % First, compile omp commands
     lines = grep_pattern('omp*.m', '\n%#codegen -args');
     files = regexp(lines, '[\w\\\/]+\.m', 'match');
     

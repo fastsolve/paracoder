@@ -18,7 +18,7 @@ function output = CuVec(varargin) %#codegen
 % See also cuVecCreate, CuMat
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 narginchk(0, 4);
 
 if nargin==0

@@ -1,6 +1,6 @@
 #include "cuMatCreate.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
 static void m2c_error(int varargin_3);

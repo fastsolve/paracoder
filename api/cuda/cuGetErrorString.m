@@ -7,7 +7,7 @@ function msg = cuGetErrorString(errcode)
 %     const char *cuGetErrorString(int errorcode)
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 ptr = coder.opaque('const char *'); %#ok<NASGU>
 ptr = coder.ceval('cudaGetErrorString', errcode);

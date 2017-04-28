@@ -1,6 +1,6 @@
 #include "cuStreamHandleDestroy.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
 static void emxFreeStruct_struct0_T(struct0_T *pStruct);

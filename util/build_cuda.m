@@ -1,18 +1,17 @@
-function build_mcuda(varargin)
-%build_mcuda Build script for the MCUDA submodule
+function build_cuda(varargin)
+%build_cuda Build script for the CUDA submodule
 
-mcudaroot = fileparts(which('startup_mcuda'));
+mcudaroot = [m2croot '/api/cuda'];
 curpath = pwd;
 cd(mcudaroot);
+opts = m2c_cuda_opts;
 
-opts = m2c_cuda_options;
 if isempty(opts)
-    warning('build_mcuda:NoCUDA_PATH', 'CUDA_PATH was not set and nvcc is not in path. Compiling without CUDA.\n');
+    warning('build_mcuda:NO_CUDA', 'CUDA_PATH was not set and nvcc is not in path. Compiling without CUDA.\n');
 end
 
 try
-    % First, compile test scripts
-    lines = [grep_pattern('sys/*.m', '\n%#codegen -args') ...
+    lines = [grep_pattern('*.m', '\n%#codegen -args') ...
         grep_pattern('cuBLAS/*.m', '\n%#codegen -args')];
     files = regexp(lines, '(\w+.m):', 'tokens');
     

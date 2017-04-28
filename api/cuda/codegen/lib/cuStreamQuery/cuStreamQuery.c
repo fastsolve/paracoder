@@ -1,6 +1,6 @@
 #include "cuStreamQuery.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void emxFreeStruct_struct0_T(struct0_T *pStruct);
 static void emxInitStruct_struct0_T(struct0_T *pStruct);

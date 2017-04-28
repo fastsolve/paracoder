@@ -19,7 +19,7 @@ function output = CuMat(varargin) %#codegen
 % See also CuVec,  CudaCRS, CudaBCRS, cuMatCreate
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 narginchk(0, 5);
 

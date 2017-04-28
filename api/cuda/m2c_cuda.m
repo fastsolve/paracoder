@@ -5,7 +5,7 @@ function flag = m2c_cuda
 %-DM2C_CUDA=1  DM2C_CUDA=0, respectively.
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 if isempty(coder.target)
     flag = false;

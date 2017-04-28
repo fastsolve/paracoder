@@ -26,7 +26,7 @@ else
 end
 
 if isequal(parmode, 'cuda-kernel')
-    otherheader = '#include "mcuda.h"';
+    otherheader = '#include "cuda4m.h"';
 elseif isequal(parmode, 'omp-kernel')
     otherheader = '#include "omp.h"';
 else

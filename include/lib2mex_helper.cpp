@@ -4,7 +4,7 @@
 
 #include <lib2mex_helper.c>
 
-#include "mcuda.h"
+#include "cuda4m.h"
 
 /*=================================================
  *

@@ -7,7 +7,7 @@ function val = cuBlasGetEnum(str) %#codegen
 
 %#codegen -args {m2c_string}
 
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 val = int32(0);
 switch str

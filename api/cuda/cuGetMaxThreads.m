@@ -12,7 +12,7 @@ threadsPB = int32(1);
 if ~strcmp(coder.target,'rtw'); return; end
 
 coder.inline('always');
-coder.cinclude('mcuda.h');
+coder.cinclude('cuda4m.h');
 
 [dev, ~] = cuGetDevice;
 [prop, ~] = cuGetDeviceProperties(dev);

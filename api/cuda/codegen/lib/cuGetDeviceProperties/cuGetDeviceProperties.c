@@ -1,6 +1,6 @@
 #include "cuGetDeviceProperties.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void emxFreeStruct_McudaDeviceProp(McudaDeviceProp *pStruct);
 static void emxInitStruct_McudaDeviceProp(McudaDeviceProp *pStruct);

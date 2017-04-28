@@ -1,6 +1,6 @@
 #include "cuGetDeviceCount.h"
 #include "m2c.h"
-#include "mcuda.h"
+#include "cuda4m.h"
 
 static void m2c_error(const emxArray_char_T *varargin_3);
 
