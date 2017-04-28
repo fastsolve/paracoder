@@ -13,4 +13,4 @@ before_install:
 
 script:
   - octave --eval "build_m2c -force"
-  - octave --eval "build_m2c -force -matlab"
+  - PATH=/usr/local/bin:$PATH octave --eval "build_m2c -force -matlab"
