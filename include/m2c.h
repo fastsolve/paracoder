@@ -94,13 +94,13 @@ typedef struct emxArray__common emxArray__common;
 
 HOST_AND_DEVICE extern
 void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
-        int newNumel, int elementSize);
+        int newNumel, unsigned int elementSize);
 
 /* emxEnsureCapacity is called very frequently, so better to inline it */
 #if INLINE_ENSURE_CAPACITY
 HOST_AND_DEVICE inline
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
-        int elementSize) {
+        unsigned int elementSize) {
     int i;
     int newNumel = emxArray->size[0];
     for (i = emxArray->numDimensions-1; i >= 1 ; i--) {
@@ -112,7 +112,7 @@ void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
 #else /* INLINE_ENSURE_CAPACITY */
 HOST_AND_DEVICE extern 
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
-        int elementSize);
+        unsigned int elementSize);
 #endif /* INLINE_ENSURE_CAPACITY */
 
 #define declare_emxInit(emxtype) \

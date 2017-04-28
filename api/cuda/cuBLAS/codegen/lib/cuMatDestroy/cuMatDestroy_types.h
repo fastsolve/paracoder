@@ -1,16 +1,27 @@
 #ifndef CUMATDESTROY_TYPES_H
 #define CUMATDESTROY_TYPES_H
 #include "rtwtypes.h"
-#ifndef typedef_struct0_T
-#define typedef_struct0_T
+#ifndef struct_emxArray__common
+#define struct_emxArray__common
 
-typedef struct {
-  unsigned long data;
-  int type;
-  int dims[2];
-} struct0_T;
+struct emxArray__common
+{
+  void *data;
+  int *size;
+  int allocatedSize;
+  int numDimensions;
+  boolean_T canFreeData;
+};
 
 #endif
+
+#ifndef typedef_emxArray__common
+#define typedef_emxArray__common
+
+typedef struct emxArray__common emxArray__common;
+
+#endif
+
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 
@@ -53,4 +64,14 @@ typedef struct emxArray_uint8_T emxArray_uint8_T;
 
 #endif
 
+#ifndef typedef_struct0_T
+#define typedef_struct0_T
+
+typedef struct {
+  unsigned long data;
+  int type;
+  int dims[2];
+} struct0_T;
+
+#endif
 #endif

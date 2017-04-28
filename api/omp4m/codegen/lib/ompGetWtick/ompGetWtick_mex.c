@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetWtick/ompGetWtick_mex.c
+ * codegen/lib/ompGetWtick/ompGetWtick_mex.c
  *
  * Auxiliary code for mexFunction of ompGetWtick
  *

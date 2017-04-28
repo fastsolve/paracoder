@@ -13,7 +13,7 @@
 
 HOST_AND_DEVICE
 void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
-                       int newNumel, int elementSize)
+                       int newNumel, unsigned int elementSize)
 {
     int n;
     void *newData;
@@ -46,7 +46,7 @@ void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
 
 HOST_AND_DEVICE
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
-        int elementSize) {
+        unsigned int elementSize) {
     int i;
     int newNumel = emxArray->size[0];
     for (i = emxArray->numDimensions-1; i >= 1 ; i--) {

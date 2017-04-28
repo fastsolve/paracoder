@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompSetNumThreads/ompSetNumThreads_mex.c
+ * codegen/lib/ompSetNumThreads/ompSetNumThreads_mex.c
  *
  * Auxiliary code for mexFunction of ompSetNumThreads
  *

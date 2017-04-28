@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetMaxThreads/ompGetMaxThreads_mex.c
+ * codegen/lib/ompGetMaxThreads/ompGetMaxThreads_mex.c
  *
  * Auxiliary code for mexFunction of ompGetMaxThreads
  *

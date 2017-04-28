@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetDynamic/ompGetDynamic_mex.c
+ * codegen/lib/ompGetDynamic/ompGetDynamic_mex.c
  *
  * Auxiliary code for mexFunction of ompGetDynamic
  *

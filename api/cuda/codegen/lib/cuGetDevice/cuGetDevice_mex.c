@@ -1,5 +1,5 @@
 /*
- * cuGetDevice_mex.c
+ * codegen/lib/cuGetDevice/cuGetDevice_mex.c
  *
  * Auxiliary code for mexFunction of cuGetDevice
  *

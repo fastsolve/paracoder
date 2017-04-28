@@ -1,4 +1,4 @@
-function val = mcuZero(type)
+function val = cuZero(type)
 % Obtains zero of a particular type
 
 coder.inline('always');
@@ -28,5 +28,5 @@ elseif type == CUB_COMPLEX
 elseif type == CUB_DOUBLE_COMPLEX
     val = complex(0);
 else
-    m2c_error('mcuZero:WrongType', 'Unknow data type %d.\n', type)
+    m2c_error('cuZero:WrongType', 'Unknow data type %d.\n', type)
 end

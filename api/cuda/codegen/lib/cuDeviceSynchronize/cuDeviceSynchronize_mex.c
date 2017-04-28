@@ -1,5 +1,5 @@
 /*
- * cuDeviceSynchronize_mex.c
+ * codegen/lib/cuDeviceSynchronize/cuDeviceSynchronize_mex.c
  *
  * Auxiliary code for mexFunction of cuDeviceSynchronize
  *

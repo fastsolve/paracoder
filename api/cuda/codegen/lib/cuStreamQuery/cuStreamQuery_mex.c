@@ -1,5 +1,5 @@
 /*
- * cuStreamQuery_mex.c
+ * codegen/lib/cuStreamQuery/cuStreamQuery_mex.c
  *
  * Auxiliary code for mexFunction of cuStreamQuery
  *

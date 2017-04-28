@@ -1,5 +1,5 @@
 /*
- * cuDeviceReset_mex.c
+ * codegen/lib/cuDeviceReset/cuDeviceReset_mex.c
  *
  * Auxiliary code for mexFunction of cuDeviceReset
  *

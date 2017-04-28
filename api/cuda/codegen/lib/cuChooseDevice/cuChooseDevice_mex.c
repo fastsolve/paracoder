@@ -1,5 +1,5 @@
 /*
- * cuChooseDevice_mex.c
+ * codegen/lib/cuChooseDevice/cuChooseDevice_mex.c
  *
  * Auxiliary code for mexFunction of cuChooseDevice
  *

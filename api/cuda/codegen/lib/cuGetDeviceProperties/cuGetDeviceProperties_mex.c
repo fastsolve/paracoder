@@ -1,5 +1,5 @@
 /*
- * cuGetDeviceProperties_mex.c
+ * codegen/lib/cuGetDeviceProperties/cuGetDeviceProperties_mex.c
  *
  * Auxiliary code for mexFunction of cuGetDeviceProperties
  *
@@ -20,7 +20,7 @@
 /* Include declaration of some helper functions. */
 #include "lib2mex_helper.c"
 
-static void prealloc_McudaDeviceProp(McudaDeviceProp *pStruct) {
+static void prealloc_struct0_T(struct0_T *pStruct) {
 
 
     pStruct->name = mxMalloc(sizeof(emxArray_char_T));
@@ -43,7 +43,7 @@ static void prealloc_McudaDeviceProp(McudaDeviceProp *pStruct) {
 
 
 }
-static mxArray *marshallout_McudaDeviceProp(McudaDeviceProp *pStruct) {
+static mxArray *marshallout_struct0_T(struct0_T *pStruct) {
     const char           *fields[] = {"name", "multiProcessorCount", "maxThreadsPerMultiProcessor", "maxThreadsPerBlock", "warpSize", "concurrentKernels", "totalGlobalMem", "sharedMemPerBlock", "sharedMemPerMultiprocessor", "totalConstMem", "clockRate", "asyncEngineCount", "computeMode", "major", "minor", "maxGridSize", "maxThreadsDim", "isMultiGpuBoard", "canMapHostMemory", "managedMemory", "unifiedAddressing", "globalL1CacheSupported", "l2CacheSize", "regsPerBlock", "regsPerMultiprocessor", "memoryBusWidth", "memoryClockRate", "memPitch", "textureAlignment", "deviceOverlap", "kernelExecTimeoutEnabled", "integrated", "ECCEnabled", "pciBusID", "tccDriver"};
     int                  one=1;
     mxArray              *mx = create_struct_mxArray(1, &one, 35, fields);
@@ -98,7 +98,7 @@ static mxArray *marshallout_McudaDeviceProp(McudaDeviceProp *pStruct) {
 
 static void __cuGetDeviceProperties_api(mxArray **plhs, const mxArray ** prhs) {
     int32_T              dev;
-    McudaDeviceProp      prop;
+    struct0_T            prop;
     int32_T             *errCode;
     boolean_T           *toplevel;
 
@@ -110,7 +110,7 @@ static void __cuGetDeviceProperties_api(mxArray **plhs, const mxArray ** prhs) {
         mexErrMsgIdAndTxt("cuGetDeviceProperties:WrongSizeOfInputArg",
             "Argument dev should be a scalar.");
     dev = *(int32_T*)mxGetData(prhs[0]);
-    prealloc_McudaDeviceProp(&prop);
+    prealloc_struct0_T(&prop);
 
     errCode = mxMalloc(sizeof(int32_T));
 
@@ -121,19 +121,19 @@ static void __cuGetDeviceProperties_api(mxArray **plhs, const mxArray ** prhs) {
 
     /* Deallocate input and marshall out function outputs */
     /* Nothing to be done for dev */
-    plhs[0] = marshallout_McudaDeviceProp(&prop);
+    plhs[0] = marshallout_struct0_T(&prop);
     plhs[1] = move_scalar_to_mxArray(errCode, mxINT32_CLASS);
     plhs[2] = move_scalar_to_mxArray(toplevel, mxLOGICAL_CLASS);
 
 }
 
 static void __cuGetDeviceProperties_arg0_api(mxArray **plhs, const mxArray ** prhs) {
-    McudaDeviceProp      prop;
+    struct0_T            prop;
     int32_T             *errCode;
     boolean_T           *toplevel;
 
     /* Marshall in inputs and preallocate outputs */
-    prealloc_McudaDeviceProp(&prop);
+    prealloc_struct0_T(&prop);
 
     errCode = mxMalloc(sizeof(int32_T));
 
@@ -143,7 +143,7 @@ static void __cuGetDeviceProperties_arg0_api(mxArray **plhs, const mxArray ** pr
     cuGetDeviceProperties_arg0(&prop, errCode, toplevel);
 
     /* Deallocate input and marshall out function outputs */
-    plhs[0] = marshallout_McudaDeviceProp(&prop);
+    plhs[0] = marshallout_struct0_T(&prop);
     plhs[1] = move_scalar_to_mxArray(errCode, mxINT32_CLASS);
     plhs[2] = move_scalar_to_mxArray(toplevel, mxLOGICAL_CLASS);
 

@@ -1,5 +1,5 @@
 /*
- * cuStreamHandleCreate_mex.c
+ * codegen/lib/cuStreamHandleCreate/cuStreamHandleCreate_mex.c
  *
  * Auxiliary code for mexFunction of cuStreamHandleCreate
  *

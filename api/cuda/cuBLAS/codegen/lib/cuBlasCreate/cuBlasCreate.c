@@ -2,22 +2,7 @@
 #include "m2c.h"
 #include "cuda4m.h"
 
-static void emxFreeStruct_struct0_T(struct0_T *pStruct);
-static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(const emxArray_char_T *varargin_3);
-
-static void emxFreeStruct_struct0_T(struct0_T *pStruct)
-{
-  emxFree_uint8_T(&pStruct->data);
-  emxFree_char_T(&pStruct->type);
-}
-
-static void emxInitStruct_struct0_T(struct0_T *pStruct)
-{
-  emxInit_uint8_T(&pStruct->data, 1);
-  emxInit_char_T(&pStruct->type, 2);
-}
-
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
@@ -27,7 +12,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -50,13 +35,12 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
 
   int loop_ub;
   char * ptr;
-  int varargin_4;
-  int varargin_5;
-  int varargin_6;
-  int varargin_7;
-  int varargin_8;
-  boolean_T result;
   emxArray_char_T *cstr;
+  int val;
+  int b_val;
+  int c_val;
+  int d_val;
+  int varargin_8;
   static const char cv1[14] = { 'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'e', 'r',
     'r', 'o', 'r', '\x00' };
 
@@ -93,18 +77,17 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
 
   emxInit_uint8_T(&data0, 1);
   *errCode = cublasCreate(&t_hdl);
-  *toplevel = true;
   sizepe = sizeof(cublasHandle_t);
   i = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, i, (int)sizeof(unsigned char));
+  emxEnsureCapacity((emxArray__common *)data0, i, sizeof(unsigned char));
   for (i = 0; i < 14; i++) {
     t0_type[i] = cv0[i];
   }
 
   i = hdl->data->size[0];
   hdl->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)hdl->data, i, (int)sizeof(unsigned char));
+  emxEnsureCapacity((emxArray__common *)hdl->data, i, sizeof(unsigned char));
   loop_ub = data0->size[0];
   for (i = 0; i < loop_ub; i++) {
     hdl->data->data[i] = data0->data[i];
@@ -114,7 +97,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
   i = hdl->type->size[0] * hdl->type->size[1];
   hdl->type->size[0] = 1;
   hdl->type->size[1] = 14;
-  emxEnsureCapacity((emxArray__common *)hdl->type, i, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)hdl->type, i, sizeof(char));
   for (i = 0; i < 14; i++) {
     hdl->type->data[i] = t0_type[i];
   }
@@ -127,63 +110,41 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
   }
 
   if (*errCode != 0) {
+    emxInit_char_T(&cstr, 2);
     i = (CUBLAS_STATUS_SUCCESS);
     loop_ub = (CUBLAS_STATUS_NOT_INITIALIZED);
     sizepe = (CUBLAS_STATUS_ALLOC_FAILED);
-    varargin_4 = (CUBLAS_STATUS_INVALID_VALUE);
-    varargin_5 = (CUBLAS_STATUS_ARCH_MISMATCH);
-    varargin_6 = (CUBLAS_STATUS_MAPPING_ERROR);
-    varargin_7 = (CUBLAS_STATUS_EXECUTION_FAILED);
+    val = (CUBLAS_STATUS_INVALID_VALUE);
+    b_val = (CUBLAS_STATUS_ARCH_MISMATCH);
+    c_val = (CUBLAS_STATUS_MAPPING_ERROR);
+    d_val = (CUBLAS_STATUS_EXECUTION_FAILED);
     varargin_8 = (CUBLAS_STATUS_INTERNAL_ERROR);
-    result = (i == *errCode);
-    if (result) {
+    if (i == *errCode) {
       i = 0;
+    } else if (loop_ub == *errCode) {
+      i = 1;
+    } else if (sizepe == *errCode) {
+      i = 2;
+    } else if (val == *errCode) {
+      i = 3;
+    } else if (b_val == *errCode) {
+      i = 4;
+    } else if (c_val == *errCode) {
+      i = 5;
+    } else if (d_val == *errCode) {
+      i = 6;
+    } else if (varargin_8 == *errCode) {
+      i = 7;
     } else {
-      result = (loop_ub == *errCode);
-      if (result) {
-        i = 1;
-      } else {
-        result = (sizepe == *errCode);
-        if (result) {
-          i = 2;
-        } else {
-          result = (varargin_4 == *errCode);
-          if (result) {
-            i = 3;
-          } else {
-            result = (varargin_5 == *errCode);
-            if (result) {
-              i = 4;
-            } else {
-              result = (varargin_6 == *errCode);
-              if (result) {
-                i = 5;
-              } else {
-                result = (varargin_7 == *errCode);
-                if (result) {
-                  i = 6;
-                } else {
-                  result = (varargin_8 == *errCode);
-                  if (result) {
-                    i = 7;
-                  } else {
-                    i = -1;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      i = -1;
     }
 
-    emxInit_char_T(&cstr, 2);
     switch (i) {
      case 0:
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 22;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 22; i++) {
         cstr->data[i] = cv2[i];
       }
@@ -193,7 +154,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 30;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 30; i++) {
         cstr->data[i] = cv3[i];
       }
@@ -203,7 +164,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 27;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 27; i++) {
         cstr->data[i] = cv4[i];
       }
@@ -213,7 +174,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 28; i++) {
         cstr->data[i] = cv5[i];
       }
@@ -223,7 +184,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 28; i++) {
         cstr->data[i] = cv6[i];
       }
@@ -233,7 +194,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 28; i++) {
         cstr->data[i] = cv7[i];
       }
@@ -243,7 +204,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 31;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 31; i++) {
         cstr->data[i] = cv8[i];
       }
@@ -253,7 +214,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 29;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 29; i++) {
         cstr->data[i] = cv9[i];
       }
@@ -263,7 +224,7 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
       i = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 14;
-      emxEnsureCapacity((emxArray__common *)cstr, i, (int)sizeof(char));
+      emxEnsureCapacity((emxArray__common *)cstr, i, sizeof(char));
       for (i = 0; i < 14; i++) {
         cstr->data[i] = cv1[i];
       }
@@ -273,6 +234,8 @@ void cuBlasCreate(struct0_T *hdl, int *errCode, boolean_T *toplevel)
     m2c_error(cstr);
     emxFree_char_T(&cstr);
   }
+
+  *toplevel = true;
 }
 
 void cuBlasCreate_initialize(void)
@@ -281,14 +244,4 @@ void cuBlasCreate_initialize(void)
 
 void cuBlasCreate_terminate(void)
 {
-}
-
-void emxDestroy_struct0_T(struct0_T emxArray)
-{
-  emxFreeStruct_struct0_T(&emxArray);
-}
-
-void emxInit_struct0_T(struct0_T *pStruct)
-{
-  emxInitStruct_struct0_T(pStruct);
 }

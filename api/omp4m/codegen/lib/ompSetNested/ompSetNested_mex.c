@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompSetNested/ompSetNested_mex.c
+ * codegen/lib/ompSetNested/ompSetNested_mex.c
  *
  * Auxiliary code for mexFunction of ompSetNested
  *

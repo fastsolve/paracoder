@@ -1,4 +1,4 @@
-function type = mcuType(mType, isreal)
+function type = cuType(mType, isreal)
 % Convert from a mType string to MCUDA type.
 
 coder.inline('always');
@@ -33,6 +33,6 @@ switch mType
     case 'uint64'
         type = CUB_UINT64;
     otherwise
-        m2c_error('mcuType:WrongType', ['Unknow supported data type ' mType '.\n']);
+        m2c_error('cuType:WrongType', ['Unknow supported data type ' mType '.\n']);
 end
 end

@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetWtime/ompGetWtime_mex.c
+ * codegen/lib/ompGetWtime/ompGetWtime_mex.c
  *
  * Auxiliary code for mexFunction of ompGetWtime
  *

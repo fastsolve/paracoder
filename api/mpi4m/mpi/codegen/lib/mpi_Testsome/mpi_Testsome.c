@@ -4,8 +4,6 @@
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
 static void c_m2c_error(const emxArray_char_T *varargin_3);
-static void emxFreeStruct_struct0_T(struct0_T *pStruct);
-static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(void);
 static void b_m2c_error(const emxArray_char_T *varargin_3)
 {
@@ -20,7 +18,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -45,7 +43,7 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -56,54 +54,26 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-static void emxFreeStruct_struct0_T(struct0_T *pStruct)
-{
-  emxFree_uint8_T(&pStruct->data);
-  emxFree_char_T(&pStruct->type);
-}
-
-static void emxInitStruct_struct0_T(struct0_T *pStruct)
-{
-  emxInit_uint8_T(&pStruct->data, 1);
-  emxInit_char_T(&pStruct->type, 2);
-}
-
 static void m2c_error(void)
 {
   M2C_error("mpi_Testsome:OutOfBound", "MPI_Request_array is too small.");
 }
 
-void emxDestroy_struct0_T(struct0_T emxArray)
-{
-  emxFreeStruct_struct0_T(&emxArray);
-}
-
-void emxInitArray_int32_T(emxArray_int32_T **pEmxArray, int numDimensions)
-{
-  emxInit_int32_T(pEmxArray, numDimensions);
-}
-
-void emxInit_struct0_T(struct0_T *pStruct)
-{
-  emxInitStruct_struct0_T(pStruct);
-}
-
 void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T *
                   stats, int *info, boolean_T *toplevel)
 {
-  int n;
   int i2;
+  int n;
   boolean_T p;
   boolean_T b_p;
   int resultlen;
-  int exitg2;
   boolean_T exitg1;
   emxArray_char_T *b_reqs;
   static const char cv0[11] = { 'M', 'P', 'I', '_', 'R', 'e', 'q', 'u', 'e', 's',
     't' };
 
-  emxArray_real_T *stats0;
   emxArray_uint8_T *reqs0;
+  emxArray_real_T *stats0;
   emxArray_uint8_T *data0;
   MPI_Request * ptr;
   MPI_Status * b_ptr;
@@ -118,8 +88,9 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
   };
 
   unsigned char msg0[1024];
-  emxArray_uint8_T *varargin_1;
-  emxArray_char_T *b_varargin_1;
+  emxArray_char_T *b_msg0;
+  emxArray_uint8_T *c_msg0;
+  emxArray_char_T *d_msg0;
   if (emlrtIsMATLABThread(emlrtRootTLSGlobal)) {
     n = sizeof(MPI_Request);
     if (reqs->data->size[0] < count * n) {
@@ -129,28 +100,16 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
 
   i2 = idxs->size[0];
   idxs->size[0] = count;
-  emxEnsureCapacity((emxArray__common *)idxs, i2, (int)sizeof(int));
+  emxEnsureCapacity((emxArray__common *)idxs, i2, sizeof(int));
   for (i2 = 0; i2 < count; i2++) {
     idxs->data[i2] = 0;
   }
 
   p = false;
   b_p = false;
-  resultlen = 0;
-  do {
-    exitg2 = 0;
-    if (resultlen < 2) {
-      i2 = reqs->type->size[resultlen];
-      if (i2 != 10 * resultlen + 1) {
-        exitg2 = 1;
-      } else {
-        resultlen++;
-      }
-    } else {
-      b_p = true;
-      exitg2 = 1;
-    }
-  } while (exitg2 == 0);
+  if (reqs->type->size[1] == 11) {
+    b_p = true;
+  }
 
   if (b_p && (!(reqs->type->size[1] == 0))) {
     resultlen = 0;
@@ -165,8 +124,7 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
     }
   }
 
-  if (!b_p) {
-  } else {
+  if (b_p) {
     p = true;
   }
 
@@ -175,7 +133,7 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
     i2 = b_reqs->size[0] * b_reqs->size[1];
     b_reqs->size[0] = 1;
     b_reqs->size[1] = reqs->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_reqs, i2, (int)sizeof(char));
+    emxEnsureCapacity((emxArray__common *)b_reqs, i2, sizeof(char));
     resultlen = reqs->type->size[1];
     for (i2 = 0; i2 < resultlen; i2++) {
       b_reqs->data[b_reqs->size[0] * i2] = reqs->type->data[reqs->type->size[0] *
@@ -187,25 +145,25 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
     emxFree_char_T(&b_reqs);
   }
 
+  emxInit_uint8_T(&reqs0, 1);
+  i2 = reqs0->size[0];
+  reqs0->size[0] = reqs->data->size[0];
+  emxEnsureCapacity((emxArray__common *)reqs0, i2, sizeof(unsigned char));
+  resultlen = reqs->data->size[0];
+  for (i2 = 0; i2 < resultlen; i2++) {
+    reqs0->data[i2] = reqs->data->data[i2];
+  }
+
   emxInit_real_T(&stats0, 2);
   resultlen = sizeof(MPI_Status);
   i2 = count * resultlen;
   resultlen = stats0->size[0] * stats0->size[1];
   stats0->size[0] = i2;
   stats0->size[1] = i2;
-  emxEnsureCapacity((emxArray__common *)stats0, resultlen, (int)sizeof(double));
+  emxEnsureCapacity((emxArray__common *)stats0, resultlen, sizeof(double));
   resultlen = i2 * i2;
   for (i2 = 0; i2 < resultlen; i2++) {
     stats0->data[i2] = 0.0;
-  }
-
-  emxInit_uint8_T(&reqs0, 1);
-  i2 = reqs0->size[0];
-  reqs0->size[0] = reqs->data->size[0];
-  emxEnsureCapacity((emxArray__common *)reqs0, i2, (int)sizeof(unsigned char));
-  resultlen = reqs->data->size[0];
-  for (i2 = 0; i2 < resultlen; i2++) {
-    reqs0->data[i2] = reqs->data->data[i2];
   }
 
   emxInit_uint8_T(&data0, 1);
@@ -213,19 +171,17 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
   ptr = (MPI_Request *)(&reqs0->data[0]);
   b_ptr = (MPI_Status *)(&stats0->data[0]);
   *info = MPI_Testsome(count, ptr, &n, &idxs->data[0], b_ptr);
-  *toplevel = true;
   sizepe = sizeof(MPI_Request);
   i2 = data0->size[0];
   data0->size[0] = sizepe * count;
-  emxEnsureCapacity((emxArray__common *)data0, i2, (int)sizeof(unsigned char));
+  emxEnsureCapacity((emxArray__common *)data0, i2, sizeof(unsigned char));
   for (i2 = 0; i2 < 11; i2++) {
     t0_type[i2] = x2[i2];
   }
 
   i2 = reqs->data->size[0];
   reqs->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)reqs->data, i2, (int)sizeof(unsigned
-    char));
+  emxEnsureCapacity((emxArray__common *)reqs->data, i2, sizeof(unsigned char));
   resultlen = data0->size[0];
   for (i2 = 0; i2 < resultlen; i2++) {
     reqs->data->data[i2] = data0->data[i2];
@@ -234,7 +190,7 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
   i2 = reqs->type->size[0] * reqs->type->size[1];
   reqs->type->size[0] = 1;
   reqs->type->size[1] = 11;
-  emxEnsureCapacity((emxArray__common *)reqs->type, i2, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)reqs->type, i2, sizeof(char));
   for (i2 = 0; i2 < 11; i2++) {
     reqs->type->data[i2] = t0_type[i2];
   }
@@ -253,15 +209,14 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
   sizepe = sizeof(MPI_Status);
   i2 = data0->size[0];
   data0->size[0] = sizepe * count;
-  emxEnsureCapacity((emxArray__common *)data0, i2, (int)sizeof(unsigned char));
+  emxEnsureCapacity((emxArray__common *)data0, i2, sizeof(unsigned char));
   for (i2 = 0; i2 < 10; i2++) {
     t1_type[i2] = cv1[i2];
   }
 
   i2 = stats->data->size[0];
   stats->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)stats->data, i2, (int)sizeof(unsigned
-    char));
+  emxEnsureCapacity((emxArray__common *)stats->data, i2, sizeof(unsigned char));
   resultlen = data0->size[0];
   for (i2 = 0; i2 < resultlen; i2++) {
     stats->data->data[i2] = data0->data[i2];
@@ -271,7 +226,7 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
   i2 = stats->type->size[0] * stats->type->size[1];
   stats->type->size[0] = 1;
   stats->type->size[1] = 10;
-  emxEnsureCapacity((emxArray__common *)stats->type, i2, (int)sizeof(char));
+  emxEnsureCapacity((emxArray__common *)stats->type, i2, sizeof(char));
   for (i2 = 0; i2 < 10; i2++) {
     stats->type->data[i2] = t1_type[i2];
   }
@@ -296,29 +251,37 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
       resultlen = 0;
     }
 
-    emxInit_uint8_T(&varargin_1, 2);
-    i2 = varargin_1->size[0] * varargin_1->size[1];
-    varargin_1->size[0] = 1;
-    varargin_1->size[1] = resultlen;
-    emxEnsureCapacity((emxArray__common *)varargin_1, i2, (int)sizeof(unsigned
-      char));
+    emxInit_char_T(&b_msg0, 2);
+    emxInit_uint8_T(&c_msg0, 2);
+    i2 = c_msg0->size[0] * c_msg0->size[1];
+    c_msg0->size[0] = 1;
+    c_msg0->size[1] = resultlen;
+    emxEnsureCapacity((emxArray__common *)c_msg0, i2, sizeof(unsigned char));
     for (i2 = 0; i2 < resultlen; i2++) {
-      varargin_1->data[varargin_1->size[0] * i2] = msg0[i2];
+      c_msg0->data[c_msg0->size[0] * i2] = msg0[i2];
     }
 
-    emxInit_char_T(&b_varargin_1, 2);
-    i2 = b_varargin_1->size[0] * b_varargin_1->size[1];
-    b_varargin_1->size[0] = 1;
-    b_varargin_1->size[1] = (short)resultlen;
-    emxEnsureCapacity((emxArray__common *)b_varargin_1, i2, (int)sizeof(char));
+    emxInit_char_T(&d_msg0, 1);
+    i2 = d_msg0->size[0];
+    d_msg0->size[0] = resultlen;
+    emxEnsureCapacity((emxArray__common *)d_msg0, i2, sizeof(char));
+    for (i2 = 0; i2 < resultlen; i2++) {
+      d_msg0->data[i2] = (signed char)c_msg0->data[i2];
+    }
+
+    emxFree_uint8_T(&c_msg0);
+    i2 = b_msg0->size[0] * b_msg0->size[1];
+    b_msg0->size[0] = 1;
+    b_msg0->size[1] = (short)resultlen;
+    emxEnsureCapacity((emxArray__common *)b_msg0, i2, sizeof(char));
     resultlen = (short)resultlen;
     for (i2 = 0; i2 < resultlen; i2++) {
-      b_varargin_1->data[i2] = (signed char)varargin_1->data[i2];
+      b_msg0->data[b_msg0->size[0] * i2] = d_msg0->data[i2];
     }
 
-    emxFree_uint8_T(&varargin_1);
-    c_m2c_error(b_varargin_1);
-    emxFree_char_T(&b_varargin_1);
+    emxFree_char_T(&d_msg0);
+    c_m2c_error(b_msg0);
+    emxFree_char_T(&b_msg0);
   }
 
   i2 = idxs->size[0];
@@ -328,7 +291,8 @@ void mpi_Testsome(int count, struct0_T *reqs, emxArray_int32_T *idxs, struct0_T 
     idxs->size[0] = n;
   }
 
-  emxEnsureCapacity((emxArray__common *)idxs, i2, (int)sizeof(int));
+  emxEnsureCapacity((emxArray__common *)idxs, i2, sizeof(int));
+  *toplevel = true;
 }
 
 void mpi_Testsome_initialize(void)

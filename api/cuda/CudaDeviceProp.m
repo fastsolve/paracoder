@@ -160,7 +160,6 @@ elseif nargin==2
         'ECCEnabled', int32(0), ...
         'pciBusID', int32(0), ...
         'tccDriver', int32(0));    
-    coder.cstructname(prop, 'McudaDeviceProp');
     
     prop.multiProcessorCount = m2c_get_cstruct_field(t_prop, 'multiProcessorCount', 'int32');
     prop.maxThreadsPerMultiProcessor = m2c_get_cstruct_field(t_prop, 'maxThreadsPerMultiProcessor', 'int32');    

@@ -1,3 +1,5 @@
+function build_m2c(varargin)
+
 if isoctave
     mex = @mmex;
 end
@@ -17,10 +19,10 @@ for j=1:length(funcs)
 end
 
 % Build OpenMP
-build_omp
+build_omp(varargin{:})
 
 % Build MPI
-build_mpi
+build_mpi(varargin{:})
 
 % Build CUDA
-build_cuad
+build_cuda(varargin{:})

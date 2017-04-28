@@ -34,7 +34,7 @@ if ~isempty(type_def)
         fprintf('M2C: API functions involves structures. Moved type definitions into header file %s_types.h\n', func);
     end
     
-    if ~isempty(strfind(ctypes_str, '/* End of code generation'))
+    if contains(ctypes_str, '/* End of code generation')
         ctypes_str = strrep(ctypes_str, ...
             sprintf('\n#endif\n\n/* End of code generation'), ...
             [sprintf('%s\n', '', '', ...
@@ -113,6 +113,9 @@ if ~usem2c && length(cfile_str) ~= length(cfile_str_orig)
     cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '.h"\n)'], ...
         '$1$2#include "m2c.h"\n');
 end
+
+% Remove file <func>_emxutil.h
+cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '_emxutil.h"\n)'], '$1');
 
 %% Change API definitinons.
 api_decl = '';
@@ -221,7 +224,7 @@ for i=1:length(funcs)
     funname = funcs{i}{1};
     args = funcs{i}{2};
     fun = funcs{i}{3};
-    if ~isempty(strfind(funname, 'emlrt_')); continue; end
+    if contains(funname, 'emlrt_'); continue; end
     
     toks = regexp(args, 'const emxArray_(\w+)\s*\*\s*(\w+)', 'tokens');
     for j=1:length(toks)
@@ -249,7 +252,7 @@ for i=1:length(funcs)
     % args = funcs{i}{2};
     fun = funcs{i}{3};
     
-    if ~isempty(strfind(funname, 'emlrt_')); continue; end
+    if contains(funname, 'emlrt_'); continue; end
     toks = regexp(fun, '\s+emxEnsureCapacity\(\(emxArray__common \*\)(r[\d]+),\s*\w+,\s*\(int32_T\)', 'tokens');
     
     for j=1:length(toks)
@@ -267,7 +270,7 @@ for i=1:length(funcs)
             for k=1:j-1
                 if isequal(toks{j}{1},toks{k}{1}); skip=true; end
             end
-            if skip;
+            if skip
                 continue;
             end
             target = regexp(fun, [toks{j}{1} '->data\[\w+\] = ([\w->]+)->data\[\w+\]'], 'tokens');

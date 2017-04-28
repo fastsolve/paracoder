@@ -22,7 +22,7 @@ function [mat, errCode] = cuMatCopyFromGPU(cuMat, mat, varargin)
 narginchk(1, 3);
 
 if nargin==1
-    mat = zeros(cuMat.dims, 'like', mcuZero(cuMat.type));
+    mat = zeros(cuMat.dims, 'like', cuZero(cuMat.type));
 end
 
 [mat, errCode] = cuMatCopySubFromGPU(cuMat.dims(1), cuMat.dims(2), ...

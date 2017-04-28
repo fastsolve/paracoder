@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetThreadNum/ompGetThreadNum_mex.c
+ * codegen/lib/ompGetThreadNum/ompGetThreadNum_mex.c
  *
  * Auxiliary code for mexFunction of ompGetThreadNum
  *

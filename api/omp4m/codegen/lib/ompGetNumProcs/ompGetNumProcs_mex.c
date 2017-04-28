@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompGetNumProcs/ompGetNumProcs_mex.c
+ * codegen/lib/ompGetNumProcs/ompGetNumProcs_mex.c
  *
  * Auxiliary code for mexFunction of ompGetNumProcs
  *

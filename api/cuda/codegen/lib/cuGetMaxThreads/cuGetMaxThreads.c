@@ -8,13 +8,12 @@ void cuGetMaxThreads(int *nthreads, int *threadsPB)
   struct cudaDeviceProp t_prop;
   struct cudaDeviceProp * b_t_prop;
   int val;
-  int b_val;
   cudaGetDevice(&dev);
   cudaGetDeviceProperties(&t_prop, dev);
   b_t_prop = (&t_prop);
-  val = b_t_prop->multiProcessorCount;
-  b_val = b_t_prop->maxThreadsPerMultiProcessor;
-  *nthreads = val * b_val;
+  dev = b_t_prop->multiProcessorCount;
+  val = b_t_prop->maxThreadsPerMultiProcessor;
+  *nthreads = dev * val;
   *threadsPB = b_t_prop->warpSize;
 
 }

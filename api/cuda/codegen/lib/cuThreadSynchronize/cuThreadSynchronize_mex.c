@@ -1,5 +1,5 @@
 /*
- * cuThreadSynchronize_mex.c
+ * codegen/lib/cuThreadSynchronize/cuThreadSynchronize_mex.c
  *
  * Auxiliary code for mexFunction of cuThreadSynchronize
  *

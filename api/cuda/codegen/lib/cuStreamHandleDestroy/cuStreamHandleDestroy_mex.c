@@ -1,5 +1,5 @@
 /*
- * cuStreamHandleDestroy_mex.c
+ * codegen/lib/cuStreamHandleDestroy/cuStreamHandleDestroy_mex.c
  *
  * Auxiliary code for mexFunction of cuStreamHandleDestroy
  *

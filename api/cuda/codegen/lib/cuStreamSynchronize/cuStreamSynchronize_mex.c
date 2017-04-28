@@ -1,5 +1,5 @@
 /*
- * cuStreamSynchronize_mex.c
+ * codegen/lib/cuStreamSynchronize/cuStreamSynchronize_mex.c
  *
  * Auxiliary code for mexFunction of cuStreamSynchronize
  *

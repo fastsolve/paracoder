@@ -1,5 +1,5 @@
 /*
- * omp/codegen/lib/ompSetDynamic/ompSetDynamic_mex.c
+ * codegen/lib/ompSetDynamic/ompSetDynamic_mex.c
  *
  * Auxiliary code for mexFunction of ompSetDynamic
  *
