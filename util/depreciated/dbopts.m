@@ -1,6 +1,6 @@
 function str=dbopts
 
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave
     str = '-Wno-unused-function -Wno-strict-aliasing';
 else
     str = '-O';

@@ -906,7 +906,7 @@ while i<=last_index
                 m2c_opts.mklDir{1}(end) = [];
             end
             
-            m2c_opts.withMKL = true + ~isempty(strfind(opt, 'omp'));
+            m2c_opts.withMKL = true + contains(opt, 'omp');
             m2c_opts.mklInc = {['-I' m2c_opts.mklDir{1} '/include']};
             m2c_opts.mklLibs = {dylibdir([m2c_opts.mklDir{1} '/lib']), ...
                 '-lmkl_intel_lp64', '-lmkl_core'};
@@ -929,10 +929,13 @@ while i<=last_index
                     m2c_opts.petscDir = {[getenv('PETSC_DIR') '/' getenv('PETSC_ARCH')]};
                 elseif ~isempty(getenv('PETSC_DIR'))
                     m2c_opts.petscDir = {getenv('PETSC_DIR')};
-                else
+                elseif length(varargin) >1 
                     error('m2c:petsc_dir', ...
                         ['Root directory of PETSc must be given after the ' ...
                         '-petsc flag or be specified by environment variable PETSC_DIR.\n']);
+                else
+                    % This is for checking MPI path
+                    break;
                 end
             end
             
@@ -1102,7 +1105,7 @@ for i=1:length(names)
     end
 end
 
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave
     % When running in octave, always skip codegen
     m2c_opts.skipcg = true;
 end
@@ -1244,6 +1247,10 @@ end
 end
 
 function str = dylibdir(dir)
-if ismac; concat = ','; else concat = '='; end
+if ismac
+    concat = ',';
+else
+    concat = '=';
+end
 str = ['-L' dir, ' -Wl,-rpath' concat dir];
 end

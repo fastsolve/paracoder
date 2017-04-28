@@ -1,4 +1,4 @@
-% A testing tool for MATLAB based on the test function in Octave. 
+% A testing tool for MATLAB based on the test function in Octave.
 %
 % -- Function File:  mtest NAME
 % -- Function File:  mtest NAME quiet|normal|verbose
@@ -11,20 +11,20 @@
 %      `test' can be called as a command or as a function. Called with a
 %      single argument NAME, the tests are run interactively and stop
 %      after the first error is encountered.
-% 
+%
 %      With a second argument the tests which are performed and the
 %      amount of output is selected.
-% 
+%
 %     'quiet'
 %           Don't report all the tests as they happen, just the errors.
-% 
+%
 %     'normal'
 %           Report all tests as they happen, but don't do tests which
 %           require user interaction.
-% 
+%
 %     'verbose'
 %           Do tests which require user interaction.
-% 
+%
 %      The argument FID can be used to allow batch processing. Errors can
 %      be written to the already open file defined by FID, and hopefully
 %      when octave crashes this file will tell you what was happening
@@ -32,17 +32,17 @@
 %      they happen.  You can also give a file name rather than an FID, in
 %      which case the contents of the file will be replaced with the log
 %      from the current test.
-% 
+%
 %      Called with a single output argument SUCCESS, `test' returns true
 %      if all of the tests were successful. Called with two output
 %      arguments N and MAX, the number of successful tests and the total
 %      number of tests in the file NAME are returned.
-% 
+%
 %      If the second argument is the string 'grabdemo', the contents of
 %      the demo blocks are extracted but not executed. Code for all code
 %      blocks is concatenated and returned as CODE with IDX being a
 %      vector of positions of the ends of the demo blocks.
-% 
+%
 %      If the second argument is 'explain', then NAME is ignored and an
 %      explanation of the line markers used is written to the file FID.
 %
@@ -399,7 +399,7 @@ for i__ = 1:length(blockidx__)-1
 
         catch
             delete test_run_error.m;
-            
+
             err__ = trimerr (lasterr, 'error');
             warning (warnstate__.state, 'quiet');
             if (warning__)
@@ -416,7 +416,12 @@ for i__ = 1:length(blockidx__)-1
         %% TESTIF
     elseif (strcmp (type__, 'testif'))
         [e__, feat__] = regexp (code__, '^\s*([^\s]+)', 'end', 'tokens');
-        if (exist('OCTAVE_VERSION','builtin') && ...
+        if exist('__octave_config_info__', 'builtin')
+          % octave_config_info is depreciated in 4.2.1
+          octave_config_info = @__octave_config_info__;
+        end
+
+        if (isoctave && ...
                 isempty (findstr (octave_config_info('DEFS'), feat__{1}{1})))
             xskip__ = xskip__ + 1;
             success__ = 0;
@@ -451,7 +456,7 @@ for i__ = 1:length(blockidx__)-1
         try
             % In MATLAB, one cannot create a function using eval, so we
             % have to create a function for the test.
-            clear test_run_temp; 
+            clear test_run_temp;
             fid_m__ = fopen('test_run_temp.m','w');
             fprintf (fid_m__, 'function %stest_run_temp(%s)\n%s\nend', shared_r__,shared__, code__);
             fclose(fid_m__); rehash;

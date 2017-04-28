@@ -85,7 +85,7 @@ end
 function md5hash = getMD5(str)
 % Compute MD5 checksum
 
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave
     md5hash = md5sum(str, true);
 else
     md = java.security.MessageDigest.getInstance('MD5');

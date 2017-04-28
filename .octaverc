@@ -9,16 +9,8 @@ addpath([m2croot '/opts/No_coder/octave']);
 
 % Initialize OpenMP
 if isempty(getenv('OMP_NUM_THREADS'))
-    warning('OMP_NUM_THREADS was not set')
-    if ismac
-        [~, nprocs] = system('sysctl -n hw.ncpu');
-    elseif isunix
-        [~, nprocs] = system('nproc');
-    end
-
-    nprocs = strtrim(nprocs);
-    fprintf(1, ['Set OMP_NUM_THREADS to ' nprocs '.\n']);
-    setenv('OMP_NUM_THREADS', nprocs);
+    fprintf(1, 'Set OMP_NUM_THREADS to %d.\n', nproc);
+    setenv('OMP_NUM_THREADS', int2str(nproc));
 end
 
 % Initialize MPI

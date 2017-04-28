@@ -74,7 +74,7 @@ function mmex(varargin)
 %           Displays each compile step and final link step fully evaluated.
 %       <name>=<value>
 %           Override default setting for variable <name>. The supported
-%           variable names include CC, CXX, CFLAGS, CPPFLAGS, CXXFLAGS, 
+%           variable names include CC, CXX, CFLAGS, CPPFLAGS, CXXFLAGS,
 %           COPTIMFLAGS, COPTIMFLAGS, CXXOPTIMFLAGS, CDEBUGFLAGS, CXXDEBUGFLAGS
 %           LD, LDXX, LDFLAGS, LINKLIBS
 %
@@ -87,6 +87,11 @@ function mmex(varargin)
 %           http://www.mathworks.com/help/matlab/ref/mex.html
 
 %% Look for mkoctfile
+if exist('__octave_config_info__', 'builtin')
+  % octave_config_info is depreciated in 4.2.1
+  octave_config_info = @__octave_config_info__;
+end
+
 bindir = octave_config_info('bindir');
 ext = octave_config_info('EXEEXT');
 
@@ -131,7 +136,7 @@ while i<=nargin
         index = strfind(varargin{i}, '=');
         var = varargin{i}(1:index-1);
         val = varargin{i}(index+1:end);
-        
+
         if isfield(defs, var)
             if ~isempty(val) && (val(1)=='"' || val(1)=='''')
                 val(1)=[];
@@ -165,7 +170,7 @@ while i<=nargin
     else
         cmd = [cmd ' "' varargin{i} '"']; %#ok<*AGROW>
     end
-    
+
     i = i + 1;
 end
 
@@ -185,7 +190,7 @@ if ~isempty(defs.CFLAGS) || ~isempty(defs.COPTIMFLAGS) || ~isempty(defs.CDEBUGFL
     macros = [macros 'export CFLAGS=''' strtrim(defs.CFLAGS) ' ' ...
         strtrim(defs.COPTIMFLAGS) ' ' strtrim(defs.CDEBUGFLAGS) '''; '];
 end
-if ~isempty(defs.CXXFLAGS) || ~isempty(defs.CXXOPTIMFLAGS) || ~isempty(defs.CXXDEBUGFLAGS) 
+if ~isempty(defs.CXXFLAGS) || ~isempty(defs.CXXOPTIMFLAGS) || ~isempty(defs.CXXDEBUGFLAGS)
     macros = [macros 'export CXXFLAGS=''' strtrim(defs.CXXFLAGS) ' ' ...
         strtrim(defs.CXXOPTIMFLAGS) ' ' strtrim(defs.CXXDEBUGFLAGS) '''; '];
 elseif ~isempty(defs.CFLAGS)

@@ -21,7 +21,7 @@ else
 end
 if isempty(a2); error('File %s does not exist.', mfile); end
 
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave
     % In octave, cannot check dependence
     OK=a1.datenum>=a2.datenum;
     return;
@@ -45,7 +45,7 @@ try
             movefile([mexfiles{i}(1:end-1) mexext], [mexfiles{i}(1:end-1) mexext '-ckdep']);
         end
         deps = matlab.codetools.requiredFilesAndProducts(mfile);
-        
+
         [depfiles, newmexfiles] = split_files(deps);
         for j=1:length(depfiles)
             a2 = dir(depfiles{j});
@@ -53,7 +53,7 @@ try
                 OK=false; break;
             end
         end
-        
+
         if ~OK || nargin==2 || ~recursive || isempty(newmexfiles)
             break;
         else
