@@ -3,10 +3,15 @@ function writeMexScript(funcname, mpath, cpath, m2c_opts)
 
 % Nested function for writing out mex script
 
-if isoctave
+if isoctave && ~m2c_opts.genMatlab
     prefix = 'oct_';
 else
     prefix = 'mex_';
+    if m2c_opts.genMatlab && ismac
+        mexext = 'mexmaci64';
+    else
+        mexext = 'mexa64';        
+    end
 end
 
 if ~isequal(cpath, '.')
@@ -226,21 +231,26 @@ if m2c_opts.withNvcc
     end
 end
 
-if isoctave
+if isoctave && ~m2c_opts.genMatlab
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = ''mmex ' mexflags ' ' ...
         srcs ' -output ' mexFile LINKLIBS ';', ' delete(''''*.o'''')'';']);
 else
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = ''mex ' mexflags ' '...
-        srcs ' -largeArrayDims -output ' mexFile LINKLIBS ''';']);
+        srcs ' -output ' mexFile LINKLIBS ''';']);
 end
 
-if ~m2c_opts.quiet
+if isoctave && m2c_opts.genMatlab
+    filestr = sprintf('%s\n', filestr, ...
+        '    disp(build_cmd);', ...
+        '    unix(build_cmd, ''-echo'');', ...
+        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');    
+elseif ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
         '    disp(build_cmd);', ...
         '    eval(build_cmd);', ...
-        'else', ['    fprintf(''' funcname '.%s is up to date.\n'', mexext);'], 'end');
+        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');
 else
     filestr = sprintf('%s\n', filestr, ...
         '    eval(build_cmd);', 'end');
@@ -248,9 +258,9 @@ end
 
 if ~m2c_opts.debugInfo && ~isoctave
     filestr = sprintf('%s\n', filestr, ...
-        '    if exist(''buildInfo.mat'', ''file''); delete(''*.mat''); end', ...
-        '    if exist(''html'', ''dir''); rmdir(''html'', ''s''); end', ...
-        '    if exist(''examples'', ''dir''); rmdir(''examples'', ''s''); end');
+        'if exist(''buildInfo.mat'', ''file''); delete(''*.mat''); end', ...
+        'if exist(''html'', ''dir''); rmdir(''html'', ''s''); end', ...
+        'if exist(''examples'', ''dir''); rmdir(''examples'', ''s''); end');
 end
 
 writeFile(outMfile, filestr);

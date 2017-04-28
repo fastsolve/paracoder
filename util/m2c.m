@@ -34,7 +34,12 @@ function m2c(varargin)
 %           the generated mex file will be saved to the directory. The
 %           given path can be absolute or relative to the M file. If the
 %           given argument is not an existing directory, it is treated as
-%           the base naem of the MEX file, with the extension <mexext>.
+%           the base naem of the MEX file, with the extension <mexext>
+%     -matlab
+%     -matlab {'relative_path_to_m_file'}
+%     -matlab {'mex_path_and_filename'}
+%           Use Octave to compile MATLAB's MEX files, assuming the mex 
+%           command is in the path
 %     -exe
 %     -exe {'relative_path_to_m_file'} or
 %     -exe {'exe_path_and_filename'}
@@ -536,7 +541,7 @@ if regen_c
 end
 
 %% Generate MATLAB scripts for mex
-if exist('OCTAVE_VERSION', 'builtin')
+if isoctave && ~m2c_opts.genMatlab
     mexbuild = [cpath  'oct_' func '.m'];
 else
     mexbuild = [cpath  'mex_' func '.m'];
@@ -649,6 +654,7 @@ m2c_opts = struct('codegenArgs', [], ...
     'gdb', '', ...
     'ddd', '', ...
     'outDir', '', ...
+    'genMatlab', false, ...
     'genMex', false, ...
     'mexFile', '', ...
     'genExe', false, ...
@@ -718,7 +724,9 @@ while i<=last_index
                 error('m2c:wrong_argument', ...
                     'Argument -outdir requires a cell-array argument after it.\n');
             end
-        case '-mex'
+        case {'-mex', '-matlab'}
+            m2c_opts.genMatlab = m2c_opts.genMatlab || isequal(opt, '-matlab');
+
             m2c_opts.genMex = true;
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.mexFile = eval(varargin{i+1});
