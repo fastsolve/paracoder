@@ -24,5 +24,7 @@ build_omp(varargin{:})
 % Build MPI
 build_mpi(varargin{:})
 
-% Build CUDA
-build_cuda(varargin{:})
+if ~isempty(m2c_cuda_opts)
+    % Build CUDA
+    build_cuda(varargin{:})
+end

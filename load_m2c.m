@@ -15,11 +15,15 @@ addpath([m2croot '/api/mpi4m']);
 addpath([m2croot '/api/mpi4m/mpi']);
 addpath([m2croot '/api/mpi4m/util']);
 
-% Add path for OpenMP and CUDA
+% Add path for OpenMP
 addpath([m2croot '/api/multicore']);
 addpath([m2croot '/api/omp4m']);
-addpath([m2croot '/api/cuda']);
-addpath([m2croot '/api/cuda/cuBLAS']);
+
+if ~isempty(m2c_cuda_opts)
+    % Add path for CUDA
+    addpath([m2croot '/api/cuda']);
+    addpath([m2croot '/api/cuda/cuBLAS']);
+end
 
 % Add dummy API if Coder does not exist
 if ~exist('coder.p', 'file')
