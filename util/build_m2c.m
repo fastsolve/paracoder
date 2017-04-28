@@ -21,3 +21,6 @@ build_omp
 
 % Build MPI
 build_mpi
+
+% Build CUDA
+build_cuad
