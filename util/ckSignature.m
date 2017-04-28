@@ -78,14 +78,16 @@ else
     str = '';
 end
 
-isold = ~isempty(strfind(file, 'opaque_obj'')'));
+isold = contains(file, 'opaque_obj'')');
 
 end
 
 function md5hash = getMD5(str)
 % Compute MD5 checksum
 
-if isoctave
+if isoctave && exist('hash', 'builtin')
+    md5hash = hash('md5', str);
+elseif isoctave
     md5hash = md5sum(str, true);
 else
     md = java.security.MessageDigest.getInstance('MD5');
