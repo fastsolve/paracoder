@@ -1,13 +1,13 @@
 function build_cuda(varargin)
 %build_cuda Build script for the CUDA submodule
 
-mcudaroot = [m2croot '/api/cuda'];
+cudaroot = [m2croot '/api/cuda'];
 curpath = pwd;
-cd(mcudaroot);
+cd(cudaroot);
 opts = m2c_cuda_opts;
 
 if isempty(opts)
-    warning('build_mcuda:NO_CUDA', 'CUDA_PATH was not set and nvcc is not in path. Compiling without CUDA.\n');
+    warning('build_cuda:NO_CUDA', 'CUDA_PATH was not set and nvcc is not in path. Compiling without CUDA.\n');
 end
 
 try
@@ -17,7 +17,7 @@ try
     
     for j=1:length(files)
         file = files{j}{1};
-        m2c(opts{:}, '-mex', '-noinf', '-O', ['-I' mcudaroot '/include'], ...
+        m2c(opts{:}, '-mex', '-noinf', '-O', ['-I' cudaroot '/include'], ...
             varargin{:}, file);
     end
 catch ME

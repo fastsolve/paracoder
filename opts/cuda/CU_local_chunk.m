@@ -1,10 +1,10 @@
-function [istart, iend, threadID] = MCU_local_chunk(m, nthreads)
+function [istart, iend, threadID] = CU_local_chunk(m, nthreads)
 % Determines starting and ending indices of local chunk on a CUDA thread.
 %
-% [istart, iend, threadID] = MCU_local_chunk(m) obtains the local chunk on
+% [istart, iend, threadID] = CU_local_chunk(m) obtains the local chunk on
 % each CUDA thread, where m is the total number of items.
 %
-% [istart, iend, threadID] = MCU_local_chunk(m, nthreads) requires only
+% [istart, iend, threadID] = CU_local_chunk(m, nthreads) requires only
 % the first n threads perform computation, and the remaining threads remain
 % idle. Note that if nthreads is smaller than the actual number of threads,
 % then some chunks may not be taken care of by any thread.

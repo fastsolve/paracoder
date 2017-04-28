@@ -1,2 +1,2 @@
-function type = MCU_SINGLE
+function type = CUB_SINGLE
 type = int32(4);

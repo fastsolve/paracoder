@@ -1131,8 +1131,7 @@ if m2c_opts.genExe && ~isunix()
 end
 
 if m2c_opts.withCuda
-    mcudaroot = fileparts(which('startup_mcuda.m'));
-    m2c_opts.cppflags = [m2c_opts.cppflags ['-I' mcudaroot '/include'] '-DM2C_CUDA=1'];
+    m2c_opts.cppflags = [m2c_opts.cppflags ' -DM2C_CUDA=1'];
     if m2c_opts.withNvcc
         m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/cuda']];
     end

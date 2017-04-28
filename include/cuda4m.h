@@ -190,6 +190,8 @@ inline int cublasDdot(cublasHandle_t handle, int n,
 
 #endif /* M2C_CUDA */
 
+#include "m2c.h"
+
 inline void CHKCUERR(cudaError_t ierr, const char *func) {
     if (ierr) {
         M2C_error("m2c:CudaRuntimeError", "%s failed with error message %s",

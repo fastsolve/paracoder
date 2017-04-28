@@ -1,2 +1,4 @@
 function m2c_flush(varargin)
-MCU_flush();
+
+%TODO: Not yet implemented
+CU_flush();

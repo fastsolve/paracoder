@@ -6,32 +6,32 @@ coder.inline('always');
 switch mType
     case 'double'
         if isreal
-            type = MCU_DOUBLE;
+            type = CUB_DOUBLE;
         else
-            type = MCU_DOUBLE_COMPLEX;
+            type = CUB_DOUBLE_COMPLEX;
         end
     case 'single'
         if isreal
-            type = MCU_SINGLE;
+            type = CUB_SINGLE;
         else
-            type = MCU_COMPLEX;
+            type = CUB_COMPLEX;
         end
     case 'int8'
-        type = MCU_INT8;
+        type = CUB_INT8;
     case 'uint8'
-        type = MCU_UINT8;
+        type = CUB_UINT8;
     case 'int16'
-        type = MCU_INT16;
+        type = CUB_INT16;
     case 'uint16'
-        type = MCU_UINT16;
+        type = CUB_UINT16;
     case 'int32'
-        type = MCU_INT32;
+        type = CUB_INT32;
     case 'uint32'
-        type = MCU_UINT32;
+        type = CUB_UINT32;
     case 'int64'
-        type = MCU_INT64;
+        type = CUB_INT64;
     case 'uint64'
-        type = MCU_UINT64;
+        type = CUB_UINT64;
     otherwise
         m2c_error('mcuType:WrongType', ['Unknow supported data type ' mType '.\n']);
 end

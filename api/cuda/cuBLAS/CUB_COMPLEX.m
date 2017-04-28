@@ -1,2 +1,2 @@
-function type = MCU_COMPLEX
+function type = CUB_COMPLEX
 type = int32(108);

@@ -2,9 +2,9 @@ function [mat, errCode, toplevel] = cuMatCreate(m, n, type)
 %Creates a matrix on a CUDA device.
 %
 %  [mat, errCode] = cuMatCreate(m, n, [type]) creates a matrix of
-%  size m-by-n on CUDA, where type can be MCU_DOUBLE, MCU_SINGLE,
-%  MCU_COMPLEX, or MCU_DOUBLE_COMPLEX, MCU_INT*, or MCU_UINT*. If 
-%  not specified, then type is MCU_DOUBLE.
+%  size m-by-n on CUDA, where type can be CUB_DOUBLE, CUB_SINGLE,
+%  CUB_COMPLEX, or CUB_DOUBLE_COMPLEX, CUB_INT*, or CUB_UINT*. If 
+%  not specified, then type is CUB_DOUBLE.
 %
 %  SEE ALSO: cuMatDestroy, cuMatCopyToGPU, cuMatCopyFromGPU
 
@@ -13,7 +13,7 @@ function [mat, errCode, toplevel] = cuMatCreate(m, n, type)
 
 toplevel = nargout>2;
 
-if nargin<3; type = MCU_DOUBLE; end
+if nargin<3; type = CUB_DOUBLE; end
 
 sizepe = cuGetSizePerElement(type);
 t_mat = coder.opaque('void *');

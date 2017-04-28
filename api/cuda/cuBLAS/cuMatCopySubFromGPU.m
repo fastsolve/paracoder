@@ -38,8 +38,8 @@ end
 if (toplevel || m2c_debug)
     if ~isfloat(mat)
         m2c_error('cuMatCopyToGPU:TypeMismatch', 'Expected floating-point numbers.');
-    elseif  isreal(mat) && cuMat.type ~= MCU_DOUBLE && cuMat.type ~= MCU_SINGLE || ...
-            ~isreal(mat) && cuMat.type ~= MCU_DOUBLE_COMPLEX && cuMat.type ~= MCU_COMPLEX
+    elseif  isreal(mat) && cuMat.type ~= CUB_DOUBLE && cuMat.type ~= CUB_SINGLE || ...
+            ~isreal(mat) && cuMat.type ~= CUB_DOUBLE_COMPLEX && cuMat.type ~= CUB_COMPLEX
         m2c_error('cuMatCopyToGPU:TypeMismatch', 'Real and complex numbers mismatch.');
     elseif nrows>size(mat,1) || ncols>size(mat,1)
         m2c_error('cuMatCopyToGPU:SizeMismatch', 'Source matrix is too small.');

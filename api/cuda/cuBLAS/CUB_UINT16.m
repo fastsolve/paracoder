@@ -1,2 +1,2 @@
-function type = MCU_UINT16
+function type = CUB_UINT16
 type = int32(22);

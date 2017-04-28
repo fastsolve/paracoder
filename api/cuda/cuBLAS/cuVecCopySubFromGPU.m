@@ -38,8 +38,8 @@ end
 if toplevel || m2c_debug
     if ~isfloat(vec)
         m2c_error('cuVecCopyToGPU:TypeMismatch', 'Expected floating-point numbers.');
-    elseif  isreal(vec) && cuVec.type ~= MCU_DOUBLE && cuVec.type ~= MCU_SINGLE || ...
-            ~isreal(vec) && cuVec.type ~= MCU_DOUBLE_COMPLEX && cuVec.type ~= MCU_COMPLEX
+    elseif  isreal(vec) && cuVec.type ~= CUB_DOUBLE && cuVec.type ~= CUB_SINGLE || ...
+            ~isreal(vec) && cuVec.type ~= CUB_DOUBLE_COMPLEX && cuVec.type ~= CUB_COMPLEX
         m2c_error('cuVecCopyToGPU:TypeMismatch', 'Real and complex numbers mismatch.');
     elseif n>m2c_intdiv(int32(length(vec)),inc)
         m2c_error('cuVecCopyToGPU:SizeMismatch', 'Target array is too small.');

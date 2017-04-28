@@ -6,7 +6,7 @@ function [cfile_str, hfile_str, parmode] = ...
 parmode = '';
 if m2c_opts.withNvcc
     if ~isempty(strfind(cfile_str, 'threadIdx.x'))
-        if ~isempty(strfind(cfile_str, '#pragma mcuda'))
+        if ~isempty(strfind(cfile_str, '#pragma cuda'))
             parmode = 'cuda';
         else
             parmode = 'cuda-kernel';
@@ -179,7 +179,7 @@ if m2c_opts.enableInline
         for i=1:length(toks)
             if strfind(toks{i}{5}, 'emxEnsureCapacity')
                 fprintf(2,['It seems that you have memory allocation in a CUDA parallel region:\n %s', ...
-                    'If you allocated a local buffer, make sure you call m2c_rref(buf) before MCU_begin_parallle.\n'], ...
+                    'If you allocated a local buffer, make sure you call m2c_rref(buf) before CU_begin_parallle.\n'], ...
                     [toks{i}{4},toks{i}{5}]);
             end
             

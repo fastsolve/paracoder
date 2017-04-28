@@ -1,2 +1,2 @@
-function type = MCU_INT64
+function type = CUB_INT64
 type = int32(14);
