@@ -220,7 +220,8 @@ else
     if verbose
         disp(cmd);
     end
-    unix(cmd, '-echo');
+    status = unix(cmd, '-echo');
+    if status; error('mkoctfile failed'); end
 end
 
 end

@@ -10,7 +10,7 @@ else
     if m2c_opts.genMatlab && ismac
         mexext = 'mexmaci64';
     else
-        mexext = 'mexa64';        
+        mexext = 'mexa64';
     end
 end
 
@@ -60,9 +60,9 @@ end
 if ~m2c_opts.verbose
     CFLAGS = [CFLAGS ' -Wno-unused-function'];
     if ismac
-       CFLAGS = [CFLAGS ' -Wno-null-character -Wno-invalid-pp-token'];
+        CFLAGS = [CFLAGS ' -Wno-null-character -Wno-invalid-pp-token'];
     end
- end
+end
 
 if ismac
     LDFLAGS = [LDFLAGS ' -dynamiclib'];
@@ -244,8 +244,9 @@ end
 if isoctave && m2c_opts.genMatlab
     filestr = sprintf('%s\n', filestr, ...
         '    disp(build_cmd);', ...
-        '    unix(build_cmd, ''-echo'');', ...
-        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');    
+        '    status = unix(build_cmd, ''-echo'');', ...
+        '    if status; error(''mex failed''); end', ...
+        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');
 elseif ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
         '    disp(build_cmd);', ...
