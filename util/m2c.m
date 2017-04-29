@@ -1223,7 +1223,12 @@ if nargout>1
 end
 
 if nargout>2
-    INC = ['-I' petscroot '/include '];
+    if exist('petscroot', 'file')
+        INC = ['-I' petscroot '/include '];
+    else
+        INC = '';
+    end
+    
     pat = 'PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
     
