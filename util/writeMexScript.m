@@ -6,6 +6,7 @@ function writeMexScript(funcname, mpath, cpath, m2c_opts)
 if isoctave
     if ~m2c_opts.genMatlab
         prefix = 'oct_';
+        mexext__ = mexext;
     else
         prefix = 'mex_';
         if ismac

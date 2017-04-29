@@ -4,14 +4,6 @@ more off;
 
 % Set path for M2C
 load_m2c
-addpath([m2croot '/util/octave']);
-addpath([m2croot '/opts/No_coder/octave']);
-
-% Initialize OpenMP
-if isempty(getenv('OMP_NUM_THREADS'))
-    fprintf(1, 'Set OMP_NUM_THREADS to %d.\n', nproc);
-    setenv('OMP_NUM_THREADS', int2str(nproc));
-end
 
 % Initialize MPI
 init_mpi
