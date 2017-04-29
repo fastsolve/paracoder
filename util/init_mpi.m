@@ -3,10 +3,11 @@ function init_mpi
 
 if exist(['mpi_Initialized.' mexext], 'file') && ...
         exist(['mpi_Init.' mexext], 'file') && ...
-        exist(['mpi_Comm_set_errhandler.' mexext], 'file') && ...
-        ~mpi_Initialized
+        exist(['mpi_Comm_set_errhandler.' mexext], 'file')
     try
-        mpi_Init;
+        if ~mpi_Initialized
+            mpi_Init;
+        end
     catch
         error('mpi_Init failed.');
     end
