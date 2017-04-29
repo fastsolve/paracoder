@@ -136,6 +136,17 @@ while i<=nargin
         var = varargin{i}(1:index-1);
         val = varargin{i}(index+1:end);
 
+        if ~isempty(val) && val(1) == '''' && (length(val)==1 || val(end) ~= '''')
+            % Append additional args
+            while i<length(varargin)
+                val = [val ' ' varargin{i+1}];
+                i = i + 1;
+                if varargin{i}(end) == ''''
+                    break;
+                end
+            end
+        end
+
         if isfield(defs, var)
             if ~isempty(val) && (val(1)=='"' || val(1)=='''')
                 val(1)=[];
