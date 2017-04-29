@@ -30,11 +30,12 @@ function m2c(varargin)
 %           m2c to build the mex function in addition to generating the C files.
 %           By default, the mex file will be saved in the same directory
 %           as that of the M file. The MEX file is named <mfilename>.<mexext>.
-%           If an argument is given and it corresponds to an existing directory,
-%           the generated mex file will be saved to the directory. The
-%           given path can be absolute or relative to the M file. If the
-%           given argument is not an existing directory, it is treated as
-%           the base naem of the MEX file, with the extension <mexext>
+%           If an argument is given and it ends with '/', the generated mex
+%           file will be saved to the directory. The given path can be
+%           either absolute or relative to the M file, but it must exist. If
+%           the given argument does not end with '/', it will be treated as
+%           the base naem of the MEX file and will be appended with the 
+%           extension <mexext> unless the extension is already given
 %     -matlab
 %     -matlab {'relative_path_to_m_file'}
 %     -matlab {'mex_path_and_filename'}
@@ -47,11 +48,9 @@ function m2c(varargin)
 %           MATLAB for debugging in place of the M-file (for Linux and Mac).
 %           By default, the exe file will be saved in the same directory
 %           as the M file, with the extension '.exe'.  If a parameter is 
-%           given, and it ends with '/' (or '\' on Windows) or it is an 
-%           existing directory, then the executable will be saved to the 
-%           specified directory; if the parameter is not a directory name, 
-%           it will be treated as the filename of the executable, without 
-%           any extension appended to it.
+%           given, and it ends with '/', then the executable will be saved
+%           to the specified directory; if the parameter does not end with
+%           '/', it will be treated as the filename of the executable.
 %     -lib
 %     -lib {'libdir'} or 
 %     -lib {'lib_path_and_filename'} 
@@ -574,7 +573,7 @@ if m2c_opts.genExe
         writeExeScripts(func, mpath, cpath, m2c_opts);
     end
     
-    if ~exist('OCTAVE_VERSION', 'builtin')
+    if ~isoctave
         build_exe(cpath, func);
         if m2c_opts.verbose
             fprintf(['To run the EXE file in MATLAB, ', ...
@@ -1224,12 +1223,12 @@ if nargout>1
 end
 
 if nargout>2
-    INC = '';
+    INC = ['-I' petscroot '/include '];
     pat = 'PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
     
     if ~isempty(def)
-        INC = strtrim(regexprep(def, pat, '$1'));
+        INC = [INC strtrim(regexprep(def, pat, '$1'))];
     end
 end
 

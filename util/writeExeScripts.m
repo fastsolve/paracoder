@@ -91,12 +91,15 @@ if m2c_opts.withMPI
     CPPFLAGS = [CPPFLAGS sprintf(' %s ', m2c_opts.mpiInc{1})];
 end
 
-if m2c_opts.verbose; 
+if m2c_opts.verbose
     CFLAGS = ['-v ' CFLAGS]; 
     CXXFLAGS = ['-v ' CXXFLAGS]; 
 else
     CFLAGS = [CFLAGS ' -Wno-unused-function'];
     CXXFLAGS = [CXXFLAGS ' -Wno-unused-function'];
+end
+if ~m2c_opts.debugInfo
+    CFLAGS = [CFLAGS ' -Wno-maybe-uninitialized'];
 end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
@@ -136,9 +139,9 @@ if ~isempty(m2c_opts.exeFile)
         exeFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
             m2c_opts.exeFile{1}];
     end
-    if exist([cpath exeFile ], 'dir')
+    if exeFile(end) == '/' || exeFile(end) == '\'
         exeDir = exeFile;
-        exeFile = [exeFile '/' funcname '.exe'];
+        exeFile = [exeFile funcname '.exe'];
     else
         [exeDir, exeBase, ext] = fileparts(exeFile);
         exeFile = [exeDir '/' exeBase ext];
@@ -236,7 +239,11 @@ end
 function writeExeMWrapper(altapis, cpath, exeDir, funcname, m2c_opts, CC)
 % Generate M-file for reading and writing output through MAT files.
 
-outfile = [exeDir 'run_' funcname '_exe.m'];
+if exeDir(1) == '/' || exeDir(1) == '\'
+    outfile = [exeDir 'run_' funcname '_exe.m'];
+else
+    outfile = [cpath exeDir 'run_' funcname '_exe.m'];
+end
 
 % Backup file
 if (exist(outfile, 'file'))

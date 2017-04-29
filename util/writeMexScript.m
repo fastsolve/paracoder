@@ -3,15 +3,20 @@ function writeMexScript(funcname, mpath, cpath, m2c_opts)
 
 % Nested function for writing out mex script
 
-if isoctave && ~m2c_opts.genMatlab
-    prefix = 'oct_';
+if isoctave
+    if ~m2c_opts.genMatlab
+        prefix = 'oct_';
+    else
+        prefix = 'mex_';
+        if ismac
+            mexext__ = 'mexmaci64';
+        else
+            mexext__ = 'mexa64';
+        end
+    end
 else
     prefix = 'mex_';
-    if m2c_opts.genMatlab && ismac
-        mexext = 'mexmaci64';
-    else
-        mexext = 'mexa64';
-    end
+    mexext__ = mexext;
 end
 
 if ~isequal(cpath, '.')
@@ -62,6 +67,10 @@ if ~m2c_opts.verbose
     if ismac
         CFLAGS = [CFLAGS ' -Wno-null-character -Wno-invalid-pp-token'];
     end
+end
+
+if ~m2c_opts.debugInfo
+    CFLAGS = [CFLAGS ' -Wno-maybe-uninitialized'];
 end
 
 if ismac
@@ -173,20 +182,20 @@ if ~isempty(m2c_opts.mexFile)
         mexFile = [repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/'))) ...
             m2c_opts.mexFile{1}];
     end
-    if exist([cpath mexFile], 'dir')
-        mexFile = [mexFile '/' funcname '.' mexext];
+    if mexFile(end) == '/' || mexFile(end) == '\'
+        mexFile = [mexFile funcname '.' mexext__];
     else
         [mexDir, mexBase, ~] = fileparts(mexFile);
-        mexFile = [mexDir '/' mexBase '.' mexext];
+        mexFile = [mexDir '/' mexBase '.' mexext__];
     end
 elseif isempty(mpath) || isequal(mpath, cpath(1:length(mpath)))
     mexDir = repmat('../', 1, length(strfind(cpath(length(mpath)+1:end), '/')));
-    mexFile = [mexDir funcname '.' mexext];
+    mexFile = [mexDir funcname '.' mexext__];
 elseif mpath(1)=='/' || mpath(1)=='\'
-    mexFile = [mpath funcname '.' mexext];
+    mexFile = [mpath funcname '.' mexext__];
     % By default, place mex file in the same directory as the M file.
 else
-    mexFile = [pwd '/' mpath funcname '.' mexext];
+    mexFile = [pwd '/' mpath funcname '.' mexext__];
 end
 
 [~, signature] = ckSignature(m2c_opts, 'mex');
@@ -246,12 +255,12 @@ if isoctave && m2c_opts.genMatlab
         '    disp(build_cmd);', ...
         '    status = unix(build_cmd, ''-echo'');', ...
         '    if status; error(''mex failed''); end', ...
-        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');
+        'else', ['    fprintf(''' funcname '.' mexext__ ' is up to date.\n'');'], 'end');
 elseif ~m2c_opts.quiet
     filestr = sprintf('%s\n', filestr, ...
         '    disp(build_cmd);', ...
         '    eval(build_cmd);', ...
-        'else', ['    fprintf(''' funcname '.' mexext ' is up to date.\n'');'], 'end');
+        'else', ['    fprintf(''' funcname '.' mexext__ ' is up to date.\n'');'], 'end');
 else
     filestr = sprintf('%s\n', filestr, ...
         '    eval(build_cmd);', 'end');
