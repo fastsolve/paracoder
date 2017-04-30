@@ -1259,10 +1259,15 @@ end
 end
 
 function str = dylibdir(dir)
-if ismac
-    concat = ',';
-else
-    concat = '=';
+str = ['-L' dir];
+
+if ~isoctave || OCTAVE_VERSION()(1)>'3'
+    % Use rpath only for Octave 4.0 or higher
+    if ismac
+        concat = ',';
+    else
+        concat = '=';
+    end
+    str = [str, ' -Wl,-rpath' concat dir];
 end
-str = ['-L' dir, ' -Wl,-rpath' concat dir];
 end
