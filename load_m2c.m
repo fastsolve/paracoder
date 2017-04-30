@@ -9,7 +9,13 @@ addpath([m2croot '/util']);
 addpath([m2croot '/api']);
 addpath([m2croot '/api/ctypes']);
 addpath([m2croot '/api/mtypes']);
-addpath([m2croot '/api/crs']);
+
+% Add path for matrix operations
+addpath([m2croot '/api/matrix/dense']);
+addpath([m2croot '/api/matrix/crs']);
+
+% Add path for mesh operations
+addpath([m2croot '/api/mesh/ahf']);
 
 % Add path for MPI
 addpath([m2croot '/api/mpi4m']);
