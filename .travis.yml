@@ -3,8 +3,13 @@ dist: trusty
 sudo: required
 language: C
 
+env:
+  matrix:
+  - UPDATE_REPOSITORY="true"
+  - UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
+
 before_install:
-  - sudo add-apt-repository -y ppa:octave/stable
+  - sudo $UPDATE_REPOSITORY
   - sudo apt-get update -q
   - sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev
   - curl -L "$URL" | sudo bsdtar zxf - -C /usr/local --strip-components 2
