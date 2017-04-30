@@ -1,12 +1,6 @@
 function init_mpi
 % Initialize MPI
 
-persistent called__;
-if ~isempty(called__)
-    return;
-end
-called__ = true;
-
 if exist(['mpi_Initialized.' mexext], 'file') && ...
         exist(['mpi_Init.' mexext], 'file') && ...
         exist(['mpi_Comm_set_errhandler.' mexext], 'file')
