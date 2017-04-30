@@ -19,12 +19,6 @@ addpath([m2croot '/api/mpi4m/util']);
 addpath([m2croot '/api/multicore']);
 addpath([m2croot '/api/omp4m']);
 
-% Initialize OpenMP
-if isempty(getenv('OMP_NUM_THREADS'))
-    fprintf(1, 'Set OMP_NUM_THREADS to %d.\n', nproc);
-    setenv('OMP_NUM_THREADS', int2str(nproc));
-end
-
 if ~isempty(m2c_cuda_opts)
     % Add path for CUDA
     addpath([m2croot '/api/cuda']);
@@ -37,6 +31,12 @@ if ~exist('coder.p', 'file')
 end
 
 if isoctave
+    % Initialize OpenMP
+    if isempty(getenv('OMP_NUM_THREADS'))
+        fprintf(1, 'Set OMP_NUM_THREADS to %d.\n', nproc);
+        setenv('OMP_NUM_THREADS', int2str(nproc));
+    end
+
     addpath([m2croot '/util/octave']);
     addpath([m2croot '/opts/No_coder/octave']);
 end
