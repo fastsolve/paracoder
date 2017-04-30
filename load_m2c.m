@@ -9,6 +9,7 @@ addpath([m2croot '/util']);
 addpath([m2croot '/api']);
 addpath([m2croot '/api/ctypes']);
 addpath([m2croot '/api/mtypes']);
+addpath([m2croot '/api/crs']);
 
 % Add path for MPI
 addpath([m2croot '/api/mpi4m']);
