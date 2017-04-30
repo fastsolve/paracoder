@@ -118,11 +118,14 @@ cmd = ['"' shell_script '" --mex -DMATLAB_MEX_FILE -DOCTAVE_MEX_FILE '];
 
 dryrun = false;
 verbose = false;
+target = '';
+
 i=1;
 while i<=nargin
     if isequal(varargin{i}, '-output')
         cmd = [cmd ' --output']; %#ok<*AGROW>
         if i < nargin
+            target = varargin{i+1};
             cmd = [cmd ' ' varargin{i+1}]; %#ok<*AGROW>
             i = i + 1;
         else
@@ -135,6 +138,17 @@ while i<=nargin
         index = strfind(varargin{i}, '=');
         var = varargin{i}(1:index-1);
         val = varargin{i}(index+1:end);
+
+        if ~isempty(val) && val(1) == '''' && (length(val)==1 || val(end) ~= '''')
+            % Append additional args
+            while i<length(varargin)
+                val = [val ' ' varargin{i+1}];
+                i = i + 1;
+                if varargin{i}(end) == ''''
+                    break;
+                end
+            end
+        end
 
         if isfield(defs, var)
             if ~isempty(val) && (val(1)=='"' || val(1)=='''')
@@ -219,8 +233,10 @@ else
     if verbose
         disp(cmd);
     end
-    status = unix(cmd, '-echo');
-    if status; error('mkoctfile failed'); end
+    [status, text] = unix(cmd, '-echo');
+    if status || target && ~exist(target, 'file')
+        error('mkoctfile failed');
+     end
 end
 
 end
