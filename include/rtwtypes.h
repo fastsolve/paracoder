@@ -5,6 +5,8 @@
 
 #if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(OCTAVE_MEX_FILE)
 #include "tmwtypes.h" /* Use MATLAB's TMWTYPES */
+#else
+#include <stdint.h>
 #endif
 
 #ifndef __RTWTYPES_H__
