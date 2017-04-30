@@ -1,0 +1,2 @@
+This directory contains the implementation of the basic matrix operations
+in compressed-row sparse (CRS) format.
