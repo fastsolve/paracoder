@@ -25,14 +25,20 @@ if nargin<=3 && isscalar(rows) && isscalar(cols)
     return;
 end
 
-if nargin<4; nrows = max(rows);
-else nrows = int32(varargin{1}); end
-if nargin<5; ncols = max(cols);
-else ncols = int32(varargin{2}); end
+if nargin<4
+    nrows = max(rows);
+else
+    nrows = int32(varargin{1});
+end
+if nargin<5
+    ncols = max(cols);
+else
+    ncols = int32(varargin{2});
+end
 
 A = struct('row_ptr', zeros(nrows+1,1,'int32'), ...
-    'col_ind',coder.nullcopy(zeros(size(cols),'int32')), ...
-    'val',coder.nullcopy(zeros(size(cols), class(vs))), ...
+    'col_ind',zeros(size(cols),'int32'), ...
+    'val',zeros(size(cols), class(vs)), ...
     'nrows', nrows, 'ncols', ncols);
 
 %% Construct A.row_ptr

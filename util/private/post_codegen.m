@@ -108,14 +108,14 @@ end
 %     '\([^,\)]+\)\s*{\s+(\w*emxFree_\w+)\s*\([^\)]+\);\s+}'], ...
 %     'define_emxDestroyArray($2, $1)');
 
+% Remove file <func>_emxutil.h
+cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '_emxutil.h"\n)'], '$1');
+
 % Add '#include "m2c.h"' if needed
 if ~usem2c && length(cfile_str) ~= length(cfile_str_orig)
     cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '.h"\n)'], ...
         '$1$2#include "m2c.h"\n');
 end
-
-% Remove file <func>_emxutil.h
-cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"' func '_emxutil.h"\n)'], '$1');
 
 %% Change API definitinons.
 api_decl = '';
