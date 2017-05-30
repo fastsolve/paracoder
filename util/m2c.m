@@ -1261,7 +1261,7 @@ end
 function str = dylibdir(dir)
 str = ['-L' dir];
 
-if ~isoctave || OCTAVE_VERSION()(1)>'3'
+if ~isoctave || ~strncmp(OCTAVE_VERSION, '3', 1)
     % Use rpath only for Octave 4.0 or higher
     if ismac
         concat = ',';
