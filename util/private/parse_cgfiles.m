@@ -22,7 +22,7 @@ end
 if ~exist(hfile, 'file') ||  ~exist(tyfile, 'file')
     error('m2c:parse_cgfile', 'Could not locate header file %s.\n', hfile);
 elseif ~exist(htmlfile, 'file')
-    error('m2c:parse_cgfile', ['Cannot locate codegen report for function %s.' ...
+    error('m2c:parse_cgfile', ['Cannot locate codegen report for function %s. ' ...
         'Probably function name was misspelled in the M file.'], ...
         funcname);
 end
@@ -100,30 +100,30 @@ vars = repmat(struct('cname', '', 'mname', '', ...
 
 for i=1:ncarg
     toks = regexp(carglist{i}, '^(const\s+)?((unsigned|signed)\s+)?(\w+)\s*(\*\s*)*(\w+)\s*(\[\s*\d*\s*\])*$', 'tokens');
-    
+
     % Set variable name
     assert(~isempty(toks{1}{5}));
     vars(i).cname = toks{1}{5};
-    
+
     % Set isconst
     if ~isempty(toks{1}{1})
         assert(isequal(deblank(toks{1}{1}),'const'));
         vars(i).isconst = true;
     end
-    
+
     % Set type and base type
     assert(~isempty(toks{1}{3}));
     vars(i).type = map_basetype(strtrim(toks{1}{2}), toks{1}{3});
-    
+
     determine_subfields = false;
-    
+
     if strncmp(vars(i).type, 'emxArray_', 9) && ...
-            ~isempty(strfind(basetypes, [' ' vars(i).type(10:end) ' ']))
+            contains(basetypes, [' ' vars(i).type(10:end) ' '])
         vars(i).basetype = vars(i).type(10:end);
         vars(i).isemx = true;
         [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
             determine_type_size(htmlfile, mprefix, vars(i).cname, 0);
-        
+
         vars(i).modifier = strtrim(toks{1}{4});
     elseif strncmp(vars(i).type, 'emxArray_', 9) % struct array
         vars(i).isemx = true;
@@ -146,14 +146,14 @@ for i=1:ncarg
         else
             vars(i).basetype = 'struct';
             vars(i).structname = b{1}{1};
-            
+
             [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
                 determine_type_size(htmlfile, mprefix, vars(i).cname, 0);
 
             if ~isfield(structDefs, vars(i).type)
                 [decl, sublist] = regexp(typedecl, ['\stypedef\s+struct\s+\w*\s*\{([^}][^\n]+\n)+\}\s+' ...
                     vars(i).structname '\s*;'], 'match', 'tokens');
-                
+
                 if isempty(sublist)
                     error('Does not recognize datatype %s', vars(i).type);
                 elseif ~isempty(strfind(sublist{1}{1}, '{'))
@@ -163,17 +163,17 @@ for i=1:ncarg
                         vars(i).type, decl{1});
                 end
                 sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
-                
+
                 determine_subfields = true;
             else
                 vars(i).subfields = structDefs.(vars(i).type).fields;
             end
         end
     else
-        if isempty(strfind(basetypes, [' ' vars(i).type ' ']))
+        if ~contains(basetypes, [' ' vars(i).type ' '])
             vars(i).basetype = 'struct';
             vars(i).structname = vars(i).type;
-                        
+
             if ~isempty(cprefix) && ~isempty(regexp(cprefix, 'SD.$', 'once')) && ncarg==1
                 SDindex = 1;
             elseif ~isfield(structDefs, vars(i).type)
@@ -189,17 +189,17 @@ for i=1:ncarg
                 end
                 sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
 
-                determine_subfields = true;                
+                determine_subfields = true;
             else
                 vars(i).subfields = structDefs.(vars(i).type).fields;
             end
         else
             vars(i).basetype = vars(i).type;
         end
-        
+
         vars(i).modifier = strtrim(toks{1}{4});
     end
-    
+
     % Set modifier and size
     if ~isempty(toks{1}{6})
         toks = regexp(toks{1}{6}, '\[\s*(\d*)\s*\]\s*', 'tokens');
@@ -208,11 +208,11 @@ for i=1:ncarg
         else
             totallen = str2double(toks{1}{1});
         end
-        
+
         [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
             determine_type_size(htmlfile, mprefix, vars(i).cname, totallen);
         vars(i).modifier = '*';
-        
+
         if isempty(vars(i).size)
             if isequal(vars(i).cname(1:end-4), vars(i-1).cname(1:end-4)) && ...
                     isequal(vars(i).cname(end-3:end), 'size') && ...
@@ -228,10 +228,10 @@ for i=1:ncarg
             end
         end
     elseif ~isequal(vars(i).modifier,'*') && isempty(mprefix) && ...
-            ~isempty(strfind(basetypes, [' ' vars(i).type ' ']))
+            contains(basetypes, [' ' vars(i).type ' '])
         vars(i).isconst = true;
     end
-      
+
     % Set size for scalar or an optimized-out array
     if isempty(vars(i).size)
         [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
@@ -243,13 +243,13 @@ for i=1:ncarg
             vars(i).sizefield = 'NULL';
         end
     end
-    
+
     if determine_subfields
         % Parse type declaration
         [vars(i).subfields, structDefs, SDindex] = parse_var_decl(sublist{1}, ...
             typedecl, hfile, htmlfile, structDefs, [mprefix vars(i).mname '.'], [cprefix vars(i).cname '.']);
         if ~isempty(SDindex); SDindex=i; end
-        
+
         structDefs.(vars(i).type) = struct('fields', vars(i).subfields, ...
             'structname', vars(i).structname, ...
             'marshallinFunc', '', 'marshallinArrayFunc', '', ...
@@ -259,7 +259,7 @@ for i=1:ncarg
             'destroyFunc', '', 'destroyArrayFunc', '');
     end
 end
-    
+
 end
 
 function [vars, ret, nlhs, nrhs, pruned_args] = sort_arguments(vars, rettype, m_args, ...
@@ -279,7 +279,7 @@ for i=1:nrhs
             break;
         end
     end
-    
+
     if ~found
         for k=i:length(vars)
             if isempty(vars(k).iindex) && ~isempty(regexp(vars(k).cname, ...
@@ -291,7 +291,7 @@ for i=1:nrhs
             end
         end
     end
-    
+
     if ~found
         if i==nrhs && isequal(m_args.input{i}, 'varargin')
             nrhs = nrhs-1;
@@ -311,7 +311,7 @@ for i=1:nlhs
             break;
         end
     end
-    
+
     if found
         continue;
     elseif (i==nlhs && isequal(m_args.output{i}, 'varargout'))
@@ -337,7 +337,7 @@ for i=1:nlhs
             'isemx', false, 'size', 1, 'vardim', 0, 'sizefield', [], ...
             'iindex', [], 'oindex', i);
         % Check return type
-        if isempty(strfind(basetypes, [' ' rettype ' ']))
+        if ~contains(basetypes, [' ' rettype ' '])
             ret.basetype = 'struct';
             [~, sublist] = regexp(typedecl, ['\stypedef\s+struct\s+\w*\s*\{([^}]+)\}\s+' ...
                 ret.type '\s*;'], 'match', 'tokens');
@@ -345,7 +345,7 @@ for i=1:nlhs
                 error('Cannot recognize datatype %s', rettype);
             end
             sublist = textscan(sublist{1}{1}, '%s', 'delimiter', ';');
-            
+
             % Parse type declaration
             [ret.subfields, structDefs] = parse_var_decl(sublist{1}, ...
                 typedecl, hfile, htmlfile, structDefs, [ret.mname '.'], '');
@@ -357,7 +357,7 @@ if nargout>4
     % Determine the pruned arguments
     pruned_args = repmat(struct('cname', '', 'mname', '', ...
         'type', '', 'iscomplex', false, 'size', [], 'oindex', []), 1,0);
-    
+
     vars_ret = [vars; ret];
     npruned = 0;
     % Loop through all the output arguments and check whether any was pruned
@@ -391,7 +391,7 @@ function [sz, vardim, mname, iscomplex, basetype] = ...
 varname = [mprefix cname];
 
 % Determine the size of the variable
-if isempty(strfind(varname,'.'))
+if ~contains(varname,'.')
     type = 'I\/O|Input|Output';
 else
     type = 'Field';
@@ -432,7 +432,7 @@ else
     szlist = textscan(toks{1}{1}, '%s', 'delimiter', 'x*');
     sz = zeros(length(szlist{1}),1);
     vardim = false(length(szlist{1}),1);
-    
+
     for j=1:length(sz)
         if szlist{1}{j}(1) == ':'
             vardim(j) = true;
@@ -446,10 +446,10 @@ else
             sz(j) = str2double(szlist{1}{j});
         end
     end
-    
+
     basetype = toks{1}{2};
     iscomplex = isequal(toks{1}{3}, 'Yes');
-    
+
     % Trim high-dimensional arrays
     for j=length(sz):-1:1
         if j==1 || sz(j) ~= 1 || vardim(j)
@@ -458,7 +458,7 @@ else
             break;
         end
     end
-    
+
     assert(totalsize==0 || totalsize == prod(sz), 'Size handling error.');
 end
 
@@ -515,17 +515,35 @@ end
 
 function htmlfile = get_htmlfile(cpath, altfunc)
 % Locate HTML file for the given function name and alternative name.
+
 htmlfile = [cpath '/html/' altfunc '1_watch.html'];
 if exist(htmlfile,'file')
     return;
 end
 
-listing = dir([cpath '/html/' altfunc '*_watch.html']);
+listing = dir([cpath '/html/' altfunc '*_mcode.html']);
 htmlfile = '';
 for i=length(listing):-1:1
-    if ~isempty(regexp(listing(i).name, [altfunc '\d+_watch.html'],'once'))
-        htmlfile = [cpath '/html/' listing(i).name];
-        return;
+    if ~isempty(regexp(listing(i).name, [altfunc '\d+_mcode.html'],'once'))
+        % Check corresponding _mcode file
+        mcode_file = [cpath '/html/' listing(i).name];
+        [fid, msg] = fopen(mcode_file, 'r', 'n', 'US-ASCII');
+        if fid<0; error('m2c:OpenFileFiled', '%s', msg); end
+
+        % Read file into memory
+        mcode = fread(fid, inf, '*char')';
+        fclose(fid);
+
+        mcode = regexprep(mcode, '<[^>]+>', ' ');
+        mcode = strrep(mcode, '&nbsp;', '');
+
+        mheader = ['\s*function\s*(\[[\w\s,]+\]|\s+\w+)?\s*=?\s*' altfunc ...
+            '\s*(\([\w\s,]*\))?'];
+
+        if ~isempty(regexp(mcode, mheader, 'once'))
+            htmlfile = [cpath '/html/' strrep(listing(i).name, '_mcode.html', '_watch.html')];
+            return;
+        end
     end
 end
 end

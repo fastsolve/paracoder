@@ -12,7 +12,7 @@ try
 
     for j=1:length(files)
         file = files{j};
-        m2c('-mex', '-O', varargin{:}, file);
+        m2c('-mex', '-omp', '-O', varargin{:}, file);
     end
 catch ME
     cd(curpath);

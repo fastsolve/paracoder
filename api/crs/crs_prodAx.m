@@ -76,7 +76,7 @@ function b = crs_prodAx_kernel(row_ptr, col_ind, val, ...
 
 coder.inline('never');
 if ismt
-    [istart, iend] = get_local_chunk(nrows);
+    [istart, iend] = OMP_local_chunk(nrows);
 else
     istart = int32(1); iend = nrows;
 end

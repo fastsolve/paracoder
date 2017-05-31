@@ -48,14 +48,14 @@ coder.inline('never');
 
 assert(nargin<=8);
 
-if nargin<3; 
+if nargin<3
     b = zeros(A.nrows,size(x,2)); 
 elseif size(b,1)<A.nrows || size(b,2)~=size(x,2)
     OMP_begin_master
     m2c_error('crs_prodAAtx:IncorrectBuffer', 'Buffer b has incorrect size.');
     OMP_end_master
 end
-if nargin<4;
+if nargin<4
     Atx = zeros(A.ncols,size(x,2));
 elseif size(Atx,1)<A.ncols || size(Atx,2)~=size(x,2)
     OMP_begin_master

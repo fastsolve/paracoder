@@ -98,13 +98,13 @@ if ismt
     nthreads = min(ompGetNumThreads, ...
         int32(floor(double(b_m)/double(ncols))));
     boffset = ompGetThreadNum*ncols;
-    [istart, iend] = get_local_chunk(nrows, [], nthreads);
+    [istart, iend] = OMP_local_chunk(nrows, nthreads);
 else
     nthreads = int32(1); boffset = int32(0);
     istart = int32(1); iend = int32(nrows);
 end
 
-if istart<=iend;
+if istart<=iend
     xoffset = int32(0);
     for k=1:nrhs
         for j=boffset+1:boffset+ncols; b(j) = 0; end
@@ -125,7 +125,7 @@ end
 %% Perfom summation of partial sums in b
 if nthreads>1
     OMP_barrier;
-    [istart, iend] = get_local_chunk(ncols);
+    [istart, iend] = OMP_local_chunk(ncols);
     
     offset = ncols;
     for j=2:nthreads
