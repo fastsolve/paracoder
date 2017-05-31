@@ -9,8 +9,11 @@ function D = crs_diag(A, varargin)
 
 %#codegen -args {crs_matrix} crs_diag1 -args {crs_matrix, int32(1)}
 
-if isempty(varargin); k = int32(0); 
-else k = int32(varargin{1}); end
+if isempty(varargin)
+    k = int32(0);
+else
+    k = int32(varargin{1}); 
+end
 
 D = zeros(A.nrows - int32(abs(k)), 1, class(A.val));
 

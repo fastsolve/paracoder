@@ -11,8 +11,7 @@ addpath([m2croot '/api/ctypes']);
 addpath([m2croot '/api/mtypes']);
 
 % Add path for matrix operations
-addpath([m2croot '/api/matrix/dense']);
-addpath([m2croot '/api/matrix/crs']);
+addpath([m2croot '/api/crs']);
 
 % Add path for mesh operations
 addpath([m2croot '/api/mesh/ahf']);

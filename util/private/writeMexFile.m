@@ -328,6 +328,10 @@ for i=1:length(vars)
         end
     elseif isempty(var.iindex) && isempty(var.oindex)
         % A variable size array, a structure, or a string
+        if isempty(var.modifier)
+            error('var/modifier');
+        end
+
         assert(~isempty(var.modifier));
         if ~iscuda
             decl_args = sprintf('%s    %-20s %s[%d];\n', decl_args, ...
