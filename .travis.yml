@@ -1,21 +1,32 @@
-os: linux
-dist: trusty
-sudo: required
 language: C
 
-env:
-  matrix:
-  - UPDATE_REPOSITORY="true"
-  - UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: UPDATE_REPOSITORY="true"
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
+    - os: osx
 
 before_install:
-  - sudo $UPDATE_REPOSITORY
-  - sudo apt-get update -q
-  - sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev
-  - curl -L "$URL" | sudo bsdtar zxf - -C /usr/local --strip-components 2
-  - sudo ln -s -f /usr/local/MATLAB/R2016b/bin/matlab /usr/local/bin
-  - sudo ln -s -f /usr/local/MATLAB/R2016b/bin/mex /usr/local/bin
+  - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        sudo $UPDATE_REPOSITORY;
+        sudo apt-get update -q;
+        sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev;
+        curl -L "$URL" | sudo bsdtar zxf - -C /usr/local --strip-components 2;
+        sudo ln -s -f /usr/local/MATLAB/R2016b/bin/matlab /usr/local/bin;
+        sudo ln -s -f /usr/local/MATLAB/R2016b/bin/mex /usr/local/bin;
+      fi'
+  - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+         brew tap homebrew/science;
+         brew update;
+         brew install --without-java octave;
+     fi'
 
 script:
   - octave --eval "build_m2c -force"
-  - octave --eval "build_m2c -force -matlab"
+  - '[[ "$TRAVIS_OS_NAME" == "linux" ]] &&  octave --eval "build_m2c -force -matlab"'
