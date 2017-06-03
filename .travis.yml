@@ -34,4 +34,4 @@ before_install:
 
 script:
   - octave --eval "build_m2c -force"
-  - '[[ "$TRAVIS_OS_NAME" == "linux" ]] &&  octave --eval "build_m2c -force -matlab"'
+  - '[[ "$TRAVIS_OS_NAME" != "linux" ]] ||  octave --eval "build_m2c -force -matlab"'
