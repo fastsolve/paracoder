@@ -98,9 +98,6 @@ else
     CFLAGS = [CFLAGS ' -Wno-unused-function'];
     CXXFLAGS = [CXXFLAGS ' -Wno-unused-function'];
 end
-if ~m2c_opts.debugInfo
-    CFLAGS = [CFLAGS ' -Wno-maybe-uninitialized'];
-end
 
 libs = sprintf(' %s ', m2c_opts.libs{:});
 

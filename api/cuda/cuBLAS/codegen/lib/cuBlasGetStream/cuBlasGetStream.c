@@ -3,6 +3,8 @@
 #include "cuda4m.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
+static void emxFreeStruct_struct0_T(struct0_T *pStruct);
+static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(const emxArray_char_T *varargin_3);
 static void b_m2c_error(const emxArray_char_T *varargin_3)
 {
@@ -13,7 +15,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -22,6 +24,18 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   M2C_error("CUDA:RuntimeError", "cublasGetStream returned error code %s\n",
             &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
+}
+
+static void emxFreeStruct_struct0_T(struct0_T *pStruct)
+{
+  emxFree_uint8_T(&pStruct->data);
+  emxFree_char_T(&pStruct->type);
+}
+
+static void emxInitStruct_struct0_T(struct0_T *pStruct)
+{
+  emxInit_uint8_T(&pStruct->data, 1);
+  emxInit_char_T(&pStruct->type, 2);
 }
 
 static void m2c_error(const emxArray_char_T *varargin_3)
@@ -33,7 +47,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -48,30 +62,31 @@ static void m2c_error(const emxArray_char_T *varargin_3)
 void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
                      boolean_T *toplevel)
 {
+  cudaStream_t t_strm;
   boolean_T p;
   boolean_T b_p;
   int k;
+  int exitg2;
+  int val;
   boolean_T exitg1;
   emxArray_char_T *b_cubHdl;
   static const char cv0[14] = { 'c', 'u', 'b', 'l', 'a', 's', 'H', 'a', 'n', 'd',
     'l', 'e', '_', 't' };
 
   emxArray_uint8_T *data0;
-  int loop_ub;
   cublasHandle_t hdl;
-  cudaStream_t t_strm;
   int sizepe;
   char t0_type[12];
   static const char cv1[12] = { 'c', 'u', 'd', 'a', 'S', 't', 'r', 'e', 'a', 'm',
     '_', 't' };
 
   char * ptr;
-  emxArray_char_T *cstr;
-  int val;
   int b_val;
   int c_val;
   int d_val;
+  int e_val;
   int varargin_8;
+  emxArray_char_T *cstr;
   static const char cv2[14] = { 'U', 'n', 'k', 'n', 'o', 'w', 'n', ' ', 'e', 'r',
     'r', 'o', 'r', '\x00' };
 
@@ -106,11 +121,24 @@ void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
     'A', 'T', 'U', 'S', '_', 'I', 'N', 'T', 'E', 'R', 'N', 'A', 'L', '_', 'E',
     'R', 'R', 'O', 'R', '\x00' };
 
+  *toplevel = true;
   p = false;
   b_p = false;
-  if (cubHdl->type->size[1] == 14) {
-    b_p = true;
-  }
+  k = 0;
+  do {
+    exitg2 = 0;
+    if (k < 2) {
+      val = cubHdl->type->size[k];
+      if (val != 13 * k + 1) {
+        exitg2 = 1;
+      } else {
+        k++;
+      }
+    } else {
+      b_p = true;
+      exitg2 = 1;
+    }
+  } while (exitg2 == 0);
 
   if (b_p && (!(cubHdl->type->size[1] == 0))) {
     k = 0;
@@ -131,14 +159,14 @@ void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
 
   if (!p) {
     emxInit_char_T(&b_cubHdl, 2);
-    k = b_cubHdl->size[0] * b_cubHdl->size[1];
+    val = b_cubHdl->size[0] * b_cubHdl->size[1];
     b_cubHdl->size[0] = 1;
     b_cubHdl->size[1] = cubHdl->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_cubHdl, k, sizeof(char));
-    loop_ub = cubHdl->type->size[1];
-    for (k = 0; k < loop_ub; k++) {
-      b_cubHdl->data[b_cubHdl->size[0] * k] = cubHdl->type->data[cubHdl->
-        type->size[0] * k];
+    emxEnsureCapacity((emxArray__common *)b_cubHdl, val, (int)sizeof(char));
+    k = cubHdl->type->size[1];
+    for (val = 0; val < k; val++) {
+      b_cubHdl->data[b_cubHdl->size[0] * val] = cubHdl->type->data[cubHdl->
+        type->size[0] * val];
     }
 
     b_cubHdl->data[b_cubHdl->size[0] * cubHdl->type->size[1]] = '\x00';
@@ -147,39 +175,40 @@ void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
   }
 
   emxInit_uint8_T(&data0, 1);
-  k = data0->size[0];
+  val = data0->size[0];
   data0->size[0] = cubHdl->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, k, sizeof(unsigned char));
-  loop_ub = cubHdl->data->size[0];
-  for (k = 0; k < loop_ub; k++) {
-    data0->data[k] = cubHdl->data->data[k];
+  emxEnsureCapacity((emxArray__common *)data0, val, (int)sizeof(unsigned char));
+  k = cubHdl->data->size[0];
+  for (val = 0; val < k; val++) {
+    data0->data[val] = cubHdl->data->data[val];
   }
 
   hdl = *(cublasHandle_t*)(&data0->data[0]);
   *errCode = cublasGetStream(hdl, &t_strm);
   sizepe = sizeof(cudaStream_t);
-  k = data0->size[0];
+  val = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, k, sizeof(unsigned char));
-  for (k = 0; k < 12; k++) {
-    t0_type[k] = cv1[k];
+  emxEnsureCapacity((emxArray__common *)data0, val, (int)sizeof(unsigned char));
+  for (val = 0; val < 12; val++) {
+    t0_type[val] = cv1[val];
   }
 
-  k = strm->data->size[0];
+  val = strm->data->size[0];
   strm->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)strm->data, k, sizeof(unsigned char));
-  loop_ub = data0->size[0];
-  for (k = 0; k < loop_ub; k++) {
-    strm->data->data[k] = data0->data[k];
+  emxEnsureCapacity((emxArray__common *)strm->data, val, (int)sizeof(unsigned
+    char));
+  k = data0->size[0];
+  for (val = 0; val < k; val++) {
+    strm->data->data[val] = data0->data[val];
   }
 
   emxFree_uint8_T(&data0);
-  k = strm->type->size[0] * strm->type->size[1];
+  val = strm->type->size[0] * strm->type->size[1];
   strm->type->size[0] = 1;
   strm->type->size[1] = 12;
-  emxEnsureCapacity((emxArray__common *)strm->type, k, sizeof(char));
-  for (k = 0; k < 12; k++) {
-    strm->type->data[k] = t0_type[k];
+  emxEnsureCapacity((emxArray__common *)strm->type, val, (int)sizeof(char));
+  for (val = 0; val < 12; val++) {
+    strm->type->data[val] = t0_type[val];
   }
 
   strm->nitems = 1;
@@ -190,123 +219,145 @@ void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
   }
 
   if (*errCode != 0) {
-    emxInit_char_T(&cstr, 2);
     k = (CUBLAS_STATUS_SUCCESS);
-    loop_ub = (CUBLAS_STATUS_NOT_INITIALIZED);
+    val = (CUBLAS_STATUS_NOT_INITIALIZED);
     sizepe = (CUBLAS_STATUS_ALLOC_FAILED);
-    val = (CUBLAS_STATUS_INVALID_VALUE);
-    b_val = (CUBLAS_STATUS_ARCH_MISMATCH);
-    c_val = (CUBLAS_STATUS_MAPPING_ERROR);
-    d_val = (CUBLAS_STATUS_EXECUTION_FAILED);
+    b_val = (CUBLAS_STATUS_INVALID_VALUE);
+    c_val = (CUBLAS_STATUS_ARCH_MISMATCH);
+    d_val = (CUBLAS_STATUS_MAPPING_ERROR);
+    e_val = (CUBLAS_STATUS_EXECUTION_FAILED);
     varargin_8 = (CUBLAS_STATUS_INTERNAL_ERROR);
-    if (k == *errCode) {
+    p = (k == *errCode);
+    if (p) {
       k = 0;
-    } else if (loop_ub == *errCode) {
-      k = 1;
-    } else if (sizepe == *errCode) {
-      k = 2;
-    } else if (val == *errCode) {
-      k = 3;
-    } else if (b_val == *errCode) {
-      k = 4;
-    } else if (c_val == *errCode) {
-      k = 5;
-    } else if (d_val == *errCode) {
-      k = 6;
-    } else if (varargin_8 == *errCode) {
-      k = 7;
     } else {
-      k = -1;
+      p = (val == *errCode);
+      if (p) {
+        k = 1;
+      } else {
+        p = (sizepe == *errCode);
+        if (p) {
+          k = 2;
+        } else {
+          p = (b_val == *errCode);
+          if (p) {
+            k = 3;
+          } else {
+            p = (c_val == *errCode);
+            if (p) {
+              k = 4;
+            } else {
+              p = (d_val == *errCode);
+              if (p) {
+                k = 5;
+              } else {
+                p = (e_val == *errCode);
+                if (p) {
+                  k = 6;
+                } else {
+                  p = (varargin_8 == *errCode);
+                  if (p) {
+                    k = 7;
+                  } else {
+                    k = -1;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
+    emxInit_char_T(&cstr, 2);
     switch (k) {
      case 0:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 22;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 22; k++) {
-        cstr->data[k] = cv3[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 22; val++) {
+        cstr->data[val] = cv3[val];
       }
       break;
 
      case 1:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 30;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 30; k++) {
-        cstr->data[k] = cv4[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 30; val++) {
+        cstr->data[val] = cv4[val];
       }
       break;
 
      case 2:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 27;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 27; k++) {
-        cstr->data[k] = cv5[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 27; val++) {
+        cstr->data[val] = cv5[val];
       }
       break;
 
      case 3:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 28; k++) {
-        cstr->data[k] = cv6[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 28; val++) {
+        cstr->data[val] = cv6[val];
       }
       break;
 
      case 4:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 28; k++) {
-        cstr->data[k] = cv7[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 28; val++) {
+        cstr->data[val] = cv7[val];
       }
       break;
 
      case 5:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 28;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 28; k++) {
-        cstr->data[k] = cv8[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 28; val++) {
+        cstr->data[val] = cv8[val];
       }
       break;
 
      case 6:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 31;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 31; k++) {
-        cstr->data[k] = cv9[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 31; val++) {
+        cstr->data[val] = cv9[val];
       }
       break;
 
      case 7:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 29;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 29; k++) {
-        cstr->data[k] = cv10[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 29; val++) {
+        cstr->data[val] = cv10[val];
       }
       break;
 
      default:
-      k = cstr->size[0] * cstr->size[1];
+      val = cstr->size[0] * cstr->size[1];
       cstr->size[0] = 1;
       cstr->size[1] = 14;
-      emxEnsureCapacity((emxArray__common *)cstr, k, sizeof(char));
-      for (k = 0; k < 14; k++) {
-        cstr->data[k] = cv2[k];
+      emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
+      for (val = 0; val < 14; val++) {
+        cstr->data[val] = cv2[val];
       }
       break;
     }
@@ -314,8 +365,6 @@ void cuBlasGetStream(const struct0_T *cubHdl, struct0_T *strm, int *errCode,
     b_m2c_error(cstr);
     emxFree_char_T(&cstr);
   }
-
-  *toplevel = true;
 }
 
 void cuBlasGetStream_initialize(void)
@@ -324,4 +373,14 @@ void cuBlasGetStream_initialize(void)
 
 void cuBlasGetStream_terminate(void)
 {
+}
+
+void emxDestroy_struct0_T(struct0_T emxArray)
+{
+  emxFreeStruct_struct0_T(&emxArray);
+}
+
+void emxInit_struct0_T(struct0_T *pStruct)
+{
+  emxInitStruct_struct0_T(pStruct);
 }

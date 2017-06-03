@@ -11,6 +11,8 @@ static void c_crs_prodAx(const emxArray_int32_T *A_row_ptr, const
 static void crs_prodAx_kernel(const emxArray_int32_T *row_ptr, const
   emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
   *x, int x_m, emxArray_real_T *b, int b_m, int nrows, int nrhs, boolean_T ismt);
+static void emxFreeStruct_struct0_T(struct0_T *pStruct);
+static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(void);
 static void m2c_warn(void);
 static void b_crs_prodAx(const emxArray_int32_T *A_row_ptr, const
@@ -21,7 +23,7 @@ static void b_crs_prodAx(const emxArray_int32_T *A_row_ptr, const
   i0 = b->size[0] * b->size[1];
   b->size[0] = A_nrows;
   b->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)b, i0, sizeof(double));
+  emxEnsureCapacity((emxArray__common *)b, i0, (int)sizeof(double));
   i0 = b->size[0];
   crs_prodAx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i0, A_nrows,
                     x->size[1], false);
@@ -31,13 +33,13 @@ static void c_crs_prodAx(const emxArray_int32_T *A_row_ptr, const
   emxArray_int32_T *A_col_ind, const emxArray_real_T *A_val, int A_nrows, const
   emxArray_real_T *x, emxArray_real_T *b)
 {
-  int i1;
+  int i2;
   if ((b->size[0] < A_nrows) || (b->size[1] < x->size[1])) {
     m2c_error();
   }
 
-  i1 = b->size[0];
-  crs_prodAx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i1, A_nrows,
+  i2 = b->size[0];
+  crs_prodAx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i2, A_nrows,
                     x->size[1], false);
 }
 
@@ -47,11 +49,13 @@ static void crs_prodAx_kernel(const emxArray_int32_T *row_ptr, const
 {
   int istart;
   int iend;
-  int b_remainder;
   int threadID;
   int chunk;
+  int k;
   int i;
+  int b_iend;
   double t;
+  int i1;
   int j;
   if (ismt) {
     iend = omp_get_num_threads();
@@ -61,36 +65,51 @@ static void crs_prodAx_kernel(const emxArray_int32_T *row_ptr, const
     } else {
       threadID = omp_get_thread_num();
       chunk = nrows / iend;
-      b_remainder = nrows - iend * chunk;
-      if (b_remainder < threadID) {
-        iend = b_remainder;
+      iend = nrows - iend * chunk;
+      if (iend <= threadID) {
+        b_iend = iend;
       } else {
-        iend = threadID;
+        b_iend = threadID;
       }
 
-      istart = threadID * chunk + iend;
-      iend = (istart + chunk) + (threadID < b_remainder);
+      istart = threadID * chunk + b_iend;
+      iend = (istart + chunk) + (threadID < iend);
     }
   } else {
     istart = 0;
     iend = nrows;
   }
 
-  b_remainder = -1;
   threadID = -1;
-  for (chunk = 1; chunk <= nrhs; chunk++) {
+  chunk = -1;
+  for (k = 1; k <= nrhs; k++) {
     for (i = istart + 1; i <= iend; i++) {
       t = 0.0;
-      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
-        t += val->data[j - 1] * x->data[b_remainder + col_ind->data[j - 1]];
+      i1 = row_ptr->data[i] - 1;
+      for (j = row_ptr->data[i - 1]; j <= i1; j++) {
+        t += val->data[j - 1] * x->data[threadID + col_ind->data[j - 1]];
       }
 
-      b->data[threadID + i] = t;
+      b->data[chunk + i] = t;
     }
 
-    b_remainder += x_m;
-    threadID += b_m;
+    threadID += x_m;
+    chunk += b_m;
   }
+}
+
+static void emxFreeStruct_struct0_T(struct0_T *pStruct)
+{
+  emxFree_int32_T(&pStruct->row_ptr);
+  emxFree_int32_T(&pStruct->col_ind);
+  emxFree_real_T(&pStruct->val);
+}
+
+static void emxInitStruct_struct0_T(struct0_T *pStruct)
+{
+  emxInit_int32_T(&pStruct->row_ptr, 1);
+  emxInit_int32_T(&pStruct->col_ind, 1);
+  emxInit_real_T(&pStruct->val, 1);
 }
 
 static void m2c_error(void)
@@ -153,4 +172,14 @@ void crs_prodAx_ser1(const struct0_T *A, const emxArray_real_T *x,
 
 void crs_prodAx_terminate(void)
 {
+}
+
+void emxDestroy_struct0_T(struct0_T emxArray)
+{
+  emxFreeStruct_struct0_T(&emxArray);
+}
+
+void emxInit_struct0_T(struct0_T *pStruct)
+{
+  emxInitStruct_struct0_T(pStruct);
 }

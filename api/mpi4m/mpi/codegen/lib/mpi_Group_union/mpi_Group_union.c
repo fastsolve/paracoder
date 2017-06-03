@@ -3,8 +3,42 @@
 #include "mpi.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
+static void emxFreeStruct_struct0_T(struct0_T *pStruct);
+static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(const emxArray_char_T *varargin_3);
 static void b_m2c_error(const emxArray_char_T *varargin_3)
+{
+  emxArray_char_T *b_varargin_3;
+  int i2;
+  int loop_ub;
+  emxInit_char_T(&b_varargin_3, 2);
+  i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  b_varargin_3->size[0] = 1;
+  b_varargin_3->size[1] = varargin_3->size[1];
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i2, (int)sizeof(char));
+  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  for (i2 = 0; i2 < loop_ub; i2++) {
+    b_varargin_3->data[i2] = varargin_3->data[i2];
+  }
+
+  M2C_error("MPI:RuntimeError", "MPI_Group_union failed with error message %s\n",
+            &b_varargin_3->data[0]);
+  emxFree_char_T(&b_varargin_3);
+}
+
+static void emxFreeStruct_struct0_T(struct0_T *pStruct)
+{
+  emxFree_uint8_T(&pStruct->data);
+  emxFree_char_T(&pStruct->type);
+}
+
+static void emxInitStruct_struct0_T(struct0_T *pStruct)
+{
+  emxInit_uint8_T(&pStruct->data, 1);
+  emxInit_char_T(&pStruct->type, 2);
+}
+
+static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
   int i1;
@@ -13,30 +47,10 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
-  }
-
-  M2C_error("MPI:RuntimeError", "MPI_Group_union failed with error message %s\n",
-            &b_varargin_3->data[0]);
-  emxFree_char_T(&b_varargin_3);
-}
-
-static void m2c_error(const emxArray_char_T *varargin_3)
-{
-  emxArray_char_T *b_varargin_3;
-  int i0;
-  int loop_ub;
-  emxInit_char_T(&b_varargin_3, 2);
-  i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
-  b_varargin_3->size[0] = 1;
-  b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i0 = 0; i0 < loop_ub; i0++) {
-    b_varargin_3->data[i0] = varargin_3->data[i0];
   }
 
   M2C_error("m2c_opaque_obj:WrongInput",
@@ -45,22 +59,35 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
+void emxDestroy_struct0_T(struct0_T emxArray)
+{
+  emxFreeStruct_struct0_T(&emxArray);
+}
+
+void emxInit_struct0_T(struct0_T *pStruct)
+{
+  emxInitStruct_struct0_T(pStruct);
+}
+
 void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
                      *newgroup, int *info, boolean_T *toplevel)
 {
+  MPI_Group newgroup0;
   boolean_T p;
   boolean_T b_p;
   int resultlen;
-  boolean_T exitg1;
+  int exitg4;
+  int i0;
+  boolean_T exitg3;
   emxArray_char_T *b_group1;
   static const char cv0[9] = { 'M', 'P', 'I', '_', 'G', 'r', 'o', 'u', 'p' };
 
   emxArray_uint8_T *data0;
-  int loop_ub;
   MPI_Group obj;
+  int exitg2;
+  boolean_T exitg1;
   emxArray_char_T *b_group2;
   MPI_Group b_obj;
-  MPI_Group newgroup0;
   int sizepe;
   char t0_type[9];
   static const char x2[9] = { 'M', 'P', 'I', '_', 'G', 'r', 'o', 'u', 'p' };
@@ -72,17 +99,29 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
   emxArray_char_T *d_msg0;
   p = false;
   b_p = false;
-  if (group1->type->size[1] == 9) {
-    b_p = true;
-  }
+  resultlen = 0;
+  do {
+    exitg4 = 0;
+    if (resultlen < 2) {
+      i0 = group1->type->size[resultlen];
+      if (i0 != (resultlen << 3) + 1) {
+        exitg4 = 1;
+      } else {
+        resultlen++;
+      }
+    } else {
+      b_p = true;
+      exitg4 = 1;
+    }
+  } while (exitg4 == 0);
 
   if (b_p && (!(group1->type->size[1] == 0))) {
     resultlen = 0;
-    exitg1 = false;
-    while ((!exitg1) && (resultlen < 9)) {
+    exitg3 = false;
+    while ((!exitg3) && (resultlen < 9)) {
       if (!(group1->type->data[resultlen] == cv0[resultlen])) {
         b_p = false;
-        exitg1 = true;
+        exitg3 = true;
       } else {
         resultlen++;
       }
@@ -95,14 +134,14 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
 
   if (!p) {
     emxInit_char_T(&b_group1, 2);
-    resultlen = b_group1->size[0] * b_group1->size[1];
+    i0 = b_group1->size[0] * b_group1->size[1];
     b_group1->size[0] = 1;
     b_group1->size[1] = group1->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_group1, resultlen, sizeof(char));
-    loop_ub = group1->type->size[1];
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_group1->data[b_group1->size[0] * resultlen] = group1->type->data
-        [group1->type->size[0] * resultlen];
+    emxEnsureCapacity((emxArray__common *)b_group1, i0, (int)sizeof(char));
+    resultlen = group1->type->size[1];
+    for (i0 = 0; i0 < resultlen; i0++) {
+      b_group1->data[b_group1->size[0] * i0] = group1->type->data[group1->
+        type->size[0] * i0];
     }
 
     b_group1->data[b_group1->size[0] * group1->type->size[1]] = '\x00';
@@ -111,20 +150,32 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
   }
 
   emxInit_uint8_T(&data0, 1);
-  resultlen = data0->size[0];
+  i0 = data0->size[0];
   data0->size[0] = group1->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
-  loop_ub = group1->data->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    data0->data[resultlen] = group1->data->data[resultlen];
+  emxEnsureCapacity((emxArray__common *)data0, i0, (int)sizeof(unsigned char));
+  resultlen = group1->data->size[0];
+  for (i0 = 0; i0 < resultlen; i0++) {
+    data0->data[i0] = group1->data->data[i0];
   }
 
   obj = *(MPI_Group*)(&data0->data[0]);
   p = false;
   b_p = false;
-  if (group2->type->size[1] == 9) {
-    b_p = true;
-  }
+  resultlen = 0;
+  do {
+    exitg2 = 0;
+    if (resultlen < 2) {
+      i0 = group2->type->size[resultlen];
+      if (i0 != (resultlen << 3) + 1) {
+        exitg2 = 1;
+      } else {
+        resultlen++;
+      }
+    } else {
+      b_p = true;
+      exitg2 = 1;
+    }
+  } while (exitg2 == 0);
 
   if (b_p && (!(group2->type->size[1] == 0))) {
     resultlen = 0;
@@ -145,14 +196,14 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
 
   if (!p) {
     emxInit_char_T(&b_group2, 2);
-    resultlen = b_group2->size[0] * b_group2->size[1];
+    i0 = b_group2->size[0] * b_group2->size[1];
     b_group2->size[0] = 1;
     b_group2->size[1] = group2->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_group2, resultlen, sizeof(char));
-    loop_ub = group2->type->size[1];
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_group2->data[b_group2->size[0] * resultlen] = group2->type->data
-        [group2->type->size[0] * resultlen];
+    emxEnsureCapacity((emxArray__common *)b_group2, i0, (int)sizeof(char));
+    resultlen = group2->type->size[1];
+    for (i0 = 0; i0 < resultlen; i0++) {
+      b_group2->data[b_group2->size[0] * i0] = group2->type->data[group2->
+        type->size[0] * i0];
     }
 
     b_group2->data[b_group2->size[0] * group2->type->size[1]] = '\x00';
@@ -160,40 +211,41 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
     emxFree_char_T(&b_group2);
   }
 
-  resultlen = data0->size[0];
+  i0 = data0->size[0];
   data0->size[0] = group2->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
-  loop_ub = group2->data->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    data0->data[resultlen] = group2->data->data[resultlen];
+  emxEnsureCapacity((emxArray__common *)data0, i0, (int)sizeof(unsigned char));
+  resultlen = group2->data->size[0];
+  for (i0 = 0; i0 < resultlen; i0++) {
+    data0->data[i0] = group2->data->data[i0];
   }
 
   b_obj = *(MPI_Group*)(&data0->data[0]);
   *info = MPI_Group_union(obj, b_obj, &newgroup0);
+  *toplevel = true;
   sizepe = sizeof(MPI_Group);
-  resultlen = data0->size[0];
+  i0 = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
-  for (resultlen = 0; resultlen < 9; resultlen++) {
-    t0_type[resultlen] = x2[resultlen];
+  emxEnsureCapacity((emxArray__common *)data0, i0, (int)sizeof(unsigned char));
+  for (i0 = 0; i0 < 9; i0++) {
+    t0_type[i0] = x2[i0];
   }
 
-  resultlen = newgroup->data->size[0];
+  i0 = newgroup->data->size[0];
   newgroup->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)newgroup->data, resultlen, sizeof
-                    (unsigned char));
-  loop_ub = data0->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    newgroup->data->data[resultlen] = data0->data[resultlen];
+  emxEnsureCapacity((emxArray__common *)newgroup->data, i0, (int)sizeof(unsigned
+    char));
+  resultlen = data0->size[0];
+  for (i0 = 0; i0 < resultlen; i0++) {
+    newgroup->data->data[i0] = data0->data[i0];
   }
 
   emxFree_uint8_T(&data0);
-  resultlen = newgroup->type->size[0] * newgroup->type->size[1];
+  i0 = newgroup->type->size[0] * newgroup->type->size[1];
   newgroup->type->size[0] = 1;
   newgroup->type->size[1] = 9;
-  emxEnsureCapacity((emxArray__common *)newgroup->type, resultlen, sizeof(char));
-  for (resultlen = 0; resultlen < 9; resultlen++) {
-    newgroup->type->data[resultlen] = t0_type[resultlen];
+  emxEnsureCapacity((emxArray__common *)newgroup->type, i0, (int)sizeof(char));
+  for (i0 = 0; i0 < 9; i0++) {
+    newgroup->type->data[i0] = t0_type[i0];
   }
 
   newgroup->nitems = 1;
@@ -209,46 +261,41 @@ void mpi_Group_union(const struct0_T *group1, const struct0_T *group2, struct0_T
     resultlen = 0;
     MPI_Error_string(*info, ptr, &resultlen);
     if (1 > resultlen) {
-      loop_ub = 0;
-    } else {
-      loop_ub = resultlen;
+      resultlen = 0;
     }
 
     emxInit_char_T(&b_msg0, 2);
     emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
+    i0 = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
+    c_msg0->size[1] = resultlen;
+    emxEnsureCapacity((emxArray__common *)c_msg0, i0, (int)sizeof(unsigned char));
+    for (i0 = 0; i0 < resultlen; i0++) {
+      c_msg0->data[c_msg0->size[0] * i0] = msg0[i0];
     }
 
     emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
+    i0 = d_msg0->size[0];
+    d_msg0->size[0] = resultlen;
+    emxEnsureCapacity((emxArray__common *)d_msg0, i0, (int)sizeof(char));
+    for (i0 = 0; i0 < resultlen; i0++) {
+      d_msg0->data[i0] = (signed char)c_msg0->data[i0];
     }
 
     emxFree_uint8_T(&c_msg0);
-    resultlen = b_msg0->size[0] * b_msg0->size[1];
+    i0 = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+    b_msg0->size[1] = (short)resultlen;
+    emxEnsureCapacity((emxArray__common *)b_msg0, i0, (int)sizeof(char));
+    resultlen = (short)resultlen;
+    for (i0 = 0; i0 < resultlen; i0++) {
+      b_msg0->data[b_msg0->size[0] * i0] = d_msg0->data[i0];
     }
 
     emxFree_char_T(&d_msg0);
     b_m2c_error(b_msg0);
     emxFree_char_T(&b_msg0);
   }
-
-  *toplevel = true;
 }
 
 void mpi_Group_union_initialize(void)

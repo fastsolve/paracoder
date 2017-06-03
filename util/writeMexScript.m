@@ -70,10 +70,6 @@ if ~m2c_opts.verbose
     end
 end
 
-if ~m2c_opts.debugInfo
-    CFLAGS = [CFLAGS ' -Wno-maybe-uninitialized'];
-end
-
 if ismac
     LDFLAGS = [LDFLAGS ' -dynamiclib'];
 end

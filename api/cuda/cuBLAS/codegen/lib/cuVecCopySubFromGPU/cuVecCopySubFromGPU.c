@@ -7,6 +7,8 @@ static void c_m2c_error(int varargin_3);
 static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr);
 static void d_m2c_error(const emxArray_char_T *varargin_3);
 static void e_m2c_error(const emxArray_char_T *varargin_3);
+static void emxFreeStruct_struct1_T(struct1_T *pStruct);
+static void emxInitStruct_struct1_T(struct1_T *pStruct);
 static void m2c_error(void);
 static void b_m2c_error(void)
 {
@@ -96,7 +98,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 22;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 22; val++) {
       cstr->data[val] = cv1[val];
     }
@@ -106,7 +108,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 30;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 30; val++) {
       cstr->data[val] = cv2[val];
     }
@@ -116,7 +118,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 27;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 27; val++) {
       cstr->data[val] = cv3[val];
     }
@@ -126,7 +128,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 28;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 28; val++) {
       cstr->data[val] = cv4[val];
     }
@@ -136,7 +138,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 28;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 28; val++) {
       cstr->data[val] = cv5[val];
     }
@@ -146,7 +148,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 28;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 28; val++) {
       cstr->data[val] = cv6[val];
     }
@@ -156,7 +158,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 31;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 31; val++) {
       cstr->data[val] = cv7[val];
     }
@@ -166,7 +168,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 29;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 29; val++) {
       cstr->data[val] = cv8[val];
     }
@@ -176,7 +178,7 @@ static void cuBlasGetErrorString(int errCode, emxArray_char_T *cstr)
     val = cstr->size[0] * cstr->size[1];
     cstr->size[0] = 1;
     cstr->size[1] = 14;
-    emxEnsureCapacity((emxArray__common *)cstr, val, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)cstr, val, (int)sizeof(char));
     for (val = 0; val < 14; val++) {
       cstr->data[val] = cv0[val];
     }
@@ -193,7 +195,7 @@ static void d_m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -213,7 +215,7 @@ static void e_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -225,6 +227,18 @@ static void e_m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
+static void emxFreeStruct_struct1_T(struct1_T *pStruct)
+{
+  emxFree_uint8_T(&pStruct->data);
+  emxFree_char_T(&pStruct->type);
+}
+
+static void emxInitStruct_struct1_T(struct1_T *pStruct)
+{
+  emxInit_uint8_T(&pStruct->data, 1);
+  emxInit_char_T(&pStruct->type, 2);
+}
+
 static void m2c_error(void)
 {
   M2C_error("cuVecCopyToGPU:TypeMismatch", "Real and complex numbers mismatch.");
@@ -233,18 +247,18 @@ static void m2c_error(void)
 void cuVecCopySubFromGPU(int n, const struct0_T *cuVec, int incCuVec, const
   emxArray_real_T *vec, int istart, int inc, int *errCode, boolean_T *toplevel)
 {
+  int quotient;
   int sizepe;
   unsigned long data;
   void * output;
-  int offset;
   char * ptr;
   emxArray_char_T *r0;
   *toplevel = true;
   if ((cuVec->type != 8) && (cuVec->type != 4)) {
     m2c_error();
   } else {
-    sizepe = vec->size[0] / inc;
-    if (n > sizepe) {
+    quotient = vec->size[0] / inc;
+    if (n > quotient) {
       b_m2c_error();
     }
   }
@@ -267,10 +281,10 @@ void cuVecCopySubFromGPU(int n, const struct0_T *cuVec, int incCuVec, const
 
   data = cuVec->data;
   output = *(void **)(&data);
-  offset = (istart - 1) * sizepe;
+  quotient = (istart - 1) * sizepe;
   ptr = (char *)(&vec->data[0]);
-  if (offset != 0) {
-    ptr = ptr + offset;
+  if (quotient != 0) {
+    ptr = ptr + quotient;
   }
 
   *errCode = cublasGetVector(n, sizepe, output, incCuVec, ptr, inc);
@@ -293,13 +307,14 @@ void cuVecCopySubFromGPU_async(int n, const struct0_T *cuVec, int incCuVec,
   char * ptr;
   boolean_T p;
   boolean_T b_p;
+  int exitg2;
+  int i2;
   boolean_T exitg1;
   emxArray_char_T *b_strm;
   static const char cv9[12] = { 'c', 'u', 'd', 'a', 'S', 't', 'r', 'e', 'a', 'm',
     '_', 't' };
 
   emxArray_uint8_T *b_data;
-  int loop_ub;
   cudaStream_t hdl;
   emxArray_char_T *r1;
   if ((cuVec->type != 8) && (cuVec->type != 4)) {
@@ -337,9 +352,21 @@ void cuVecCopySubFromGPU_async(int n, const struct0_T *cuVec, int incCuVec,
 
   p = false;
   b_p = false;
-  if (strm->type->size[1] == 12) {
-    b_p = true;
-  }
+  quotient = 0;
+  do {
+    exitg2 = 0;
+    if (quotient < 2) {
+      i2 = strm->type->size[quotient];
+      if (i2 != 11 * quotient + 1) {
+        exitg2 = 1;
+      } else {
+        quotient++;
+      }
+    } else {
+      b_p = true;
+      exitg2 = 1;
+    }
+  } while (exitg2 == 0);
 
   if (b_p && (!(strm->type->size[1] == 0))) {
     quotient = 0;
@@ -360,14 +387,14 @@ void cuVecCopySubFromGPU_async(int n, const struct0_T *cuVec, int incCuVec,
 
   if (!p) {
     emxInit_char_T(&b_strm, 2);
-    quotient = b_strm->size[0] * b_strm->size[1];
+    i2 = b_strm->size[0] * b_strm->size[1];
     b_strm->size[0] = 1;
     b_strm->size[1] = strm->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_strm, quotient, sizeof(char));
-    loop_ub = strm->type->size[1];
-    for (quotient = 0; quotient < loop_ub; quotient++) {
-      b_strm->data[b_strm->size[0] * quotient] = strm->type->data[strm->
-        type->size[0] * quotient];
+    emxEnsureCapacity((emxArray__common *)b_strm, i2, (int)sizeof(char));
+    quotient = strm->type->size[1];
+    for (i2 = 0; i2 < quotient; i2++) {
+      b_strm->data[b_strm->size[0] * i2] = strm->type->data[strm->type->size[0] *
+        i2];
     }
 
     b_strm->data[b_strm->size[0] * strm->type->size[1]] = '\x00';
@@ -376,12 +403,12 @@ void cuVecCopySubFromGPU_async(int n, const struct0_T *cuVec, int incCuVec,
   }
 
   emxInit_uint8_T(&b_data, 1);
-  quotient = b_data->size[0];
+  i2 = b_data->size[0];
   b_data->size[0] = strm->data->size[0];
-  emxEnsureCapacity((emxArray__common *)b_data, quotient, sizeof(unsigned char));
-  loop_ub = strm->data->size[0];
-  for (quotient = 0; quotient < loop_ub; quotient++) {
-    b_data->data[quotient] = strm->data->data[quotient];
+  emxEnsureCapacity((emxArray__common *)b_data, i2, (int)sizeof(unsigned char));
+  quotient = strm->data->size[0];
+  for (i2 = 0; i2 < quotient; i2++) {
+    b_data->data[i2] = strm->data->data[i2];
   }
 
   hdl = *(cudaStream_t*)(&b_data->data[0]);
@@ -403,4 +430,14 @@ void cuVecCopySubFromGPU_initialize(void)
 
 void cuVecCopySubFromGPU_terminate(void)
 {
+}
+
+void emxDestroy_struct1_T(struct1_T emxArray)
+{
+  emxFreeStruct_struct1_T(&emxArray);
+}
+
+void emxInit_struct1_T(struct1_T *pStruct)
+{
+  emxInitStruct_struct1_T(pStruct);
 }

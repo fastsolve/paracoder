@@ -1,4 +1,5 @@
 #include "cuBlasGetEnum.h"
+#include "m2c.h"
 #include "cuda4m.h"
 
 int cuBlasGetEnum(const emxArray_char_T *str)
@@ -6,48 +7,59 @@ int cuBlasGetEnum(const emxArray_char_T *str)
   int val;
   boolean_T b_bool;
   int kstr;
-  int exitg1;
+  int exitg12;
   static const char cv0[24] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'P', 'O', 'I',
     'N', 'T', 'E', 'R', '_', 'M', 'O', 'D', 'E', '_', 'H', 'O', 'S', 'T' };
 
+  int exitg11;
   static const char cv1[26] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'P', 'O', 'I',
     'N', 'T', 'E', 'R', '_', 'M', 'O', 'D', 'E', '_', 'D', 'E', 'V', 'I', 'C',
     'E' };
 
+  int exitg10;
   static const char cv2[26] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'A', 'T', 'O',
     'M', 'I', 'C', 'S', '_', 'N', 'O', 'T', '_', 'A', 'L', 'L', 'O', 'W', 'E',
     'D' };
 
+  int exitg9;
   static const char cv3[22] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'A', 'T', 'O',
     'M', 'I', 'C', 'S', '_', 'A', 'L', 'L', 'O', 'W', 'E', 'D' };
 
+  int exitg8;
   static const char cv4[21] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'S', 'U', 'C', 'C', 'E', 'S', 'S' };
 
+  int exitg7;
   static const char cv5[29] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'N', 'O', 'T', '_', 'I', 'N', 'I', 'T', 'I', 'A', 'L',
     'I', 'Z', 'E', 'D' };
 
+  int exitg6;
   static const char cv6[26] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'A', 'L', 'L', 'O', 'C', '_', 'F', 'A', 'I', 'L', 'E',
     'D' };
 
+  int exitg5;
   static const char cv7[27] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'I', 'N', 'V', 'A', 'L', 'I', 'D', '_', 'V', 'A', 'L',
     'U', 'E' };
 
+  int exitg4;
   static const char cv8[27] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'A', 'R', 'C', 'H', '_', 'M', 'I', 'S', 'M', 'A', 'T',
     'C', 'H' };
 
+  int exitg3;
   static const char cv9[27] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T', 'A',
     'T', 'U', 'S', '_', 'M', 'A', 'P', 'P', 'I', 'N', 'G', '_', 'E', 'R', 'R',
     'O', 'R' };
 
+  int exitg2;
   static const char cv10[30] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T',
     'A', 'T', 'U', 'S', '_', 'E', 'X', 'E', 'C', 'U', 'T', 'I', 'O', 'N', '_',
     'F', 'A', 'I', 'L', 'E', 'D' };
 
+  int exitg1;
   static const char cv11[28] = { 'C', 'U', 'B', 'L', 'A', 'S', '_', 'S', 'T',
     'A', 'T', 'U', 'S', '_', 'I', 'N', 'T', 'E', 'R', 'N', 'A', 'L', '_', 'E',
     'R', 'R', 'O', 'R' };
@@ -56,18 +68,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
   if (str->size[1] == 24) {
     kstr = 0;
     do {
-      exitg1 = 0;
+      exitg12 = 0;
       if (kstr + 1 < 25) {
         if (str->data[kstr] != cv0[kstr]) {
-          exitg1 = 1;
+          exitg12 = 1;
         } else {
           kstr++;
         }
       } else {
         b_bool = true;
-        exitg1 = 1;
+        exitg12 = 1;
       }
-    } while (exitg1 == 0);
+    } while (exitg12 == 0);
   }
 
   if (b_bool) {
@@ -77,18 +89,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
     if (str->size[1] == 26) {
       kstr = 0;
       do {
-        exitg1 = 0;
+        exitg11 = 0;
         if (kstr + 1 < 27) {
           if (str->data[kstr] != cv1[kstr]) {
-            exitg1 = 1;
+            exitg11 = 1;
           } else {
             kstr++;
           }
         } else {
           b_bool = true;
-          exitg1 = 1;
+          exitg11 = 1;
         }
-      } while (exitg1 == 0);
+      } while (exitg11 == 0);
     }
 
     if (b_bool) {
@@ -98,18 +110,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
       if (str->size[1] == 26) {
         kstr = 0;
         do {
-          exitg1 = 0;
+          exitg10 = 0;
           if (kstr + 1 < 27) {
             if (str->data[kstr] != cv2[kstr]) {
-              exitg1 = 1;
+              exitg10 = 1;
             } else {
               kstr++;
             }
           } else {
             b_bool = true;
-            exitg1 = 1;
+            exitg10 = 1;
           }
-        } while (exitg1 == 0);
+        } while (exitg10 == 0);
       }
 
       if (b_bool) {
@@ -119,18 +131,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
         if (str->size[1] == 22) {
           kstr = 0;
           do {
-            exitg1 = 0;
+            exitg9 = 0;
             if (kstr + 1 < 23) {
               if (str->data[kstr] != cv3[kstr]) {
-                exitg1 = 1;
+                exitg9 = 1;
               } else {
                 kstr++;
               }
             } else {
               b_bool = true;
-              exitg1 = 1;
+              exitg9 = 1;
             }
-          } while (exitg1 == 0);
+          } while (exitg9 == 0);
         }
 
         if (b_bool) {
@@ -140,18 +152,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
           if (str->size[1] == 21) {
             kstr = 0;
             do {
-              exitg1 = 0;
+              exitg8 = 0;
               if (kstr + 1 < 22) {
                 if (str->data[kstr] != cv4[kstr]) {
-                  exitg1 = 1;
+                  exitg8 = 1;
                 } else {
                   kstr++;
                 }
               } else {
                 b_bool = true;
-                exitg1 = 1;
+                exitg8 = 1;
               }
-            } while (exitg1 == 0);
+            } while (exitg8 == 0);
           }
 
           if (b_bool) {
@@ -161,18 +173,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
             if (str->size[1] == 29) {
               kstr = 0;
               do {
-                exitg1 = 0;
+                exitg7 = 0;
                 if (kstr + 1 < 30) {
                   if (str->data[kstr] != cv5[kstr]) {
-                    exitg1 = 1;
+                    exitg7 = 1;
                   } else {
                     kstr++;
                   }
                 } else {
                   b_bool = true;
-                  exitg1 = 1;
+                  exitg7 = 1;
                 }
-              } while (exitg1 == 0);
+              } while (exitg7 == 0);
             }
 
             if (b_bool) {
@@ -182,18 +194,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
               if (str->size[1] == 26) {
                 kstr = 0;
                 do {
-                  exitg1 = 0;
+                  exitg6 = 0;
                   if (kstr + 1 < 27) {
                     if (str->data[kstr] != cv6[kstr]) {
-                      exitg1 = 1;
+                      exitg6 = 1;
                     } else {
                       kstr++;
                     }
                   } else {
                     b_bool = true;
-                    exitg1 = 1;
+                    exitg6 = 1;
                   }
-                } while (exitg1 == 0);
+                } while (exitg6 == 0);
               }
 
               if (b_bool) {
@@ -203,18 +215,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
                 if (str->size[1] == 27) {
                   kstr = 0;
                   do {
-                    exitg1 = 0;
+                    exitg5 = 0;
                     if (kstr + 1 < 28) {
                       if (str->data[kstr] != cv7[kstr]) {
-                        exitg1 = 1;
+                        exitg5 = 1;
                       } else {
                         kstr++;
                       }
                     } else {
                       b_bool = true;
-                      exitg1 = 1;
+                      exitg5 = 1;
                     }
-                  } while (exitg1 == 0);
+                  } while (exitg5 == 0);
                 }
 
                 if (b_bool) {
@@ -224,18 +236,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
                   if (str->size[1] == 27) {
                     kstr = 0;
                     do {
-                      exitg1 = 0;
+                      exitg4 = 0;
                       if (kstr + 1 < 28) {
                         if (str->data[kstr] != cv8[kstr]) {
-                          exitg1 = 1;
+                          exitg4 = 1;
                         } else {
                           kstr++;
                         }
                       } else {
                         b_bool = true;
-                        exitg1 = 1;
+                        exitg4 = 1;
                       }
-                    } while (exitg1 == 0);
+                    } while (exitg4 == 0);
                   }
 
                   if (b_bool) {
@@ -245,18 +257,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
                     if (str->size[1] == 27) {
                       kstr = 0;
                       do {
-                        exitg1 = 0;
+                        exitg3 = 0;
                         if (kstr + 1 < 28) {
                           if (str->data[kstr] != cv9[kstr]) {
-                            exitg1 = 1;
+                            exitg3 = 1;
                           } else {
                             kstr++;
                           }
                         } else {
                           b_bool = true;
-                          exitg1 = 1;
+                          exitg3 = 1;
                         }
-                      } while (exitg1 == 0);
+                      } while (exitg3 == 0);
                     }
 
                     if (b_bool) {
@@ -266,18 +278,18 @@ int cuBlasGetEnum(const emxArray_char_T *str)
                       if (str->size[1] == 30) {
                         kstr = 0;
                         do {
-                          exitg1 = 0;
+                          exitg2 = 0;
                           if (kstr + 1 < 31) {
                             if (str->data[kstr] != cv10[kstr]) {
-                              exitg1 = 1;
+                              exitg2 = 1;
                             } else {
                               kstr++;
                             }
                           } else {
                             b_bool = true;
-                            exitg1 = 1;
+                            exitg2 = 1;
                           }
-                        } while (exitg1 == 0);
+                        } while (exitg2 == 0);
                       }
 
                       if (b_bool) {
@@ -381,4 +393,9 @@ void cuBlasGetEnum_initialize(void)
 
 void cuBlasGetEnum_terminate(void)
 {
+}
+
+void emxInitArray_char_T(emxArray_char_T **pEmxArray, int numDimensions)
+{
+  emxInit_char_T(pEmxArray, numDimensions);
 }

@@ -2,20 +2,35 @@
 #include "m2c.h"
 #include "cuda4m.h"
 
+static void emxFreeStruct_struct0_T(struct0_T *pStruct);
+static void emxInitStruct_struct0_T(struct0_T *pStruct);
 static void m2c_error(const emxArray_char_T *varargin_3);
+
+static void emxFreeStruct_struct0_T(struct0_T *pStruct)
+{
+  emxFree_uint8_T(&pStruct->data);
+  emxFree_char_T(&pStruct->type);
+}
+
+static void emxInitStruct_struct0_T(struct0_T *pStruct)
+{
+  emxInit_uint8_T(&pStruct->data, 1);
+  emxInit_char_T(&pStruct->type, 2);
+}
+
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
-  int i0;
+  int i1;
   int loop_ub;
   emxInit_char_T(&b_varargin_3, 2);
-  i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i0 = 0; i0 < loop_ub; i0++) {
-    b_varargin_3->data[i0] = varargin_3->data[i0];
+  for (i1 = 0; i1 < loop_ub; i1++) {
+    b_varargin_3->data[i1] = varargin_3->data[i1];
   }
 
   M2C_error("m2c_opaque_obj:WrongInput",
@@ -30,19 +45,32 @@ int cuStreamQuery(const struct0_T *stm)
   boolean_T p;
   boolean_T b_p;
   int k;
+  int exitg2;
+  int i0;
   boolean_T exitg1;
   emxArray_char_T *b_stm;
   static const char cv0[12] = { 'c', 'u', 'd', 'a', 'S', 't', 'r', 'e', 'a', 'm',
     '_', 't' };
 
   emxArray_uint8_T *data;
-  int loop_ub;
   cudaStream_t hdl;
   p = false;
   b_p = false;
-  if (stm->type->size[1] == 12) {
-    b_p = true;
-  }
+  k = 0;
+  do {
+    exitg2 = 0;
+    if (k < 2) {
+      i0 = stm->type->size[k];
+      if (i0 != 11 * k + 1) {
+        exitg2 = 1;
+      } else {
+        k++;
+      }
+    } else {
+      b_p = true;
+      exitg2 = 1;
+    }
+  } while (exitg2 == 0);
 
   if (b_p && (!(stm->type->size[1] == 0))) {
     k = 0;
@@ -63,13 +91,13 @@ int cuStreamQuery(const struct0_T *stm)
 
   if (!p) {
     emxInit_char_T(&b_stm, 2);
-    k = b_stm->size[0] * b_stm->size[1];
+    i0 = b_stm->size[0] * b_stm->size[1];
     b_stm->size[0] = 1;
     b_stm->size[1] = stm->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stm, k, sizeof(char));
-    loop_ub = stm->type->size[1];
-    for (k = 0; k < loop_ub; k++) {
-      b_stm->data[b_stm->size[0] * k] = stm->type->data[stm->type->size[0] * k];
+    emxEnsureCapacity((emxArray__common *)b_stm, i0, (int)sizeof(char));
+    k = stm->type->size[1];
+    for (i0 = 0; i0 < k; i0++) {
+      b_stm->data[b_stm->size[0] * i0] = stm->type->data[stm->type->size[0] * i0];
     }
 
     b_stm->data[b_stm->size[0] * stm->type->size[1]] = '\x00';
@@ -78,12 +106,12 @@ int cuStreamQuery(const struct0_T *stm)
   }
 
   emxInit_uint8_T(&data, 1);
-  k = data->size[0];
+  i0 = data->size[0];
   data->size[0] = stm->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
-  loop_ub = stm->data->size[0];
-  for (k = 0; k < loop_ub; k++) {
-    data->data[k] = stm->data->data[k];
+  emxEnsureCapacity((emxArray__common *)data, i0, (int)sizeof(unsigned char));
+  k = stm->data->size[0];
+  for (i0 = 0; i0 < k; i0++) {
+    data->data[i0] = stm->data->data[i0];
   }
 
   hdl = *(cudaStream_t*)(&data->data[0]);
@@ -98,4 +126,14 @@ void cuStreamQuery_initialize(void)
 
 void cuStreamQuery_terminate(void)
 {
+}
+
+void emxDestroy_struct0_T(struct0_T emxArray)
+{
+  emxFreeStruct_struct0_T(&emxArray);
+}
+
+void emxInit_struct0_T(struct0_T *pStruct)
+{
+  emxInitStruct_struct0_T(pStruct);
 }

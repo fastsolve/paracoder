@@ -3,6 +3,7 @@
 #include "cuda4m.h"
 
 static void m2c_error(const emxArray_char_T *varargin_3);
+
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
@@ -12,7 +13,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -45,7 +46,7 @@ void cuVecDestroy(struct0_T *vec, int *errCode, boolean_T *toplevel)
     i1 = msg0->size[0] * msg0->size[1];
     msg0->size[0] = 1;
     msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)msg0, i1, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)msg0, i1, (int)sizeof(unsigned char));
     for (i1 = 0; i1 < len; i1++) {
       msg0->data[i1] = 0;
     }
@@ -60,7 +61,7 @@ void cuVecDestroy(struct0_T *vec, int *errCode, boolean_T *toplevel)
     i1 = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
     c_msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)c_msg0, i1, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)c_msg0, i1, (int)sizeof(unsigned char));
     for (i1 = 0; i1 < len; i1++) {
       c_msg0->data[c_msg0->size[0] * i1] = msg0->data[i1];
     }
@@ -69,7 +70,7 @@ void cuVecDestroy(struct0_T *vec, int *errCode, boolean_T *toplevel)
     emxInit_char_T(&d_msg0, 1);
     i1 = d_msg0->size[0];
     d_msg0->size[0] = len;
-    emxEnsureCapacity((emxArray__common *)d_msg0, i1, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)d_msg0, i1, (int)sizeof(char));
     for (i1 = 0; i1 < len; i1++) {
       d_msg0->data[i1] = (signed char)c_msg0->data[i1];
     }
@@ -78,7 +79,7 @@ void cuVecDestroy(struct0_T *vec, int *errCode, boolean_T *toplevel)
     i1 = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)b_msg0, i1, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)b_msg0, i1, (int)sizeof(char));
     for (i1 = 0; i1 < len; i1++) {
       b_msg0->data[b_msg0->size[0] * i1] = d_msg0->data[i1];
     }

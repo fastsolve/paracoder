@@ -13,7 +13,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, (int)sizeof(char));
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -68,7 +68,7 @@ void cuVecCreate(int n, int type, struct0_T *vec, int *errCode, boolean_T
     i0 = msg0->size[0] * msg0->size[1];
     msg0->size[0] = 1;
     msg0->size[1] = sizepe;
-    emxEnsureCapacity((emxArray__common *)msg0, i0, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)msg0, i0, (int)sizeof(unsigned char));
     for (i0 = 0; i0 < sizepe; i0++) {
       msg0->data[i0] = 0;
     }
@@ -83,7 +83,7 @@ void cuVecCreate(int n, int type, struct0_T *vec, int *errCode, boolean_T
     i0 = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
     c_msg0->size[1] = sizepe;
-    emxEnsureCapacity((emxArray__common *)c_msg0, i0, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)c_msg0, i0, (int)sizeof(unsigned char));
     for (i0 = 0; i0 < sizepe; i0++) {
       c_msg0->data[c_msg0->size[0] * i0] = msg0->data[i0];
     }
@@ -92,7 +92,7 @@ void cuVecCreate(int n, int type, struct0_T *vec, int *errCode, boolean_T
     emxInit_char_T(&d_msg0, 1);
     i0 = d_msg0->size[0];
     d_msg0->size[0] = sizepe;
-    emxEnsureCapacity((emxArray__common *)d_msg0, i0, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)d_msg0, i0, (int)sizeof(char));
     for (i0 = 0; i0 < sizepe; i0++) {
       d_msg0->data[i0] = (signed char)c_msg0->data[i0];
     }
@@ -101,7 +101,7 @@ void cuVecCreate(int n, int type, struct0_T *vec, int *errCode, boolean_T
     i0 = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = sizepe;
-    emxEnsureCapacity((emxArray__common *)b_msg0, i0, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)b_msg0, i0, (int)sizeof(char));
     for (i0 = 0; i0 < sizepe; i0++) {
       b_msg0->data[b_msg0->size[0] * i0] = d_msg0->data[i0];
     }
@@ -133,7 +133,7 @@ void cuVecCreate_1arg(int n, struct0_T *vec, int *errCode, boolean_T *toplevel)
     i2 = msg0->size[0] * msg0->size[1];
     msg0->size[0] = 1;
     msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)msg0, i2, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)msg0, i2, (int)sizeof(unsigned char));
     for (i2 = 0; i2 < len; i2++) {
       msg0->data[i2] = 0;
     }
@@ -148,7 +148,7 @@ void cuVecCreate_1arg(int n, struct0_T *vec, int *errCode, boolean_T *toplevel)
     i2 = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
     c_msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)c_msg0, i2, sizeof(unsigned char));
+    emxEnsureCapacity((emxArray__common *)c_msg0, i2, (int)sizeof(unsigned char));
     for (i2 = 0; i2 < len; i2++) {
       c_msg0->data[c_msg0->size[0] * i2] = msg0->data[i2];
     }
@@ -157,7 +157,7 @@ void cuVecCreate_1arg(int n, struct0_T *vec, int *errCode, boolean_T *toplevel)
     emxInit_char_T(&d_msg0, 1);
     i2 = d_msg0->size[0];
     d_msg0->size[0] = len;
-    emxEnsureCapacity((emxArray__common *)d_msg0, i2, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)d_msg0, i2, (int)sizeof(char));
     for (i2 = 0; i2 < len; i2++) {
       d_msg0->data[i2] = (signed char)c_msg0->data[i2];
     }
@@ -166,7 +166,7 @@ void cuVecCreate_1arg(int n, struct0_T *vec, int *errCode, boolean_T *toplevel)
     i2 = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = len;
-    emxEnsureCapacity((emxArray__common *)b_msg0, i2, sizeof(char));
+    emxEnsureCapacity((emxArray__common *)b_msg0, i2, (int)sizeof(char));
     for (i2 = 0; i2 < len; i2++) {
       b_msg0->data[b_msg0->size[0] * i2] = d_msg0->data[i2];
     }
