@@ -25,8 +25,8 @@ before_install:
          brew tap homebrew/science;
          brew update;
          brew install --without-java octave;
-         brew reinstall gcc --without-multilib;
-         ls /usr/local/gcc* ;
+         ls /usr/local/Cellar/gcc/7.1.0;
+         which gcc-7;
      fi'
 
 script:
