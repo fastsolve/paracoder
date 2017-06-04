@@ -18,20 +18,21 @@ before_install:
         sudo apt-get update -q;
         sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev;
         curl -L "$URL" | sudo bsdtar zxf - -C /usr/local --strip-components 2;
-        sudo ln -s -f /usr/local/MATLAB/R2016b/bin/matlab /usr/local/bin;
-        sudo ln -s -f /usr/local/MATLAB/R2016b/bin/mex /usr/local/bin;
+        sudo ln -s -f /usr/local/MATLAB/R*/bin/mex /usr/local/bin;
       fi'
   # For Mac, install Octave and link g++-7 to g++-mp
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-         brew tap homebrew/science;
-         brew update;
-         brew install --without-java octave;
-         brew install mpich2;
-         ln -s -f /usr/local/bin/gcc-7 /usr/local/bin/gcc-mp;
-         ln -s -f /usr/local/bin/g++-7 /usr/local/bin/g++-mp;
-         ls -l /usr/local/bin/gcc-* /usr/local/bin/g++-*;
+        brew tap homebrew/science;
+        brew update;
+        brew install --without-java octave;
+        brew install mpich2;
+        curl -L "$URL_OSX" | sudo bsdtar zxf - -C /Applications --strip-components 1;
+        sudo ln -s -f /Applications/MATLAB_R*/bin/mex /usr/local/bin;
+        ln -s -f /usr/local/bin/gcc-7 /usr/local/bin/gcc-mp;
+        ln -s -f /usr/local/bin/g++-7 /usr/local/bin/g++-mp;
+        ls -l /usr/local/bin/gcc-* /usr/local/bin/g++-*;
      fi'
 
 script:
   - octave --eval "build_m2c -force"
-  - '[[ "$TRAVIS_OS_NAME" != "linux" ]] ||  octave --eval "build_m2c -force -matlab"'
+  - octave --eval "build_m2c -force -matlab"
