@@ -38,4 +38,4 @@ before_install:
 
 script:
   - '[[ "$MATLAB" == "1" ]] || octave --eval "build_m2c -force"'
-  - '[[ "$MATLAB" == "0" ]] || ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab"
+  - '[[ "$MATLAB" == "0" ]] || ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab"'
