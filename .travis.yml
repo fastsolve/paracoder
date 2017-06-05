@@ -11,9 +11,9 @@ matrix:
       sudo: required
       env: UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
     - os: osx
-      env: MATLAB=0
+      env: BUILD_MATLAB=0
     - os: osx
-      env: MATLAB=1
+      env: BUILD_MATLAB=1
 
 before_install:
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -37,5 +37,5 @@ before_install:
      fi'
 
 script:
-  - '[[ "$MATLAB" == "1" ]] || octave --eval "build_m2c -force"'
-  - '[[ "$MATLAB" == "0" ]] || ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab"'
+  - '[[ "$BUILD_MATLAB" == "1" ]] || octave --eval "build_m2c -force"'
+  - '[[ "$BUILD_MATLAB" == "0" ]] || ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab"'
