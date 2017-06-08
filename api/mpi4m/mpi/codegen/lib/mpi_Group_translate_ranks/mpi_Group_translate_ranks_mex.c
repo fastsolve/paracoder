@@ -147,7 +147,7 @@ static void __mpi_Group_translate_ranks_api(mxArray **plhs, const mxArray ** prh
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     /* Temporary copy for mex outputs. */
-    mxArray *outputs[3];
+    mxArray *outputs[3] = {NULL, NULL, NULL};
     int i;
     int nOutputs = (nlhs < 1 ? 1 : nlhs);
 

@@ -151,7 +151,7 @@ static void __mpi_Testany_api(mxArray **plhs, const mxArray ** prhs) {
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     /* Temporary copy for mex outputs. */
-    mxArray *outputs[6];
+    mxArray *outputs[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
     int i;
     int nOutputs = (nlhs < 1 ? 1 : nlhs);
 
