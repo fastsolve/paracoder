@@ -123,6 +123,10 @@ else
     srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf ' ' funcname '_exe.' m2c_opts.suf];
 end
 
+if exist([srcs ' ' funcname '_emxutil.' m2c_opts.suf], 'file')
+    srcs = [srcs ' ' funcname '_emxutil.' m2c_opts.suf];
+end
+
 if m2c_opts.enableInf
     srcs = [srcs ' rtGetInf.' m2c_opts.suf  ' rtGetNaN.' m2c_opts.suf ' rt_nonfinite.' m2c_opts.suf];
 end
