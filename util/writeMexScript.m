@@ -167,7 +167,7 @@ else
     srcs = [funcname '.' m2c_opts.suf ' ' funcname '_mex.' m2c_opts.suf];
 end
 
-if exist([srcs ' ' funcname '_emxutil.' m2c_opts.suf], 'file')
+if exist([cpath funcname '_emxutil.' m2c_opts.suf], 'file')
     srcs = [srcs ' ' funcname '_emxutil.' m2c_opts.suf];
 end
 
