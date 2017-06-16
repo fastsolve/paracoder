@@ -1,2 +1,3 @@
-function test_mcode (varargin)
-mtest(varargin{:});
+function [varargout] = test_mcode (varargin)
+
+[varargout{1:nargout}] = mtest(varargin{:});
