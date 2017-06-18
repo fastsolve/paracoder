@@ -475,7 +475,12 @@ for i__ = 1:length(blockidx__)-1
                 rethrow( err);
             end
         end
-        eval (sprintf ('%stest_run_temp(%s);', shared_r__, shared__));
+        try
+            eval (sprintf ('%stest_run_temp(%s);', shared_r__, shared__));
+        catch e
+            msg__ = e.message;
+            success__ = 0;
+        end
         delete test_run_temp.m;
     end
 
