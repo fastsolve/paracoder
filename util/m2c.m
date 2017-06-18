@@ -34,12 +34,12 @@ function m2c(varargin)
 %           file will be saved to the directory. The given path can be
 %           either absolute or relative to the M file, but it must exist. If
 %           the given argument does not end with '/', it will be treated as
-%           the base naem of the MEX file and will be appended with the 
+%           the base naem of the MEX file and will be appended with the
 %           extension <mexext> unless the extension is already given
 %     -matlab
 %     -matlab {'relative_path_to_m_file'}
 %     -matlab {'mex_path_and_filename'}
-%           Use Octave to compile MATLAB's MEX files, assuming the mex 
+%           Use Octave to compile MATLAB's MEX files, assuming the mex
 %           command is in the path
 %     -exe
 %     -exe {'relative_path_to_m_file'} or
@@ -47,18 +47,18 @@ function m2c(varargin)
 %           Generate a MATLAB script for running the exe file from within
 %           MATLAB for debugging in place of the M-file (for Linux and Mac).
 %           By default, the exe file will be saved in the same directory
-%           as the M file, with the extension '.exe'.  If a parameter is 
+%           as the M file, with the extension '.exe'.  If a parameter is
 %           given, and it ends with '/', then the executable will be saved
 %           to the specified directory; if the parameter does not end with
 %           '/', it will be treated as the filename of the executable.
 %     -lib
-%     -lib {'libdir'} or 
-%     -lib {'lib_path_and_filename'} 
+%     -lib {'libdir'} or
+%     -lib {'lib_path_and_filename'}
 %           Generate wrapper C files and a makefile for building a static
-%           library from a list fo M files. Additional API functions with 
+%           library from a list fo M files. Additional API functions with
 %           the M files can be specified using the -api optoins.
-%           The default output directory is codegen/lib, and the generated 
-%           C codes are in their own subdirectories. If an argument is 
+%           The default output directory is codegen/lib, and the generated
+%           C codes are in their own subdirectories. If an argument is
 %           specified, then all the generated C code will be copied to the
 %           <rootdir>/src subdirectory before post-processing, the main
 %           header file will be in <rootdir>/include, and the library
@@ -71,7 +71,7 @@ function m2c(varargin)
 %           This is the same as -lib, except that it will generate a
 %           dynamic instead of a static library. The suffix is .so, .dylib,
 %           and .dll on Linux, Mac, and Windows, respectively. The options
-%           -lib and -dll can be used simultaneously. If rootdir is 
+%           -lib and -dll can be used simultaneously. If rootdir is
 %           specified more than once, the last one is effective.
 %     -api
 %     -api {'expression1, 'expression2', ...}
@@ -123,9 +123,9 @@ function m2c(varargin)
 %           of using the C built-in type names. This is the default if
 %           -cuda is enabled for better portability.
 %     -remove-emx
-%           Attempt to replace all emxArrays by plain pointers, This is 
+%           Attempt to replace all emxArrays by plain pointers, This is
 %           possible if there is no reference to the size field of emxArrays
-%           in the generated C code. 
+%           in the generated C code.
 %     -addpath {'dir1', 'dir2', ..., 'dirN'}
 %           Add the directory to the beginning of the search path for M files
 %           during code generation.
@@ -380,7 +380,7 @@ if isempty(m2c_opts.outDir)
     end
 end
 
-if m2c_opts.outDir{1}(1)=='/' || m2c_opts.outDir{1}(1)=='\' 
+if m2c_opts.outDir{1}(1)=='/' || m2c_opts.outDir{1}(1)=='\'
     cpath = [m2c_opts.outDir{1}(1) '/'];
 else
     cpath = [mpath m2c_opts.outDir{1} '/'];
@@ -409,10 +409,10 @@ if regen_c
     if ~exist('codegen.p', 'file')
         error('m2c:MissingCoder', 'MATLAB Coder is required to generate C code.\n');
     end
-    
+
     if ~isempty(m2c_opts.codegenConfig)
         co_cfg = evalin('base', sprintf('%s', m2c_opts.codegenConfig{1}));
-        
+
         if isempty(co_cfg) || ~isa(co_cfg, 'coder.CodeConfig')
             error('m2c:WrongArgument', ['The argument after -config must evaluate to a coder.CodeConfig ' ...
                 'object. Received %s Use command coder.config(''lib'') to create the object.\n'], ...
@@ -422,19 +422,19 @@ if regen_c
         %% Specify codegen config options
         co_cfg = coder.config('lib');
         co_cfg.EnableOpenMP = m2c_opts.withOMP && m2c_opts.optimLevel > 0;
-        
+
         co_cfg.SaturateOnIntegerOverflow = false;
         co_cfg.EnableVariableSizing = true;
         cfg.PassStructByReference = true;
         co_cfg.EnableMemcpy = true;
-        
+
         if ~isempty(m2c_opts.dynMem) && ~m2c_opts.remEmx
             co_cfg.DynamicMemoryAllocation = m2c_opts.dynMem;
         else
             co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
         end
         co_cfg.FilePartitionMethod = 'SingleFile';
-        
+
         co_cfg.GenCodeOnly = true;
         co_cfg.GenerateReport = true;
         co_cfg.InitFltsAndDblsToZero = true;
@@ -447,7 +447,7 @@ if regen_c
             co_cfg.TargetLang = 'C';
             m2c_opts.suf = 'c';
         end
-        
+
         co_cfg.MultiInstanceCode = true;
         co_cfg.GenerateComments = m2c_opts.debugInfo;
         if ~isempty(m2c_opts.presVars)
@@ -466,45 +466,45 @@ if regen_c
         co_cfg.GenerateMakefile = false;
         co_cfg.TargetLangStandard = 'C99 (ISO)';
         if m2c_opts.typeRep || m2c_opts.withCuda && ~isunix()
-            % To support CUDA pointers, it is recommended to use the bulit-in 
-            % definition of uint_64 for compatability with M.S. Windows, 
+            % To support CUDA pointers, it is recommended to use the bulit-in
+            % definition of uint_64 for compatability with M.S. Windows,
             % because MATLAB Coder uses "unsigned long" for "uint64".
             co_cfg.DataTypeReplacement = 'CoderTypeDefs';
         else
             co_cfg.DataTypeReplacement = 'CBuiltIn';
         end
-        
+
         if m2c_opts.withLapack
             co_cfg.CustomLAPACKCallback = 'useBuiltinLAPACK';
         end
     end
-    
+
     warning('off', 'CoderFoundation:builder:TMFIncompatibilityWarningMATLABCoder');
     if isequal(co_cfg.TargetLang, 'C++')
         warning('C++ code generation is not supported. Use at your own risk.');
     end
-    
+
     co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode);
-    
+
     %% Run command
     if m2c_opts.verbose
         disp('Running codegen with options:');
         disp(co_cfg);
     end
-    
+
     basecommand = 'codegen -config co_cfg ';
-    
+
     if m2c_opts.enableInline
         opts = '-O enable:inline';
     else
         opts = '-O disable:inline';
     end
-    
+
     if m2c_opts.verbose; basecommand = [basecommand ' -v']; end
     basecommand = [basecommand sprintf(' %s ', ...
         m2c_opts.addpath{:}, m2c_opts.m2cpath{:}, '-d', m2c_opts.outDir{1})];
     command = strtrim([basecommand ' ' opts ' ' func ' ' m2c_opts.codegenArgs]);
-    
+
     try
         olddir = pwd;
         if ~isempty(mpath); cd(mpath); end
@@ -520,7 +520,7 @@ if regen_c
         end
         return;
     end
-    
+
     % Modify C code generated by codegen
     [parmode, ~, has_emxutil] = post_codegen(func, cpath, m2c_opts);
 
@@ -529,18 +529,18 @@ if regen_c
     elseif strncmp(parmode, 'omp', 3) && ~m2c_opts.withOMP
         warning('m2c:OMPKernel', 'OpenMP code detected but -omp was not specified.');
     end
-        
+
     % Write Mex file to annotate the options used in codegen
     writeMexFile(func, mpath, cpath, m2c_opts, parmode);
-    
+
     % Write README file
     writeREADME(func, cpath, m2c_opts.genExe, m2c_opts.withNvcc);
-    
+
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
     if ~has_emxutil && exist([cpath func '_emxutil.' m2c_opts.suf], 'file')
-        delete([cpath func '_emxutil.' m2c_opts.suf]); 
-        delete([cpath func '_emxutil.h']); 
+        delete([cpath func '_emxutil.' m2c_opts.suf]);
+        delete([cpath func '_emxutil.h']);
     end
 end
 
@@ -558,7 +558,7 @@ if m2c_opts.genMex
             writeEvalScript(func, mpath, cpath, m2c_opts);
         end
     end
-    
+
     clear(mexbuild);
     if exist(mexbuild, 'file'); run(mexbuild); end
 elseif m2c_opts.verbose
@@ -572,12 +572,12 @@ if m2c_opts.genExe
         % Write the main function for Exe
         writeExeFile(func, cpath, m2c_opts);
     end
-    
+
     if regen_c || m2c_opts.force || ~ckSignature(m2c_opts, 'exe', [cpath  'build_' func '_exe.m'])
         % Write the build script for Exe
         writeExeScripts(func, mpath, cpath, m2c_opts);
     end
-    
+
     if ~isoctave
         build_exe(cpath, func);
         if m2c_opts.verbose
@@ -586,7 +586,7 @@ if m2c_opts.genExe
         end
     elseif ~m2c_opts.quiet
         fprintf('Skipping compilation of EXE file in Octave.\n');
-        
+
     end
 end
 end
@@ -711,7 +711,7 @@ while i<=last_index
                 error('m2c:wrong_argument', ...
                     'Argument %s requires a cell-array argument after it.\n', opt);
             end
-            
+
             if ~isempty(dirs)
                 m2c_opts.addpath = [m2c_opts.addpath  strtrim(sprintf('-I %s ', dirs{:}))];
             end
@@ -881,7 +881,7 @@ while i<=last_index
                         '-cuda flag or be specified by environment variable CUDA_PATH.\n']);
                 end
             end
-            
+
             m2c_opts.withCuda = true;
             m2c_opts.cudaInc = {['-I' m2c_opts.cudaDir{1} '/include']};
             if exist([m2c_opts.cudaDir{1} '/lib64'], 'dir')
@@ -913,11 +913,11 @@ while i<=last_index
                         'https://software.intel.com/en-us/articles/free_mkl\n']);
                 end
             end
-            
+
             if m2c_opts.mklDir{1}(end)=='/' || m2c_opts.mklDir{1}(end)=='\'
                 m2c_opts.mklDir{1}(end) = [];
             end
-            
+
             m2c_opts.withMKL = true + contains(opt, 'omp');
             m2c_opts.mklInc = {['-I' m2c_opts.mklDir{1} '/include']};
             m2c_opts.mklLibs = {dylibdir([m2c_opts.mklDir{1} '/lib']), ...
@@ -941,7 +941,7 @@ while i<=last_index
                     m2c_opts.petscDir = {[getenv('PETSC_DIR') '/' getenv('PETSC_ARCH')]};
                 elseif ~isempty(getenv('PETSC_DIR'))
                     m2c_opts.petscDir = {getenv('PETSC_DIR')};
-                elseif length(varargin) >1 
+                elseif length(varargin) >1
                     error('m2c:petsc_dir', ...
                         ['Root directory of PETSc must be given after the ' ...
                         '-petsc flag or be specified by environment variable PETSC_DIR.\n']);
@@ -950,36 +950,35 @@ while i<=last_index
                     break;
                 end
             end
-            
+
             petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
             if ~exist(petscvariables, 'file')
                 error('m2c:petsc_dir', ...
                     ['Could not locate file lib/petsc/conf/petscvariables ' ...
                     'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
             end
-            
+
             if ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.so'], 'file') && ...
                     ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.dylib'], 'file')
                 error('m2c:petsc', ...
                     'PETSc must be built as a shared library in order to be used in MATLAB.\n');
             end
-            
+
             [PCC, CXX, INC, CFLAGS, CXXFLAGS] = obtain_petscCC(petscvariables);
             if isempty(PCC)
                 error('m2c:petsc_dir', ...
                     ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
                     'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
             end
-            
+
             m2c_opts.petscCC = {PCC};
             m2c_opts.petscCXX = {CXX};
             m2c_opts.petscCFLAGS = {CFLAGS};
             m2c_opts.petscCXXFLAGS = {CXXFLAGS};
-            
+
             mpetscInc = [fileparts(which('startup_mpetsc.m')), '/include'];
             m2c_opts.petscInc = {[INC ' -I' mpetscInc]};
-            m2c_opts.petscLibs = {dylibdir([m2c_opts.petscDir{1}  '/lib']), ...
-                '-lpetsc'};
+            m2c_opts.petscLibs = {dylibdir([m2c_opts.petscDir{1}  '/lib']), '-lpetsc'};
             m2c_opts.withPetsc = true;
         case '-blas'
             if i<last_index && varargin{i+1}(1) == '{'
@@ -1029,7 +1028,7 @@ while i<=last_index
             else
                 m2c_opts.mpiLibs = {' '};
             end
-            
+
             if ~isequal(m2c_opts.petscCC, {''})
                 petsc_opts = m2c_opts;
             else
@@ -1042,7 +1041,7 @@ while i<=last_index
                 m2c_opts.mpiCC = {'mpicc'};
                 m2c_opts.mpiCXX = {'mpicc'};
             end
-            
+
             mpiInc = [fileparts(which('startup_mmpi.m')), '/include'];
             m2c_opts.mpiInc = {['-I' mpiInc]};
         case '-config'
@@ -1157,7 +1156,7 @@ if m2c_opts.withCuda
             'and linking will be performeed using mpicc instead of nvcc. No CUDA kernel\n', ...
             'function will be generated. Use -nvcc instead of -cuda to force compilation with nvcc.'\n]);
     end
-    
+
     if m2c_opts.chkMem
         warning('m2c:WarnCUDAwithMemChk', 'Memory check is not suported with CUDA. Disabled.\n');
         m2c_opts.chkMem = false;
@@ -1202,7 +1201,7 @@ clear(command);
 if exist(command, 'file'); run(command); end
 end
 
-function [PCC, CXX, INC, CFLAGS, CXXFLAGS] = obtain_petscCC(filename)
+function [PCC, CXX, INC, CFLAGS, CXXFLAGS, LIBS] = obtain_petscCC(filename)
 % Obtian the PCC and CXX commands from the petscvariables file
 str = readFile(filename);
 pat = '\nPCC\s*=\s*([^\n]+)\n';
@@ -1217,9 +1216,9 @@ end
 
 if nargout>1
     pat = '\nCXX\s*=\s*([^\n]+)\n';
-    
+
     def = regexp(str, pat, 'match', 'once');
-    
+
     if ~isempty(def)
         CXX = strtrim(regexprep(def, pat, '$1'));
     else
@@ -1233,10 +1232,10 @@ if nargout>2
     else
         INC = '';
     end
-    
+
     pat = 'PETSC_CC_INCLUDES\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
-    
+
     if ~isempty(def)
         INC = [INC strtrim(regexprep(def, pat, '$1'))];
     end
@@ -1246,7 +1245,7 @@ if nargout>3
     CFLAGS = '';
     pat = '\nCC_FLAGS\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
-    
+
     if ~isempty(def)
         CFLAGS = strtrim(regexprep(def, pat, '$1'));
     end
@@ -1254,11 +1253,21 @@ end
 
 if nargout>4
     CXXFLAGS = '';
-    pat = '\CXX_FLAGS\s*=\s*([^\n]+)\n';
+    pat = 'CXX_FLAGS\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
-    
+
     if ~isempty(def)
         CXXFLAGS = strtrim(regexprep(def, pat, '$1'));
+    end
+end
+
+if nargout>5
+    LIBS = '';
+    pat = 'PETSC_EXTERNAL_LIB_BASIC\s*=\s*([^\n]+)\n';
+    def = regexp(str, pat, 'match', 'once');
+
+    if ~isempty(def)
+        LIBS = strtrim(regexprep(def, pat, '$1'));
     end
 end
 end

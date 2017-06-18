@@ -51,7 +51,7 @@ elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
             m2c_opts.ompLibs = {};
         end
     end
-    
+
     CC = ['CC=''''' CBASE ''''' CXX=''''' CXXBASE ''''''];
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
@@ -155,7 +155,7 @@ libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = strtrim(libs);
 
 if ~isempty(libs)
-    LINKLIBS = [' LINKLIBS=''''$LINKLIBS  ' libs ''''''];
+    LINKLIBS = [' LINKLIBS=''''' libs ' $LINKLIBS '''''];
 else
     LINKLIBS = '';
 end
@@ -213,18 +213,18 @@ end
 
 if m2c_opts.withNvcc
     NVCC = [m2c_opts.cudaDir{1} '/bin/nvcc'];
-    
+
     NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
     nvccCmd1 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dc ' funcname '.cu -o ' funcname '.o'];
     nvccCmd2 = [NVCC ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
     nvccCmd3 = [NVCC ' ' CPPFLAGS ' ' COPTFLAGS ' '  NVCC_CXXFLAGS ' -ptx ' funcname '.cu -o ' funcname '.ptx'];
-    
+
     filestr = sprintf('%s\n', filestr, ...
         ['    nvccCmd1 = [''' nvccCmd1 '''];'], ...
         ['    nvccCmd2 = ''' nvccCmd2 ''';'], ...
         ['    nvccCmd3 = [''' nvccCmd3 '''];']);
-    
+
     if ~m2c_opts.quiet
         filestr = sprintf('%s\n', filestr, ...
             '    disp(nvccCmd1); [status,cmdout] = system(nvccCmd1);', ...
