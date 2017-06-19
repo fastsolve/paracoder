@@ -16,23 +16,21 @@ matrix:
       env: BUILD_MATLAB=1
 
 before_install:
+  - git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil &&
+    pip install -r $HOME/gdutil/requirements.txt &&
+    echo "$CRED" > mycred.txt
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil;
-        pip install -r $HOME/gdutil/requirements.txt;
         sudo $UPDATE_REPOSITORY;
         sudo apt-get update -q;
         sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev;
-        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /usr/local --strip-components 2;
+        $HOME/gdutil/bin/gd-get -i "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /usr/local --strip-components 2;
         sudo ln -s -f $(ls /usr/local/MATLAB/R*/bin/mex) /usr/local/bin;
       fi'
   # For Mac, install Octave and link g++-7 to g++-mp
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil;
-        pip install -r $HOME/gdutil/requirements.txt;
-        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" -o /tmp/mex.tgz;
-        sudo bsdtar zxf /tmp/mex.tgz -C /Applications --strip-components 1;
-        sudo ln -s -f $(ls /Applications/MATLAB_R*/bin/mex) /usr/local/bin;
-        rm -f /tmp/mex.tgz;
+        [[ "$BUILD_MATLAB" == "0" ]] ||
+        ($HOME/gdutil/bin/gd-get -i "$ACCESSKEY_OSX" | sudo bsdtar zxf - -C /Applications --strip-components 1;
+        sudo ln -s -f $(ls /Applications/MATLAB_R*/bin/mex) /usr/local/bin);
         brew tap homebrew/science;
         brew update;
         brew install --without-java octave;
