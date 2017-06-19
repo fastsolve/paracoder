@@ -20,7 +20,7 @@ before_install:
     pip install -r $HOME/gdutil/requirements.txt &&
     echo "$CRED" > mycred.txt
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        $HOME/gdutil/bin/gd-get -i "$ACCESSKEY_LINUX" -o /tmp/mex.tgz
+        $HOME/gdutil/bin/gd-get -i "$ACCESSKEY_LINUX" -o /tmp/mex.tgz;
         sudo tar zxf /tmp/mex.tgz -C /usr/local --strip-components 2;
         rm -f /tmp/mex.tgz;
         sudo ln -s -f $(ls /usr/local/MATLAB/R*/bin/mex) /usr/local/bin;
