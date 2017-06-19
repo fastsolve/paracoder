@@ -22,7 +22,8 @@ dir = [m2croot '/util/getMD5/'];
 if ~isoctave && ~exist([dir 'GetMD5.' mexext], 'file')
     mex('-O', 'CFLAGS="\$CFLAGS -std=c99"', '-largeArrayDims', ...
         '-D_LITTLE_ENDIAN', '-outdir', dir, [dir 'GetMD5.c']);
-elseif isoctave && ~exist([dir 'GetMD5.' mexext_matlab], 'file')
+elseif isoctave && contains(['' varargin{:}], '-matlab') && ...
+        ~exist([dir 'GetMD5.' mexext_matlab], 'file')
     system(['mex -O CFLAGS="\$CFLAGS -std=c99" -largeArrayDims ', ...
         ' -D_LITTLE_ENDIAN -outdir ' dir ' ' dir 'GetMD5.c']);
 end
