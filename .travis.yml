@@ -31,7 +31,7 @@ before_install:
   # For Mac, install Octave and link g++-7 to g++-mp
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         [[ "$BUILD_MATLAB" == "0" ]] ||
-        ($HOME/gdutil/bin/gd-get-pub -i "$ACCESSKEY_OSX" -o /tmp/mex.tgz &&
+        ($HOME/gdutil/bin/gd-get -i "$ACCESSKEY_OSX" -o /tmp/mex.tgz &&
         sudo bsdtar zxf /tmp/mex.tgz -C /Applications --strip-components &&
         rm -f /tmp/mex.tgz && sudo ln -s -f $(ls /Applications/MATLAB_R*/bin/mex) /usr/local/bin);
         brew tap homebrew/science;
