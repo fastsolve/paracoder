@@ -1,5 +1,4 @@
 language: python
-python: "3.5"
 
 matrix:
   include:
@@ -17,14 +16,13 @@ matrix:
       env: BUILD_MATLAB=1
 
 before_install:
-  - sudo git clone --depth 1 https://github.com/hpdata/gdutil /usr/local/gdutil &&
-    pip install -r /usr/local/gdutil/requirements.txt &&
-    sudo ln -s -f /usr/local/gdutil/gd_get_pub.py /usr/local/bin/gd-get-pub
+  - git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil &&
+    pip install -r $HOME/gdutil/requirements.txt
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         sudo $UPDATE_REPOSITORY;
         sudo apt-get update -q;
         sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev;
-        gd-get-pub $ACCESSKEY_LINUX | sudo bsdtar zxf - -C /usr/local --strip-components 2;
+        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /usr/local --strip-components 2;
         sudo ln -s -f /usr/local/MATLAB/R*/bin/mex /usr/local/bin;
       fi'
   # For Mac, install Octave and link g++-7 to g++-mp
@@ -33,7 +31,7 @@ before_install:
         brew update;
         brew install --without-java octave;
         brew install mpich2;
-        gd-get-pub $ACCESSKEY_OSX | sudo bsdtar zxf - -C /Applications --strip-components 1;
+        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /Applications --strip-components 1;
         sudo ln -s -f /Applications/MATLAB_R*/bin/mex /usr/local/bin;
         ln -s -f /usr/local/bin/gcc-7 /usr/local/bin/gcc-mp;
         ln -s -f /usr/local/bin/g++-7 /usr/local/bin/g++-mp;
