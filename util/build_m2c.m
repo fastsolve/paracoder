@@ -17,8 +17,14 @@ for j=1:length(funcs)
     end
 end
 
-if exist('GetMD5.m', 'file') && ~exist(['GetMD5.' mexext], 'file')
-    InstallMex GetMD5.c
+dir = [m2croot '/util/getMD5/'];
+
+if ~isoctave && ~exist([dir 'GetMD5.' mexext], 'file')
+    mex('-O', 'CFLAGS="\$CFLAGS -std=c99"', '-largeArrayDims', ...
+        '-D_LITTLE_ENDIAN', '-outdir', dir, [dir 'GetMD5.c']);
+elseif isoctave && ~exist([dir 'GetMD5.' mexext_matlab], 'file')
+    system(['mex -O CFLAGS="\$CFLAGS -std=c99" -largeArrayDims ', ...
+        ' -D_LITTLE_ENDIAN -outdir ' dir ' ' dir 'GetMD5.c']);
 end
 
 % Build CRS
