@@ -1,4 +1,4 @@
-language: python
+language: C
 
 matrix:
   include:
@@ -16,9 +16,9 @@ matrix:
       env: BUILD_MATLAB=1
 
 before_install:
-  - git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil &&
-    pip install -r $HOME/gdutil/requirements.txt
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil;
+        pip install -r $HOME/gdutil/requirements.txt;
         sudo $UPDATE_REPOSITORY;
         sudo apt-get update -q;
         sudo apt-get install -y octave bsdtar liboctave-dev mpich2 libmpich2-dev;
@@ -31,6 +31,10 @@ before_install:
         brew update;
         brew install --without-java octave;
         brew install mpich2;
+        curl https://bootstrap.pypa.io/get-pip.py | sudo python get-pip.py;
+        sudo pip2 install --no-cache-dir setuptools;
+        git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil;
+        pip install -r $HOME/gdutil/requirements.txt;
         python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /Applications --strip-components 1;
         sudo ln -s -f /Applications/MATLAB_R*/bin/mex /usr/local/bin;
         ln -s -f /usr/local/bin/gcc-7 /usr/local/bin/gcc-mp;
