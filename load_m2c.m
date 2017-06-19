@@ -58,4 +58,6 @@ if isoctave
 
     % Initialize MPI
     init_mpi
+else
+    addpath([m2croot '/util/getMD5']);
 end

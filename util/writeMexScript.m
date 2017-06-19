@@ -155,7 +155,7 @@ libs = [libs sprintf(' %s ', m2c_opts.ompLibs{:})];
 libs = strtrim(libs);
 
 if ~isempty(libs)
-    LINKLIBS = [' LINKLIBS=''''' libs ' $LINKLIBS '''''];
+    LINKLIBS = [' LINKLIBS=''''' libs ' $LINKLIBS'''''];
 else
     LINKLIBS = '';
 end
