@@ -17,6 +17,10 @@ for j=1:length(funcs)
     end
 end
 
+if exist('GetMD5.m', 'file') && ~exist(['GetMD5.' mexext], 'file')
+    InstallMex GetMD5.c
+end
+
 % Build CRS
 build_crs(varargin{:})
 

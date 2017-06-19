@@ -90,8 +90,7 @@ if isoctave && exist('hash', 'builtin')
 elseif isoctave
     md5hash = md5sum(str, true);
 else
-    md = java.security.MessageDigest.getInstance('MD5');
-    md5hash = sprintf('%.2x', typecast(md.digest(uint8(str)), 'uint8'));
+    md5hash = GetMD5(str);
 end
 
 end
