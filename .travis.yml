@@ -18,7 +18,7 @@ matrix:
 
 before_install:
   - sudo git clone --depth 1 https://github.com/hpdata/gdutil /usr/local/gdutil &&
-    sudo pip3 install -r /usr/local/gdutil/requirements.txt &&
+    sudo pip install -r /usr/local/gdutil/requirements.txt &&
     sudo ln -s -f /usr/local/gdutil/gd_get_pub.py /usr/local/bin/gd-get-pub
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         sudo $UPDATE_REPOSITORY;
