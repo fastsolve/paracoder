@@ -29,8 +29,10 @@ before_install:
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil;
         pip install -r $HOME/gdutil/requirements.txt;
-        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" | sudo bsdtar zxf - -C /Applications --strip-components 1;
+        python $HOME/gdutil/gd_get_pub.py "$ACCESSKEY_LINUX" -o /tmp/mex.tgz;
+        sudo bsdtar zxf /tmp/mex.tgz -C /Applications --strip-components 1;
         sudo ln -s -f $(ls /Applications/MATLAB_R*/bin/mex) /usr/local/bin;
+        rm -f /tmp/mex.tgz;
         brew tap homebrew/science;
         brew update;
         brew install --without-java octave;
