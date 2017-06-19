@@ -578,7 +578,7 @@ if m2c_opts.genExe
         writeExeScripts(func, mpath, cpath, m2c_opts);
     end
 
-    if ~isoctave
+    if m2c_opts.genMatlab
         build_exe(cpath, func);
         if m2c_opts.verbose
             fprintf(['To run the EXE file in MATLAB, ', ...
