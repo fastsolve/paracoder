@@ -30,9 +30,9 @@ before_install:
       fi'
   # For Mac, install Octave and link g++-7 to g++-mp
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        [[ "$BUILD_MATLAB" == "0" ]] ||
+        [[ "$BUILD_MATLAB" != "1" ]] ||
         ($HOME/gdutil/bin/gd-get -i "$ACCESSKEY_OSX" -o /tmp/mex.tgz &&
-        sudo bsdtar zxf /tmp/mex.tgz -C /Applications --strip-components &&
+        sudo bsdtar zxf /tmp/mex.tgz -C /Applications --strip-components 1 &&
         rm -f /tmp/mex.tgz && sudo ln -s -f $(ls /Applications/MATLAB_R*/bin/mex) /usr/local/bin);
         brew tap homebrew/science;
         brew update;
@@ -45,4 +45,4 @@ before_install:
 
 script:
   - '[[ "$BUILD_MATLAB" == "1" ]] || octave --eval "build_m2c -force"'
-  - '[[ "$BUILD_MATLAB" == "0" ]] || ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab"'
+  - '[[ "$BUILD_MATLAB" == "0" ]] || (ls -l /usr/local/bin/mex && octave --eval "build_m2c -force -matlab")'
