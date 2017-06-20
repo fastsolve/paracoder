@@ -25,14 +25,20 @@ static void m2c_error(const emxArray_char_T *varargin_3)
 
 void mpi_Init(int *info, boolean_T *toplevel)
 {
+  int resultlen;
   unsigned char msg0[1024];
   char * ptr;
-  int resultlen;
   emxArray_char_T *b_msg0;
   emxArray_uint8_T *c_msg0;
   int i0;
   emxArray_char_T *d_msg0;
-  *info = MPI_Init(NULL, NULL);
+  MPI_Initialized(&resultlen);
+  if (!(resultlen != 0)) {
+    *info = MPI_Init(NULL, NULL);
+  } else {
+    *info = 0;
+  }
+
   *toplevel = true;
   if (*info != 0) {
     memset(&msg0[0], 0, sizeof(unsigned char) << 10);

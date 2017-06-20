@@ -32,7 +32,11 @@ else
     argv = coder.opaque('char ***', 'NULL');
 end
 
-info = coder.ceval('MPI_Init', argc, argv);
+if ~mpi_Initialized
+    info = coder.ceval('MPI_Init', argc, argv);
+else
+    info = int32(0);
+end
 
 toplevel = nargout>1;
 if info && (toplevel || m2c_debug)
