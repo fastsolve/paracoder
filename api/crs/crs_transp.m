@@ -10,15 +10,17 @@ is = A.col_ind;
 js = crs_rowind(A.row_ptr, A.col_ind);
 
 % Exchange row and col_ind.
-At = crs_create(is, js, A.val);
+At = crs_createFromAIJ(is, js, A.val);
+
+end
 
 function test %#ok<DEFNU>
 %!test
-%! tic; sp = sprand(10000,2000,0.1);
-%! [is,js,vs] = find(sp); 
+%! tic; sp = sprand(10000, 2000, 0.1);
 %! fprintf(1, '\n\tGenerated random matrix in %g seconds\n', toc);
-%! tic; A = crs_matrix(int32(is), int32(js), vs, int32(size(sp,1)), int32(size(sp,2)));
+%! tic; A = crs_matrix(sp);
 %! fprintf(1, '\tConverted into crs_matrix in %g seconds\n', toc);
 %! tic; At = crs_transp(A);
 %! fprintf(1, '\tComputed transpose in %g seconds\n', toc);
 %! assert(isequal(sp', crs_2sparse(At)));
+end

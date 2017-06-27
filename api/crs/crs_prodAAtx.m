@@ -114,11 +114,10 @@ function test %#ok<DEFNU>
 %!    m=10000; n = 2000;
 %! end
 %! tic; sp = sprand(m,n,0.5); x=rand(size(sp,1),2);
-%! [is,js,vs] = find(sp);
 %! fprintf(1, '\n\tGenerated random matrix in %g seconds\n', toc);
 %! tic; b0 = sp*(sp'*x);
 %! fprintf(1, '\tComputed reference solution in %g seconds\n', toc);
-%! tic; A = crs_matrix(int32(is), int32(js), vs, int32(size(sp,1)), int32(size(sp,2)));
+%! tic; A = crs_matrix(sp);
 %! fprintf(1, '\tConverted into crs_matrix in %g seconds\n', toc);
 
 %! fprintf(1, '\tTesting serial: ');

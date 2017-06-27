@@ -10,20 +10,41 @@ static void m2c_error(void)
 
 void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
 {
+  emxArray_int32_T *t0_row_ptr;
   int k;
-  int u0;
+  int loop_ub;
+  int i;
   int clength;
   emxArray_int32_T *b_index;
-  int i;
   int istart;
   emxArray_real_T *temp;
   if (A->ncols != B->nrows) {
     m2c_error();
   }
 
+  emxInit_int32_T(&t0_row_ptr, 1);
+  k = t0_row_ptr->size[0];
+  t0_row_ptr->size[0] = A->nrows + 1;
+  emxEnsureCapacity((emxArray__common *)t0_row_ptr, k, sizeof(int));
+  loop_ub = A->nrows;
+  for (k = 0; k <= loop_ub; k++) {
+    t0_row_ptr->data[k] = 0;
+  }
+
+  t0_row_ptr->data[0] = 1;
+  for (i = 1; i <= A->nrows; i++) {
+    t0_row_ptr->data[i] += t0_row_ptr->data[i - 1];
+  }
+
   k = C->row_ptr->size[0];
-  C->row_ptr->size[0] = 0;
+  C->row_ptr->size[0] = t0_row_ptr->size[0];
   emxEnsureCapacity((emxArray__common *)C->row_ptr, k, sizeof(int));
+  loop_ub = t0_row_ptr->size[0];
+  for (k = 0; k < loop_ub; k++) {
+    C->row_ptr->data[k] = t0_row_ptr->data[k];
+  }
+
+  emxFree_int32_T(&t0_row_ptr);
   k = C->col_ind->size[0];
   C->col_ind->size[0] = 0;
   emxEnsureCapacity((emxArray__common *)C->col_ind, k, sizeof(int));
@@ -36,10 +57,10 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   C->row_ptr->size[0] = A->row_ptr->size[0];
   emxEnsureCapacity((emxArray__common *)C->row_ptr, k, sizeof(int));
   C->row_ptr->data[0] = 1;
-  u0 = A->ncols;
+  loop_ub = A->ncols;
   clength = B->ncols;
-  if (u0 > clength) {
-    clength = u0;
+  if (loop_ub > clength) {
+    clength = loop_ub;
   }
 
   emxInit_int32_T(&b_index, 1);
@@ -53,9 +74,10 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   for (i = 1; i <= A->nrows; i++) {
     istart = -1;
     clength = 0;
-    for (u0 = A->row_ptr->data[i - 1]; u0 < A->row_ptr->data[i]; u0++) {
-      for (k = B->row_ptr->data[A->col_ind->data[u0 - 1] - 1] - 1; k + 1 <
-           B->row_ptr->data[A->col_ind->data[u0 - 1]]; k++) {
+    for (loop_ub = A->row_ptr->data[i - 1]; loop_ub < A->row_ptr->data[i];
+         loop_ub++) {
+      for (k = B->row_ptr->data[A->col_ind->data[loop_ub - 1] - 1] - 1; k + 1 <
+           B->row_ptr->data[A->col_ind->data[loop_ub - 1]]; k++) {
         if (b_index->data[B->col_ind->data[k] - 1] == 0) {
           b_index->data[B->col_ind->data[k] - 1] = istart;
           istart = B->col_ind->data[k];
@@ -65,7 +87,8 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
     }
 
     C->row_ptr->data[i] = C->row_ptr->data[i - 1] + clength;
-    for (u0 = C->row_ptr->data[i - 1]; u0 < C->row_ptr->data[i]; u0++) {
+    for (loop_ub = C->row_ptr->data[i - 1]; loop_ub < C->row_ptr->data[i];
+         loop_ub++) {
       k = istart;
       istart = b_index->data[istart - 1];
       b_index->data[k - 1] = 0;
@@ -80,9 +103,10 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   for (i = 1; i <= A->nrows; i++) {
     istart = -1;
     clength = 0;
-    for (u0 = A->row_ptr->data[i - 1]; u0 < A->row_ptr->data[i]; u0++) {
-      for (k = B->row_ptr->data[A->col_ind->data[u0 - 1] - 1] - 1; k + 1 <
-           B->row_ptr->data[A->col_ind->data[u0 - 1]]; k++) {
+    for (loop_ub = A->row_ptr->data[i - 1]; loop_ub < A->row_ptr->data[i];
+         loop_ub++) {
+      for (k = B->row_ptr->data[A->col_ind->data[loop_ub - 1] - 1] - 1; k + 1 <
+           B->row_ptr->data[A->col_ind->data[loop_ub - 1]]; k++) {
         if (b_index->data[B->col_ind->data[k] - 1] == 0) {
           b_index->data[B->col_ind->data[k] - 1] = istart;
           istart = B->col_ind->data[k];
@@ -93,10 +117,10 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
 
     C->row_ptr->data[i] = C->row_ptr->data[i - 1] + clength;
     k = C->row_ptr->data[i] - 1;
-    for (u0 = C->row_ptr->data[i - 1]; u0 <= k; u0++) {
-      C->col_ind->data[u0 - 1] = istart;
+    for (loop_ub = C->row_ptr->data[i - 1]; loop_ub <= k; loop_ub++) {
+      C->col_ind->data[loop_ub - 1] = istart;
       istart = b_index->data[istart - 1];
-      b_index->data[C->col_ind->data[u0 - 1] - 1] = 0;
+      b_index->data[C->col_ind->data[loop_ub - 1] - 1] = 0;
     }
 
     b_index->data[i - 1] = 0;
@@ -109,24 +133,26 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   k = temp->size[0];
   temp->size[0] = b_index->size[0];
   emxEnsureCapacity((emxArray__common *)temp, k, sizeof(double));
-  u0 = b_index->size[0];
+  loop_ub = b_index->size[0];
   emxFree_int32_T(&b_index);
-  for (k = 0; k < u0; k++) {
+  for (k = 0; k < loop_ub; k++) {
     temp->data[k] = 0.0;
   }
 
   for (i = 1; i <= A->nrows; i++) {
-    for (u0 = A->row_ptr->data[i - 1] - 1; u0 + 1 < A->row_ptr->data[i]; u0++) {
-      for (k = B->row_ptr->data[A->col_ind->data[u0] - 1] - 1; k + 1 <
-           B->row_ptr->data[A->col_ind->data[u0]]; k++) {
-        temp->data[B->col_ind->data[k] - 1] += A->val->data[u0] * B->val->data[k];
+    for (loop_ub = A->row_ptr->data[i - 1] - 1; loop_ub + 1 < A->row_ptr->data[i];
+         loop_ub++) {
+      for (k = B->row_ptr->data[A->col_ind->data[loop_ub] - 1] - 1; k + 1 <
+           B->row_ptr->data[A->col_ind->data[loop_ub]]; k++) {
+        temp->data[B->col_ind->data[k] - 1] += A->val->data[loop_ub] * B->
+          val->data[k];
       }
     }
 
     k = C->row_ptr->data[i] - 1;
-    for (u0 = C->row_ptr->data[i - 1] - 1; u0 + 1 <= k; u0++) {
-      C->val->data[u0] = temp->data[C->col_ind->data[u0] - 1];
-      temp->data[C->col_ind->data[u0] - 1] = 0.0;
+    for (loop_ub = C->row_ptr->data[i - 1] - 1; loop_ub + 1 <= k; loop_ub++) {
+      C->val->data[loop_ub] = temp->data[C->col_ind->data[loop_ub] - 1];
+      temp->data[C->col_ind->data[loop_ub] - 1] = 0.0;
     }
   }
 

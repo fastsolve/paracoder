@@ -1,5 +1,5 @@
-#ifndef CRS_CREATE_TYPES_H
-#define CRS_CREATE_TYPES_H
+#ifndef CRS_CREATEFROMAIJ_TYPES_H
+#define CRS_CREATEFROMAIJ_TYPES_H
 #include "rtwtypes.h"
 #ifndef struct_emxArray__common
 #define struct_emxArray__common
@@ -74,16 +74,6 @@ typedef struct {
   int nrows;
   int ncols;
 } struct0_T;
-
-#endif
-
-#ifndef typedef_struct1_T
-#define typedef_struct1_T
-
-typedef struct {
-  int nrows;
-  int ncols;
-} struct1_T;
 
 #endif
 #endif

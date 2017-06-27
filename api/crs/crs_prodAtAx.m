@@ -49,14 +49,14 @@ coder.inline('never');
 
 assert(nargin<=8);
 
-if nargin<3; 
+if nargin<3
     b = zeros(A.ncols,size(x,2)); 
 elseif size(b,1)<A.ncols || size(b,2)~=size(x,2)
     OMP_begin_master
     m2c_error('crs_prodAAtx:IncorrectBuffer', 'Buffer b has incorrect size.');
     OMP_end_master
 end
-if nargin<4;
+if nargin<4
     Ax = zeros(A.nrows,size(x,2));
 elseif size(Ax,1)<A.nrows || size(Ax,2)~=size(x,2)
     OMP_begin_master
@@ -114,11 +114,10 @@ function test %#ok<DEFNU>
 %!    m=10000; n = 2000;
 %! end
 %! tic; sp = sprand(m,n,0.5); x=rand(size(sp,2),2);
-%! [is,js,vs] = find(sp);
 %! fprintf(1, '\n\tGenerated random matrix in %g seconds\n', toc);
 %! tic; b0 = sp'*(sp*x);
 %! fprintf(1, '\tComputed reference solution in %g seconds\n', toc);
-%! tic; A = crs_matrix(int32(is), int32(js), vs, int32(size(sp,1)), int32(size(sp,2)));
+%! tic; A = crs_matrix(sp);
 %! fprintf(1, '\tConverted into crs_matrix in %g seconds\n', toc);
 
 %! fprintf(1, '\tTesting serial: ');

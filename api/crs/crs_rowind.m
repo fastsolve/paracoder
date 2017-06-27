@@ -3,7 +3,7 @@ function is = crs_rowind(rowptr, js) %#codegen
 %
 %     is = crs_rowind(rowptr, js)
 %
-% See also crs_create
+% See also crs_createFromAIJ
 
 %#codegen -args {coder.typeof(int32(0), [inf,1]), coder.typeof(int32(0),[inf,1])}
 
