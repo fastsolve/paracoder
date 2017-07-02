@@ -22,9 +22,11 @@ addpath([m2croot '/api/mtypes']);
 
 % Add path for matrix operations
 addpath([m2croot '/api/crs']);
-
-% Add path for mesh operations
-addpath([m2croot '/api/mesh/ahf']);
+addpath([m2croot '/api/dense/geom']);
+addpath([m2croot '/api/dense/vec']);
+addpath([m2croot '/api/dense/solve']);
+addpath([m2croot '/api/dense/tiny']);
+addpath([m2croot '/api/dense/tensor']);
 
 % Add path for MPI
 addpath([m2croot '/api/mpi4m']);
