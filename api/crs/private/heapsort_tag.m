@@ -29,7 +29,7 @@ end;
 %
 %STEP H1
 %
-l = int32(bitshift( uint32(n), -1)) +1;
+l = int32(bitshift(uint32(n), -1)) +1;
 ir = n;
 %
 %STEP H2

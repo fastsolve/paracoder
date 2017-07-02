@@ -44,11 +44,11 @@ if isstruct(var) && isfield(var, 'offset')
     if (nargin<4 || ~varargin{1}) && length(var.type)>6 && isequal(var.type(1:6),'const ')
         m2c_warn('m2c_opaque_ptr:ConstPtr', 'Discarding the const modifier of an m2c_opaque_ptr.');
     end
-elseif isnumeric( var)
+elseif isnumeric(var)
     if nargin>1
-        ptr = coder.ceval( ['(' type ')'], coder.rref(var));
+        ptr = coder.ceval(['(' type ')'], coder.rref(var));
     else
-        ptr = coder.ceval( '(char *)', coder.rref(var));
+        ptr = coder.ceval('(char *)', coder.rref(var));
     end
 else
     ptr = var;

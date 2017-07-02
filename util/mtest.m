@@ -217,7 +217,7 @@ blockidx__ = lineidx__(~isspace (body__(lineidx__+1)))+1;
 
 %% ready to start tests ... if in batch mode, tell us what is happening
 if (verbose__)
-    disp (strcat ( signal_file__, file__));
+    disp (strcat (signal_file__, file__));
 end
 
 %% assume all tests will pass
@@ -472,7 +472,7 @@ for i__ = 1:length(blockidx__)-1
             if (isempty (lasterr))
                 error ('empty error text, probably Ctrl-C --- aborting');
             else
-                rethrow( err);
+                rethrow(err);
             end
         end
         try
@@ -592,7 +592,7 @@ fid = fopen (nm, 'rt');
 body = [];
 if (fid >= 0)
     while (~ feof (fid))
-        ln = strtrim( fgetl (fid));
+        ln = strtrim(fgetl (fid));
         if (length (ln) >= 2 && strcmp (ln(1:2), '%!'))
             body = sprintf('%s\n%s', char(body), ln(3:end));
         end

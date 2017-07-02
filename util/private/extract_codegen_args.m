@@ -5,8 +5,8 @@ if (fid >= 0)
     began = false;
     while (~ feof (fid))
         tline = fgetl(fid); if ~ischar(tline), break, end
-        ln = strtrim( tline);
-        if length(ln)>5 && isequal( ln(1:2), '%#') && isequal( ln(end-2:end), '...')
+        ln = strtrim(tline);
+        if length(ln)>5 && isequal(ln(1:2), '%#') && isequal(ln(end-2:end), '...')
             ln=ln(1:end-3);
         end
         if ~began

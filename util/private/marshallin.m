@@ -273,7 +273,7 @@ for i=1:length(vars)
                     str = sprintf('%s%s\n', str, ...
                         ['    ' copyFunc '(' cvarname '.data, ' ...
                         num2str(length(var.size)) ', ' cvarname '.size, ' rhs ', "' ...
-                        var.mname '", ' num2str( prod(var.size)) ');']);
+                        var.mname '", ' num2str(prod(var.size)) ');']);
                 end
             elseif iscuda
                 if ~writeonly_var
@@ -287,7 +287,7 @@ for i=1:length(vars)
                     end
                     str_mx = sprintf('%s\n', str_mx, ...
                         ['        ' cvarname ' = ' copyFunc '(' rhs ...
-                        ', ' num2str(length(var.size)) ', "' var.mname '", ' num2str( prod(var.size)) ');']);
+                        ', ' num2str(length(var.size)) ', "' var.mname '", ' num2str(prod(var.size)) ');']);
                 else
                     error('All varilable-size output arrays must also be input for CUDA kernel functions.');
                 end

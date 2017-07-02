@@ -1,5 +1,5 @@
-function classid = getMatlabClass( str)
-switch ( str)
+function classid = getMatlabClass(str)
+switch (str)
     case 'boolean_T'
         classid = 'logical';
     case 'char_T'

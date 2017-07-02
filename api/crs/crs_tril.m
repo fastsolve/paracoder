@@ -1,4 +1,4 @@
-function L = crs_tril( A, varargin)
+function L = crs_tril(A, varargin)
 % CRS_TRIL   Extract lower triangular part.
 %   crs_tril(A) is the lower triangular part of A.
 %   tril(A,K) is the elements on and below the K-th diagonal
@@ -24,7 +24,7 @@ for i=1:L.nrows
         if L.col_ind(j)>i+k
             offset = offset+1;
         elseif offset
-            L.col_ind( j-offset) = L.col_ind( j);
+            L.col_ind(j-offset) = L.col_ind(j);
             L.val(j-offset) = L.val(j);
         end
     end
@@ -35,8 +35,8 @@ end
 
 if offset
     newlen = int32(length(L.col_ind))-offset;
-    L.col_ind = sub_colvec( L.col_ind, 1, newlen);
-    L.val = sub_colvec( L.val, 1, newlen);
+    L.col_ind = sub_colvec(L.col_ind, 1, newlen);
+    L.val = sub_colvec(L.val, 1, newlen);
 end
 
 function test %#ok<DEFNU>
@@ -45,13 +45,13 @@ function test %#ok<DEFNU>
 %! A = sprand(1000,1000,0.05);
 %! sp_A = crs_matrix(A);
 
-%! sp_L= crs_tril( sp_A);
+%! sp_L= crs_tril(sp_A);
 %! assert(isequal(tril(A), crs_2sparse(sp_L)));
 
 %!test
-%! sp_L= crs_tril( sp_A, int32(1));
+%! sp_L= crs_tril(sp_A, int32(1));
 %! assert(isequal(tril(A,1), crs_2sparse(sp_L)));
 
 %!test
-%! sp_L= crs_tril( sp_A, int32(-1));
+%! sp_L= crs_tril(sp_A, int32(-1));
 %! assert(isequal(tril(A,-1), crs_2sparse(sp_L)));

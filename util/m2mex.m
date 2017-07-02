@@ -212,10 +212,10 @@ args = strrep(args, '-args ', '-eg ');
 args = strrep(args, 'coder.typeof(', 'emlcoder.egs(');
 end
 
-function [matched, args] = match_option( args, opt)
+function [matched, args] = match_option(args, opt)
 
-opt = strrep( opt, '+', '\+');
-matched = ~isempty( regexp( args, ['(\s|^)' opt '(\s|$)'], 'once'));
+opt = strrep(opt, '+', '\+');
+matched = ~isempty(regexp(args, ['(\s|^)' opt '(\s|$)'], 'once'));
 
 if matched;
     args = regexprep(args, ['(\s|^)' opt '(\s|$)'], '$2');

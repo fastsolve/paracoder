@@ -1,4 +1,4 @@
-function buildclib( libname, opts, inpfiles, libs, exports)
+function buildclib(libname, opts, inpfiles, libs, exports)
 % Build a shared library using cc.
 % builidlib(LIBNAME, OPTS, INPFILES, LIBS, EXPORTS)
 % 

@@ -1,6 +1,6 @@
-function sub = sub_matrix( A, start_row, end_row, start_col, end_col) %#codegen
+function sub = sub_matrix(A, start_row, end_row, start_col, end_col) %#codegen
 %SUB_MATRIX   Obtain a sub-matrix
-%    sub = sub_matrix( A, start_row, end_row, start_col, end_col)
+%    sub = sub_matrix(A, start_row, end_row, start_col, end_col)
 % The function is equivalent to the operation 
 % sub = A(start_row:end_row, start_col:end_col) in MATLAB, but it allows 
 % generating more more efficient.

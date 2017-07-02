@@ -18,8 +18,8 @@ function Cartesn_topology_test(dims, varargin)
 %    Cartesn_topology_test([4;2],[0; 1], 1) combine the above two  
 
 comm =MPI_COMM_WORLD;
-siz =comm_size( comm);
-rnk =comm_rank( comm);
+siz =comm_size(comm);
+rnk =comm_rank(comm);
 
 dims =int32(dims);
 ndims =int32(length(dims));
@@ -48,9 +48,9 @@ switch nargin
     error('Too many inputs;\n');
 end
 
-[newcomm, info] =mpi_Cart_create( comm, ndims, dims, periods, reorder);
+[newcomm, info] =mpi_Cart_create(comm, ndims, dims, periods, reorder);
 assert(info==0);
-newrnk =comm_rank( newcomm);
+newrnk =comm_rank(newcomm);
 [coords, info] =mpi_Cart_coords(newcomm, newrnk, ndims);
 assert(info==0);
 nbrs coder.nullcopy(zeros(ndims*2, 1, 'int32'));
@@ -66,21 +66,21 @@ for i=int32(1):ndims*int32(2)
 end
 
 %one way to output one processor by another 
-barrier( comm);
+barrier(comm);
 for i=int32(0):siz-int32(1)
     if rnk==i
         m2c_printf('processor %d''s neighbours are ', newrnk);
-        m2c_printf('%d( %d, %d) ', [nbrs';coords_nb']);
+        m2c_printf('%d(%d, %d) ', [nbrs';coords_nb']);
         m2c_printf('\n');
     end
-    barrier( comm);
+    barrier(comm);
 end 
 
 %another way to output when there is a output conflict, send all
 %information to one processor
 tag =int32(1);
 if rnk~=0
-    sbuf coder.nullcopy(zeros( int32(2+ndims), 1, 'int32'));
+    sbuf coder.nullcopy(zeros(int32(2+ndims), 1, 'int32'));
     sbuf(1) =rnk;
     sbuf(2) =newrnk;
     sbuf(3:end) =coords;

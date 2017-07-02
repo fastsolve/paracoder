@@ -17,19 +17,19 @@ else
     [status, str] = system('mpicxx -show');
     
     if ~status
-        cflags = regexp( str, '(-[iI][^\s]+)', 'tokens');
+        cflags = regexp(str, '(-[iI][^\s]+)', 'tokens');
         
         for i=1:length(cflags)
-            mpicflag = sprintf( '%s %s', mpicflag, cflags{i}{1});
+            mpicflag = sprintf('%s %s', mpicflag, cflags{i}{1});
         end
         
-        ldflags = regexp( str, '(-[Ll][^\s]+)|(-Wl,[^\s]+)', 'tokens');
+        ldflags = regexp(str, '(-[Ll][^\s]+)|(-Wl,[^\s]+)', 'tokens');
         for i=1:length(ldflags)
-            if isequal( ldflags{i}{1},'-Wl,-z,noexecstack'); continue; end
-            if isequal( ldflags{i}{1},'-Wl,-Bsymbolic-functions'); continue; end
-            if isequal( ldflags{i}{1},'-Wl,-z,relro'); continue; end
+            if isequal(ldflags{i}{1},'-Wl,-z,noexecstack'); continue; end
+            if isequal(ldflags{i}{1},'-Wl,-Bsymbolic-functions'); continue; end
+            if isequal(ldflags{i}{1},'-Wl,-z,relro'); continue; end
             
-            mpildflag = sprintf( '%s ''%s''', mpildflag, ldflags{i}{1});
+            mpildflag = sprintf('%s ''%s''', mpildflag, ldflags{i}{1});
         end
     end
 end

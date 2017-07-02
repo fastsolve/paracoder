@@ -1,6 +1,6 @@
-function b = isnewer( file1, varargin)
+function b = isnewer(file1, varargin)
 % ISNEWER   Returns true if file1 is the newest file among all the input.
-%  B = isnewer( file1, file2, ...)
+%  B = isnewer(file1, file2, ...)
 
 a1 = dir(file1);
 if isempty(a1)

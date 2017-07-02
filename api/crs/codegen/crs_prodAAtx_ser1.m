@@ -1,5 +1,5 @@
-function b = crs_prodAAtx_ser1( A, x, b) %#codegen
+function b = crs_prodAAtx_ser1(A, x, b) %#codegen
 
-b = crs_prodAAtx( A, x, b);
+b = crs_prodAAtx(A, x, b);
 
 end

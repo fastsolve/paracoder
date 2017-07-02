@@ -18,7 +18,7 @@ start = int32(1);
 
 for i=1:int32(length(row_ptr))-1
     if offset
-        col_ind( start-offset) = col_ind( start);
+        col_ind(start-offset) = col_ind(start);
         if nargin>2; val(start-offset) = val(start); end
     end
     for j=start+1 : row_ptr(i+1)-1
@@ -26,7 +26,7 @@ for i=1:int32(length(row_ptr))-1
             if nargin>2; val(j-1-offset) = val(j-1-offset) + val(j); end
             offset = offset+1;
         elseif offset
-            col_ind( j-offset) = col_ind( j);
+            col_ind(j-offset) = col_ind(j);
             if nargin>2; val(j-offset) = val(j); end
         end
     end
@@ -37,6 +37,6 @@ end
 
 if offset
     newlen = int32(length(col_ind))-offset;
-    col_ind = sub_colvec( col_ind, 1, newlen);
-    if nargin>2; val = sub_colvec( val, 1, newlen); end
+    col_ind = sub_colvec(col_ind, 1, newlen);
+    if nargin>2; val = sub_colvec(val, 1, newlen); end
 end

@@ -4,7 +4,7 @@ function flag = is64 %codegen
 coder.inline('always');
 
 if isempty(coder.target)
-    flag = int32(~isempty( strfind(computer,'64')));
+    flag = int32(~isempty(strfind(computer,'64')));
 else
     sizeptr = int32(0);
     sizeptr = coder.ceval('sizeof', coder.rref(sizeptr));

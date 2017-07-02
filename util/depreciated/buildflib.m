@@ -1,4 +1,4 @@
-function buildflib( fcomp, libname, opts, inpfiles, libs)
+function buildflib(fcomp, libname, opts, inpfiles, libs)
 
 if ~isunix
     error('Building Fortran libraries is only supported on UNIX.');
@@ -36,8 +36,8 @@ switch (fcomp)
 end
 
 % Convert input files into list
-list_files = regexp( inpfiles, '\S+', 'match');
-list = char(zeros( 1,length(inpfiles)));
+list_files = regexp(inpfiles, '\S+', 'match');
+list = char(zeros(1,length(inpfiles)));
 
 c = 0;
 for i=1:length(list_files)

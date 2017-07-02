@@ -1,4 +1,4 @@
-function git( varargin)
+function git(varargin)
 % Wrapper function for calling git command.
 
 % First, set default path for git. On Windows, we assume git is
@@ -32,5 +32,5 @@ for k= 1 : size(varargin,2)
     buf(n) = ' ';
 end
 
-system( buf(1:n));
+system(buf(1:n));
 end

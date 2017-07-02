@@ -17,13 +17,13 @@ if ~strcmp(coder.target,'rtw'); return; end
 
 coder.ceval('#}parallel');
 
-if nargin>=1; coder.ceval( '#ref', coder.rref(var1)); end
-if nargin>=2; coder.ceval( '#ref', coder.rref(var2)); end
-if nargin>=3; coder.ceval( '#ref', coder.rref(var3)); end
-if nargin>=4; coder.ceval( '#ref', coder.rref(var4)); end
-if nargin>=5; coder.ceval( '#ref', coder.rref(var5)); end
-if nargin>=6; coder.ceval( '#ref', coder.rref(var6)); end
-if nargin>=7; coder.ceval( '#ref', coder.rref(var7)); end
-if nargin>=8; coder.ceval( '#ref', coder.rref(var8)); end
-if nargin>=9; coder.ceval( '#ref', coder.rref(var9)); end
-if nargin>=10; coder.ceval( '#ref', coder.rref(var10)); end
+if nargin>=1; coder.ceval('#ref', coder.rref(var1)); end
+if nargin>=2; coder.ceval('#ref', coder.rref(var2)); end
+if nargin>=3; coder.ceval('#ref', coder.rref(var3)); end
+if nargin>=4; coder.ceval('#ref', coder.rref(var4)); end
+if nargin>=5; coder.ceval('#ref', coder.rref(var5)); end
+if nargin>=6; coder.ceval('#ref', coder.rref(var6)); end
+if nargin>=7; coder.ceval('#ref', coder.rref(var7)); end
+if nargin>=8; coder.ceval('#ref', coder.rref(var8)); end
+if nargin>=9; coder.ceval('#ref', coder.rref(var9)); end
+if nargin>=10; coder.ceval('#ref', coder.rref(var10)); end

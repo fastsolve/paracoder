@@ -1,4 +1,4 @@
-function U = crs_triu( A, varargin)
+function U = crs_triu(A, varargin)
 % CRS_TRIL   Extract upper triangular part.
 %   crs_triu(A) is the upper triangular part of A.
 %   triu(A,K) is the elements on and above the K-th diagonal
@@ -24,7 +24,7 @@ for i=1:U.nrows
         if U.col_ind(j)<i+k
             offset = offset+1;
         elseif offset
-            U.col_ind( j-offset) = U.col_ind( j);
+            U.col_ind(j-offset) = U.col_ind(j);
             U.val(j-offset) = U.val(j);
         end
     end
@@ -35,8 +35,8 @@ end
 
 if offset
     newlen = int32(length(U.col_ind))-offset;
-    U.col_ind = sub_colvec( U.col_ind, 1, newlen);
-    U.val = sub_colvec( U.val, 1, newlen);
+    U.col_ind = sub_colvec(U.col_ind, 1, newlen);
+    U.val = sub_colvec(U.val, 1, newlen);
 end
 
 function test %#ok<DEFNU>
@@ -45,13 +45,13 @@ function test %#ok<DEFNU>
 %! A = sprand(1000,1000,0.05);
 %! sp_A = crs_matrix(A);
 
-%! sp_U= crs_triu( sp_A);
+%! sp_U= crs_triu(sp_A);
 %! assert(isequal(triu(A), crs_2sparse(sp_U)));
 
 %!test
-%! sp_U= crs_triu( sp_A, int32(1));
+%! sp_U= crs_triu(sp_A, int32(1));
 %! assert(isequal(triu(A,1), crs_2sparse(sp_U)));
 
 %!test
-%! sp_U= crs_triu( sp_A, int32(-1));
+%! sp_U= crs_triu(sp_A, int32(-1));
 %! assert(isequal(triu(A,-1), crs_2sparse(sp_U)));
