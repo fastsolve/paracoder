@@ -1,7 +1,7 @@
+function load_m2c
+
 % Startup script for loading M2C.
 % The script must be run in the M2C Root directory.
-
-function load_m2c
 
 persistent loaded;
 
@@ -57,6 +57,10 @@ end
 % Add dummy API if Coder does not exist
 if ~exist('coder.p', 'file')
     addpath([m2croot '/opts/No_coder']);
+end
+
+if exist('OCTAVE_VERSION', 'builtin')
+  rehash
 end
 
 if isoctave
