@@ -1,6 +1,17 @@
 % Startup script for loading M2C.
 % The script must be run in the M2C Root directory.
 
+function load_m2c
+
+persistent loaded;
+
+% Load only once
+if ~isempty(loaded)
+  return
+else
+  loaded = true;
+end
+
 warning('off', 'MATLAB:pfileOlderThanMfile');
 warning('off', 'MATLAB:mex:GccVersion')
 
