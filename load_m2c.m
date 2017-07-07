@@ -16,8 +16,7 @@ warning('off', 'MATLAB:pfileOlderThanMfile');
 warning('off', 'MATLAB:mex:GccVersion')
 
 % Set m2croot explicitly to bypass a bug in Octave 4.2.1
-m2croot = which('load_m2c');
-m2croot = m2croot(1:end-11);
+m2croot = fileparts(which('load_m2c'));
 if m2croot == '.'
     m2croot=pwd;
 end
@@ -70,7 +69,11 @@ if isoctave
     addpath([m2croot '/opts/No_coder/octave']);
 
     % Initialize MPI
-    init_mpi
+    try
+      init_mpi
+    catch
+      warning('Could not initialize MPI');
+    end
 else
     addpath([m2croot '/util/getMD5']);
 end
