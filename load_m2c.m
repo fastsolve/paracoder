@@ -1,7 +1,7 @@
+function load_m2c
+
 % Startup script for loading M2C.
 % The script must be run in the M2C Root directory.
-
-function load_m2c
 
 persistent loaded;
 
