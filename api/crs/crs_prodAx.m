@@ -39,36 +39,36 @@ function b = crs_prodAx(A, x, b, nthreads)
 
 coder.inline('never');
 
-if nargin==2;
-    b = coder.nullcopy(zeros(A.nrows,size(x,2)));
+if nargin == 2
+    b = coder.nullcopy(zeros(A.nrows, size(x, 2)));
 else
-    if size(b,1)<A.nrows || size(b,2)<size(x,2)
+    if size(b, 1) < A.nrows || size(b, 2) < size(x, 2)
         m2c_error('crs_prodAx:BufferTooSmal', 'Buffer space for output b is too small.');
     end
 end
-ismt = nargin>=4 && ompGetNumThreads>1;
+ismt = nargin >= 4 && ompGetNumThreads > 1;
 
-if nargin>3 && ~isempty(nthreads)
+if nargin > 3 && ~isempty(nthreads)
     %% Declare parallel region
-    if ~ompGetNested && ismt && nthreads(1)>1
+    if ~ompGetNested && ismt && nthreads(1) > 1
         OMP_begin_master
         m2c_warn('crs_prodAx:NestedParallel', ...
             'You are trying to use nested parallel regions. Solution may be incorrect.');
         OMP_end_master
     end
-    
+
     OMP_begin_parallel(int32(nthreads(1)));
-    
+
     %% Compute b=A*x
-    b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x,1)), ...
-        b, int32(size(b,1)), A.nrows, int32(size(x, 2)), ompGetNumThreads>1);
-    
+    b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
+        b, int32(size(b, 1)), A.nrows, int32(size(x, 2)), ompGetNumThreads > 1);
+
     %% End parallel region
     OMP_end_parallel;
 else
     %% Compute b=A*x
-    b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x,1)), ...
-        b, int32(size(b,1)), A.nrows, int32(size(x, 2)), ismt);
+    b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
+        b, int32(size(b, 1)), A.nrows, int32(size(x, 2)), ismt);
 end
 
 function b = crs_prodAx_kernel(row_ptr, col_ind, val, ...
@@ -82,11 +82,11 @@ else
 end
 
 xoffset = int32(0); boffset = int32(0);
-for k=1:nrhs
-    for i=istart:iend
+for k = 1:nrhs
+    for i = istart:iend
         t = 0.0;
-        for j=row_ptr(i):row_ptr(i+1)-1
-            t = t + val(j)*x(xoffset+col_ind(j));
+        for j = row_ptr(i):row_ptr(i+1) - 1
+            t = t + val(j) * x(xoffset+col_ind(j));
         end
         b(boffset+i) = t;
     end

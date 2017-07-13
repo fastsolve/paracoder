@@ -12,56 +12,77 @@ function s = vec_norm2(v, dim) %#codegen
 
 coder.inline('never');
 
-assert(nargin==1 || dim==1 || dim==2);
+assert(nargin == 1 || dim == 1 || dim == 2);
 
-if nargin==1
+if nargin == 1
     w = cast(0, class(v));
-    for ii=1:numel(v); w = max(w,abs(v(ii))); end
+    for ii = 1:int32(numel(v))
+        w = max(w, abs(v(ii)));
+    end
 
     s = cast(0, class(v));
-    if w==0
+    if w == 0
         % W can be zero for max(0,nan,...). Adding all three entries
         % together will make sure NaN will be preserved.
-        for ii=1:numel(v); s = s + v(ii); end
+        for ii = 1:int32(numel(v))
+            s = s + v(ii);
+        end
     else
-        for ii=1:numel(v); s = s + (v(ii)/w)^2; end
+        for ii = 1:int32(numel(v))
+            t = v(ii) / w;
+            s = s + conj(t) * t;
+        end
 
-        s = w*sqrt(s);
+        s = w * sqrt(s);
     end
-elseif dim==1
-    ncol = int32(size(v,2));
+elseif dim == 1
+    ncol = int32(size(v, 2));
     s = zeros(1, ncol);
-    for k=1:ncol
+    for k = 1:ncol
         w = cast(0, class(v));
-        for ii=1:size(v,1); w = max(w,abs(v(ii,k))); end
+        for ii = 1:int32(size(v, 1))
+            w = max(w, abs(v(ii, k)));
+        end
 
         s(k) = cast(0, class(v));
-        if w==0
+        if w == 0
             % W can be zero for max(0,nan,...). Adding all three entries
             % together will make sure NaN will be preserved.
-            for ii=1:size(v,1); s = s + v(ii,k); end
+            for ii = 1:int32(size(v, 1))
+                s = s + v(ii, k);
+            end
         else
-            for ii=1:size(v,1); s = s + (v(ii,k)/w)^2; end
+            for ii = 1:int32(size(v, 1))
+                t = v(ii, k) / w;
+                s = s + conj(t) * t;
+            end
 
-            s = w*sqrt(s);
+            s = w * sqrt(s);
         end
     end
 else
-    nrow = int32(size(v,1));
+    nrow = int32(size(v, 1));
     s = zeros(nrow, 1);
-    for k=1:nrow
+    for k = 1:nrow
         w = cast(0, class(v));
-        for ii=1:size(v,2); w = max(w,abs(v(k,ii))); end
+        for ii = 1:int32(size(v, 2))
+            w = max(w, abs(v(k, ii)));
+        end
 
         s(k) = cast(0, class(v));
-        if w==0
+        if w == 0
             % W can be zero for max(0,nan,...). Adding all three entries
             % together will make sure NaN will be preserved.
-            for ii=1:size(v,2); s = s + v(k,ii); end
+            for ii = 1:int32(size(v, 2))
+                s = s + v(k, ii);
+            end
         else
-            for ii=1:size(v,2); s = s + (v(k,ii)/w)^2; end
+            for ii = 1:int32(size(v, 2))
+                t = v(k, ii) / w;
+                s = s + conj(t) * t;
+            end
 
-            s = w*sqrt(s);
+            s = w * sqrt(s);
         end
     end
 end
@@ -79,3 +100,6 @@ function test %#ok<DEFNU>
 
 %! assert(isequal(vec_norm2(zeros(3,4),1),zeros(1,4)));
 %! assert(isequal(vec_norm2(zeros(3,4),2),zeros(3,1)));
+
+%! x = rand(10, 1) + rand(10, 1)*1i;
+%! assert(abs(vec_norm2(x) - norm(x, 2)) < 1.e-14);

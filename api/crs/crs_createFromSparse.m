@@ -10,12 +10,14 @@ function varargout = crs_createFromSparse(sp, m)
 
 [is, js, vs] = find(sp);
 
-A = crs_createFromAIJ(int32(is), int32(js), vs, ...
-    int32(size(sp, 1)), int32(size(sp, 2)));
-
-if nargin > 1 && m + 1 > length(A.row_ptr)
-    A.row_ptr = [A.row_ptr; repmat(A.row_ptr(end), m+1-length(A.row_ptr), 1)];
+if nargin > 1
+    nrows = int32(m);
+else
+    nrows = int32(size(sp, 1));
 end
+
+A = crs_createFromAIJ(int32(is), int32(js), vs, ...
+    nrows, int32(size(sp, 2)));
 
 if nargout <= 1
     varargout{1} = A;
