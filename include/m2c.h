@@ -19,7 +19,7 @@
 #ifdef __NVCC__
 #define HOST_AND_DEVICE __host__ __device__
 #else
-#define HOST_AND_DEVICE        
+#define HOST_AND_DEVICE
 #endif
 
 #if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(__NVCC__)
@@ -61,7 +61,7 @@ EXTERN_C void M2C_warn(const char * id, const char * msg, ...);
 #define emlrtIsMATLABThread(s)  0
 #endif /* MATLAB_MEX_FILE */
 
-/* Define emxArray__common and other standard emxInit and emxFree 
+/* Define emxArray__common and other standard emxInit and emxFree
  * functions for basic data types. */
 #ifndef struct_emxArray__common
 #define struct_emxArray__common
@@ -110,10 +110,14 @@ void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
         m2cExpandCapacity(emxArray, oldNumel, newNumel, elementSize);
 }
 #else /* INLINE_ENSURE_CAPACITY */
-HOST_AND_DEVICE extern 
+HOST_AND_DEVICE extern
 void emxEnsureCapacity(emxArray__common *emxArray, int oldNumel,
         unsigned int elementSize);
 #endif /* INLINE_ENSURE_CAPACITY */
+
+#define declare_emxEnsureCapacity(emxtype) \
+HOST_AND_DEVICE extern \
+void emxEnsureCapacity_##emxtype(emxArray_##emxtype *pEmxArray, int numDimensions)
 
 #define declare_emxInit(emxtype) \
 HOST_AND_DEVICE extern \
@@ -125,66 +129,79 @@ void emxFree_##emxtype(emxArray_##emxtype **pEmxArray)
 
 #ifdef struct_emxArray_boolean_T
 declare_emxInit(boolean_T);
+declare_emxEnsureCapacity(boolean_T);
 declare_emxFree(boolean_T);
 #endif
 
 #ifdef struct_emxArray_char_T
 declare_emxInit(char_T);
+declare_emxEnsureCapacity(char_T);
 declare_emxFree(char_T);
 #endif
 
 #ifdef struct_emxArray_int8_T
 declare_emxInit(int8_T);
+declare_emxEnsureCapacity(int8_T);
 declare_emxFree(int8_T);
 #endif
 
 #ifdef struct_emxArray_int16_T
 declare_emxInit(int16_T);
+declare_emxEnsureCapacity(int16_T);
 declare_emxFree(int16_T);
 #endif
 
 #ifdef struct_emxArray_int32_T
 declare_emxInit(int32_T);
+declare_emxEnsureCapacity(int32_T);
 declare_emxFree(int32_T);
 #endif
 
 #ifdef struct_emxArray_int64_T
 declare_emxInit(int64_T);
+declare_emxEnsureCapacity(int64_T);
 declare_emxFree(int64_T);
 #endif
 
 #ifdef struct_emxArray_uint8_T
 declare_emxInit(uint8_T);
+declare_emxEnsureCapacity(uint8_T);
 declare_emxFree(uint8_T);
 #endif
 
 #ifdef struct_emxArray_uint16_T
 declare_emxInit(uint16_T);
+declare_emxEnsureCapacity(uint16_T);
 declare_emxFree(uint16_T);
 #endif
 
 #ifdef struct_emxArray_uint32_T
 declare_emxInit(uint32_T);
+declare_emxEnsureCapacity(uint32_T);
 declare_emxFree(uint32_T);
 #endif
 
 #ifdef struct_emxArray_uint64_T
 declare_emxInit(uint64_T);
+declare_emxEnsureCapacity(uint64_T);
 declare_emxFree(uint64_T);
 #endif
 
 #ifdef struct_emxArray_real_T
 declare_emxInit(real_T);
+declare_emxEnsureCapacity(real_T);
 declare_emxFree(real_T);
 #endif
 
 #ifdef struct_emxArray_real32_T
 declare_emxInit(real32_T);
+declare_emxEnsureCapacity(real32_T);
 declare_emxFree(real32_T);
 #endif
 
 #ifdef struct_emxArray_real64_T
 declare_emxInit(real64_T);
+declare_emxEnsureCapacity(real64_T);
 declare_emxFree(real64_T);
 #endif
 

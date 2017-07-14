@@ -425,7 +425,7 @@ if regen_c
 
         co_cfg.SaturateOnIntegerOverflow = false;
         co_cfg.EnableVariableSizing = true;
-        cfg.PassStructByReference = true;
+        co_cfg.PassStructByReference = true;
         co_cfg.EnableMemcpy = true;
 
         if ~isempty(m2c_opts.dynMem) && ~m2c_opts.remEmx
