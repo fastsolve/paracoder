@@ -75,7 +75,7 @@ cfile_str = fix_emxInit(cfile_str, ctypes_str);
 
 %% Try to remove emxArrays
 if m2c_opts.remEmx
-    [cfile_str, hfile_str, ctypes_str] = reemxArrays ...
+    [cfile_str, hfile_str, ctypes_str] = remove_emxArrays...
         (cfile_str, hfile_str, ctypes_str, m2c_opts);
 end
 

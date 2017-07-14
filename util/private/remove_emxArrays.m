@@ -13,11 +13,11 @@ altapis = [func, strtrim(strrep(regexp(m2c_opts.codegenArgs, ...
     '(\w+)\s+-args', 'match'), ' -args', ''))];
 funcname = altapis{1};
 
-if ~isempty(strfind(cfile_str, 'emxArray_Init'))
+if contains(cfile_str, 'emxArray_Init')
     warning('m2c:CannotProcessKernel', ['Function ' funcname ...
         ' contains temporary emxArrays, so emxArray cannot be removed.']);
     return;
-elseif ~isempty(strfind(cfile_str, '->size'))
+elseif contains(cfile_str, '->size')
     warning('m2c:CannotProcessKernel', ['Function ' funcname ...
         ' explicitly uses size information of arrays, so emxArray cannot be removed.']);
     return;
@@ -84,7 +84,7 @@ newfuncdecl = funcdecl;
 newfunc = kernel;
 newargs = prototype{1};
 
-args = strtrim(textscan(strrep(newargs, sprintf('\n'), ' '), '%s', 'Delimiter', ','));
+args = strtrim(textscan(strrep(newargs, newline, ' '), '%s', 'Delimiter', ','));
 args = args{1};
 append = false(length(args),1);
 for k=1:length(args)
@@ -144,7 +144,7 @@ call = regexprep(call, ')\s*;', '');
 prefix = regexp(call, ['.*[^\w]' func '\s*\('], 'match');
 prefix = prefix{1};
 
-args = strtrim(textscan(strrep(call, sprintf('\n'), ' '), ...
+args = strtrim(textscan(strrep(call, newline, ' '), ...
     '%s', 'Delimiter', ','));
 args = args{1};
 % remove func(from args{1}{1}
