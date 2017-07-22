@@ -30,7 +30,7 @@ void mpi_Error_string(int errcode, emxArray_char_T *msg, int *info, boolean_T
   i0 = b_msg0->size[0] * b_msg0->size[1];
   b_msg0->size[0] = 1;
   b_msg0->size[1] = resultlen;
-  emxEnsureCapacity((emxArray__common *)b_msg0, i0, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(b_msg0, i0);
   for (i0 = 0; i0 < resultlen; i0++) {
     b_msg0->data[b_msg0->size[0] * i0] = msg0[i0];
   }
@@ -38,7 +38,7 @@ void mpi_Error_string(int errcode, emxArray_char_T *msg, int *info, boolean_T
   emxInit_char_T(&c_msg0, 1);
   i0 = c_msg0->size[0];
   c_msg0->size[0] = resultlen;
-  emxEnsureCapacity((emxArray__common *)c_msg0, i0, sizeof(char));
+  emxEnsureCapacity_char_T(c_msg0, i0);
   for (i0 = 0; i0 < resultlen; i0++) {
     c_msg0->data[i0] = (signed char)b_msg0->data[i0];
   }
@@ -47,7 +47,7 @@ void mpi_Error_string(int errcode, emxArray_char_T *msg, int *info, boolean_T
   i0 = msg->size[0] * msg->size[1];
   msg->size[0] = 1;
   msg->size[1] = (short)resultlen;
-  emxEnsureCapacity((emxArray__common *)msg, i0, sizeof(char));
+  emxEnsureCapacity_char_T(msg, i0);
   resultlen = (short)resultlen;
   for (i0 = 0; i0 < resultlen; i0++) {
     msg->data[msg->size[0] * i0] = c_msg0->data[i0];

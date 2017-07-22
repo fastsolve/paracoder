@@ -1,7 +1,6 @@
 #ifndef MPI_FINALIZED_TYPES_H
 #define MPI_FINALIZED_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

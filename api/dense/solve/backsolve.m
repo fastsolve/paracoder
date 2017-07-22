@@ -17,7 +17,7 @@ for kk=1:int32(size(bs,2))
         for ii=jj+1:cend
             bs(jj,kk) = bs(jj,kk) - R(jj,ii) * bs(ii,kk);
         end
-        
+
         assert(R(jj,jj)~=0);
         bs(jj,kk) = bs(jj,kk) / R(jj,jj);
     end

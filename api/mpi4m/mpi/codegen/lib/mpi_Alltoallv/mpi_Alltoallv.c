@@ -17,7 +17,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -38,7 +38,7 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -59,7 +59,7 @@ static void d_m2c_error(const emxArray_char_T *varargin_3)
   i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i2, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i2);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i2 = 0; i2 < loop_ub; i2++) {
     b_varargin_3->data[i2] = varargin_3->data[i2];
@@ -117,8 +117,8 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
                    struct1_T *comm, int *info, boolean_T *toplevel)
 {
   boolean_T p;
-  unsigned long data;
   boolean_T b_p;
+  unsigned long data;
   const char * ptr;
   int resultlen;
   boolean_T exitg1;
@@ -130,30 +130,25 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
   int loop_ub;
   MPI_Datatype datatype;
   char * b_ptr;
-  emxArray_char_T *b_rtype;
   MPI_Datatype b_datatype;
-  emxArray_char_T *b_comm;
   static const char cv1[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
 
-  MPI_Comm c_comm;
+  MPI_Comm b_comm;
   unsigned char msg0[1024];
-  emxArray_char_T *b_msg0;
-  emxArray_uint8_T *c_msg0;
-  emxArray_char_T *d_msg0;
-  if (emlrtIsMATLABThread(emlrtRootTLSGlobal)) {
-    p = false;
-    b_p = true;
-    if (!(sptr->data == rptr->data)) {
-      b_p = false;
-    }
+  emxArray_uint8_T *b_msg0;
+  emxArray_char_T *c_msg0;
+  p = false;
+  b_p = true;
+  if (!(sptr->data == rptr->data)) {
+    b_p = false;
+  }
 
-    if (b_p) {
-      p = true;
-    }
+  if (b_p) {
+    p = true;
+  }
 
-    if (p) {
-      m2c_error();
-    }
+  if (p) {
+    m2c_error();
   }
 
   data = sptr->data;
@@ -185,12 +180,12 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
     p = true;
   }
 
+  emxInit_char_T(&b_stype, 2);
   if (!p) {
-    emxInit_char_T(&b_stype, 2);
     resultlen = b_stype->size[0] * b_stype->size[1];
     b_stype->size[0] = 1;
     b_stype->size[1] = stype->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stype, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_stype, resultlen);
     loop_ub = stype->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_stype->data[b_stype->size[0] * resultlen] = stype->type->data
@@ -199,13 +194,12 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
 
     b_stype->data[b_stype->size[0] * stype->type->size[1]] = '\x00';
     b_m2c_error(b_stype);
-    emxFree_char_T(&b_stype);
   }
 
   emxInit_uint8_T(&b_data, 1);
   resultlen = b_data->size[0];
   b_data->size[0] = stype->data->size[0];
-  emxEnsureCapacity((emxArray__common *)b_data, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(b_data, resultlen);
   loop_ub = stype->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     b_data->data[resultlen] = stype->data->data[resultlen];
@@ -247,25 +241,23 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
   }
 
   if (!p) {
-    emxInit_char_T(&b_rtype, 2);
-    resultlen = b_rtype->size[0] * b_rtype->size[1];
-    b_rtype->size[0] = 1;
-    b_rtype->size[1] = rtype->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_rtype, resultlen, sizeof(char));
+    resultlen = b_stype->size[0] * b_stype->size[1];
+    b_stype->size[0] = 1;
+    b_stype->size[1] = rtype->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_stype, resultlen);
     loop_ub = rtype->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_rtype->data[b_rtype->size[0] * resultlen] = rtype->type->data
+      b_stype->data[b_stype->size[0] * resultlen] = rtype->type->data
         [rtype->type->size[0] * resultlen];
     }
 
-    b_rtype->data[b_rtype->size[0] * rtype->type->size[1]] = '\x00';
-    b_m2c_error(b_rtype);
-    emxFree_char_T(&b_rtype);
+    b_stype->data[b_stype->size[0] * rtype->type->size[1]] = '\x00';
+    b_m2c_error(b_stype);
   }
 
   resultlen = b_data->size[0];
   b_data->size[0] = rtype->data->size[0];
-  emxEnsureCapacity((emxArray__common *)b_data, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(b_data, resultlen);
   loop_ub = rtype->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     b_data->data[resultlen] = rtype->data->data[resultlen];
@@ -296,34 +288,32 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
   }
 
   if (!p) {
-    emxInit_char_T(&b_comm, 2);
-    resultlen = b_comm->size[0] * b_comm->size[1];
-    b_comm->size[0] = 1;
-    b_comm->size[1] = comm->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_comm, resultlen, sizeof(char));
+    resultlen = b_stype->size[0] * b_stype->size[1];
+    b_stype->size[0] = 1;
+    b_stype->size[1] = comm->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_stype, resultlen);
     loop_ub = comm->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_comm->data[b_comm->size[0] * resultlen] = comm->type->data[comm->
+      b_stype->data[b_stype->size[0] * resultlen] = comm->type->data[comm->
         type->size[0] * resultlen];
     }
 
-    b_comm->data[b_comm->size[0] * comm->type->size[1]] = '\x00';
-    c_m2c_error(b_comm);
-    emxFree_char_T(&b_comm);
+    b_stype->data[b_stype->size[0] * comm->type->size[1]] = '\x00';
+    c_m2c_error(b_stype);
   }
 
   resultlen = b_data->size[0];
   b_data->size[0] = comm->data->size[0];
-  emxEnsureCapacity((emxArray__common *)b_data, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(b_data, resultlen);
   loop_ub = comm->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     b_data->data[resultlen] = comm->data->data[resultlen];
   }
 
-  c_comm = *(MPI_Comm*)(&b_data->data[0]);
+  b_comm = *(MPI_Comm*)(&b_data->data[0]);
   *info = MPI_Alltoallv(ptr, &scounts->data[0], &sdisps->data[0], datatype,
                         b_ptr, &rcounts->data[0], &rdisps->data[0], b_datatype,
-                        c_comm);
+                        b_comm);
   *toplevel = true;
   emxFree_uint8_T(&b_data);
   if (*info != 0) {
@@ -337,39 +327,38 @@ void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
       loop_ub = resultlen;
     }
 
-    emxInit_char_T(&b_msg0, 2);
-    emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
-    c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&c_msg0);
+    emxInit_uint8_T(&b_msg0, 2);
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
+    b_msg0->size[1] = loop_ub;
+    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
     }
 
-    emxFree_char_T(&d_msg0);
-    d_m2c_error(b_msg0);
-    emxFree_char_T(&b_msg0);
+    emxInit_char_T(&c_msg0, 1);
+    resultlen = c_msg0->size[0];
+    c_msg0->size[0] = loop_ub;
+    emxEnsureCapacity_char_T(c_msg0, resultlen);
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
+    }
+
+    emxFree_uint8_T(&b_msg0);
+    resultlen = b_stype->size[0] * b_stype->size[1];
+    b_stype->size[0] = 1;
+    b_stype->size[1] = (short)loop_ub;
+    emxEnsureCapacity_char_T(b_stype, resultlen);
+    loop_ub = (short)loop_ub;
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      b_stype->data[b_stype->size[0] * resultlen] = c_msg0->data[resultlen];
+    }
+
+    emxFree_char_T(&c_msg0);
+    d_m2c_error(b_stype);
   }
+
+  emxFree_char_T(&b_stype);
 }
 
 void mpi_Alltoallv_initialize(void)

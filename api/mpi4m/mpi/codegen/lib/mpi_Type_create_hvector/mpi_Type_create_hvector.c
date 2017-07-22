@@ -14,7 +14,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -35,7 +35,7 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i2, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i2);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i2 = 0; i2 < loop_ub; i2++) {
     b_varargin_3->data[i2] = varargin_3->data[i2];
@@ -56,7 +56,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -81,7 +81,6 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
   emxArray_uint8_T *data0;
   int loop_ub;
   MPI_Aint output;
-  emxArray_char_T *b_oldtype;
   static const char cv1[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
     'p', 'e' };
 
@@ -94,9 +93,8 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
 
   char * ptr;
   unsigned char msg0[1024];
-  emxArray_char_T *b_msg0;
-  emxArray_uint8_T *c_msg0;
-  emxArray_char_T *d_msg0;
+  emxArray_uint8_T *b_msg0;
+  emxArray_char_T *c_msg0;
   p = false;
   b_p = false;
   if (stride->type->size[1] == 8) {
@@ -120,12 +118,12 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
     p = true;
   }
 
+  emxInit_char_T(&b_stride, 2);
   if (!p) {
-    emxInit_char_T(&b_stride, 2);
     resultlen = b_stride->size[0] * b_stride->size[1];
     b_stride->size[0] = 1;
     b_stride->size[1] = stride->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stride, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_stride, resultlen);
     loop_ub = stride->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_stride->data[b_stride->size[0] * resultlen] = stride->type->data
@@ -134,13 +132,12 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
 
     b_stride->data[b_stride->size[0] * stride->type->size[1]] = '\x00';
     m2c_error(b_stride);
-    emxFree_char_T(&b_stride);
   }
 
   emxInit_uint8_T(&data0, 1);
   resultlen = data0->size[0];
   data0->size[0] = stride->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = stride->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = stride->data->data[resultlen];
@@ -171,25 +168,23 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
   }
 
   if (!p) {
-    emxInit_char_T(&b_oldtype, 2);
-    resultlen = b_oldtype->size[0] * b_oldtype->size[1];
-    b_oldtype->size[0] = 1;
-    b_oldtype->size[1] = oldtype->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_oldtype, resultlen, sizeof(char));
+    resultlen = b_stride->size[0] * b_stride->size[1];
+    b_stride->size[0] = 1;
+    b_stride->size[1] = oldtype->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_stride, resultlen);
     loop_ub = oldtype->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_oldtype->data[b_oldtype->size[0] * resultlen] = oldtype->type->
+      b_stride->data[b_stride->size[0] * resultlen] = oldtype->type->
         data[oldtype->type->size[0] * resultlen];
     }
 
-    b_oldtype->data[b_oldtype->size[0] * oldtype->type->size[1]] = '\x00';
-    b_m2c_error(b_oldtype);
-    emxFree_char_T(&b_oldtype);
+    b_stride->data[b_stride->size[0] * oldtype->type->size[1]] = '\x00';
+    b_m2c_error(b_stride);
   }
 
   resultlen = data0->size[0];
   data0->size[0] = oldtype->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = oldtype->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = oldtype->data->data[resultlen];
@@ -200,15 +195,14 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
   sizepe = sizeof(MPI_Datatype);
   resultlen = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   for (resultlen = 0; resultlen < 12; resultlen++) {
     t0_type[resultlen] = x2[resultlen];
   }
 
   resultlen = newtype->data->size[0];
   newtype->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)newtype->data, resultlen, sizeof
-                    (unsigned char));
+  emxEnsureCapacity_uint8_T(newtype->data, resultlen);
   loop_ub = data0->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     newtype->data->data[resultlen] = data0->data[resultlen];
@@ -218,7 +212,7 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
   resultlen = newtype->type->size[0] * newtype->type->size[1];
   newtype->type->size[0] = 1;
   newtype->type->size[1] = 12;
-  emxEnsureCapacity((emxArray__common *)newtype->type, resultlen, sizeof(char));
+  emxEnsureCapacity_char_T(newtype->type, resultlen);
   for (resultlen = 0; resultlen < 12; resultlen++) {
     newtype->type->data[resultlen] = t0_type[resultlen];
   }
@@ -241,40 +235,38 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
       loop_ub = resultlen;
     }
 
-    emxInit_char_T(&b_msg0, 2);
-    emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
-    c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&c_msg0);
+    emxInit_uint8_T(&b_msg0, 2);
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
+    b_msg0->size[1] = loop_ub;
+    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
     }
 
-    emxFree_char_T(&d_msg0);
-    c_m2c_error(b_msg0);
-    emxFree_char_T(&b_msg0);
+    emxInit_char_T(&c_msg0, 1);
+    resultlen = c_msg0->size[0];
+    c_msg0->size[0] = loop_ub;
+    emxEnsureCapacity_char_T(c_msg0, resultlen);
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
+    }
+
+    emxFree_uint8_T(&b_msg0);
+    resultlen = b_stride->size[0] * b_stride->size[1];
+    b_stride->size[0] = 1;
+    b_stride->size[1] = (short)loop_ub;
+    emxEnsureCapacity_char_T(b_stride, resultlen);
+    loop_ub = (short)loop_ub;
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      b_stride->data[b_stride->size[0] * resultlen] = c_msg0->data[resultlen];
+    }
+
+    emxFree_char_T(&c_msg0);
+    c_m2c_error(b_stride);
   }
 
+  emxFree_char_T(&b_stride);
   *toplevel = true;
 }
 

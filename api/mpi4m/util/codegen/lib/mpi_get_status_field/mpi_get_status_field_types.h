@@ -1,7 +1,6 @@
 #ifndef MPI_GET_STATUS_FIELD_TYPES_H
 #define MPI_GET_STATUS_FIELD_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

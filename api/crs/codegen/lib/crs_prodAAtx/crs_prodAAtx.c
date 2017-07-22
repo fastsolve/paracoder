@@ -43,7 +43,7 @@ static void b_crs_prodAAtx(const emxArray_int32_T *A_row_ptr, const
   i0 = Atx->size[0] * Atx->size[1];
   Atx->size[0] = A_ncols;
   Atx->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)Atx, i0, sizeof(double));
+  emxEnsureCapacity_real_T(Atx, i0);
   loop_ub = A_ncols * x->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     Atx->data[i0] = 0.0;
@@ -53,7 +53,7 @@ static void b_crs_prodAAtx(const emxArray_int32_T *A_row_ptr, const
   i0 = b->size[0] * b->size[1];
   b->size[0] = A_nrows;
   b->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)b, i0, sizeof(double));
+  emxEnsureCapacity_real_T(b, i0);
   loop_ub = A_nrows * x->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b->data[i0] = 0.0;
@@ -116,7 +116,7 @@ static void c_crs_prodAAtx(const emxArray_int32_T *A_row_ptr, const
   i5 = Atx->size[0] * Atx->size[1];
   Atx->size[0] = A_ncols;
   Atx->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)Atx, i5, sizeof(double));
+  emxEnsureCapacity_real_T(Atx, i5);
   loop_ub = A_ncols * x->size[1];
   for (i5 = 0; i5 < loop_ub; i5++) {
     Atx->data[i5] = 0.0;

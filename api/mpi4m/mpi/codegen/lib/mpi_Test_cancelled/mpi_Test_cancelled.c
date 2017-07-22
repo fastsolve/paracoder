@@ -13,7 +13,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -34,7 +34,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -62,9 +62,8 @@ void mpi_Test_cancelled(const struct0_T *stat, int *flag, int *info, boolean_T
   MPI_Status t_stat;
   unsigned char msg0[1024];
   char * ptr;
-  emxArray_char_T *b_msg0;
-  emxArray_uint8_T *c_msg0;
-  emxArray_char_T *d_msg0;
+  emxArray_uint8_T *b_msg0;
+  emxArray_char_T *c_msg0;
   p = false;
   b_p = false;
   if (stat->type->size[1] == 10) {
@@ -88,12 +87,12 @@ void mpi_Test_cancelled(const struct0_T *stat, int *flag, int *info, boolean_T
     p = true;
   }
 
+  emxInit_char_T(&b_stat, 2);
   if (!p) {
-    emxInit_char_T(&b_stat, 2);
     resultlen = b_stat->size[0] * b_stat->size[1];
     b_stat->size[0] = 1;
     b_stat->size[1] = stat->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stat, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_stat, resultlen);
     loop_ub = stat->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_stat->data[b_stat->size[0] * resultlen] = stat->type->data[stat->
@@ -102,13 +101,12 @@ void mpi_Test_cancelled(const struct0_T *stat, int *flag, int *info, boolean_T
 
     b_stat->data[b_stat->size[0] * stat->type->size[1]] = '\x00';
     m2c_error(b_stat);
-    emxFree_char_T(&b_stat);
   }
 
   emxInit_uint8_T(&data, 1);
   resultlen = data->size[0];
   data->size[0] = stat->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, resultlen);
   loop_ub = stat->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data->data[resultlen] = stat->data->data[resultlen];
@@ -129,39 +127,38 @@ void mpi_Test_cancelled(const struct0_T *stat, int *flag, int *info, boolean_T
       loop_ub = resultlen;
     }
 
-    emxInit_char_T(&b_msg0, 2);
-    emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
-    c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&c_msg0);
+    emxInit_uint8_T(&b_msg0, 2);
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
+    b_msg0->size[1] = loop_ub;
+    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
     }
 
-    emxFree_char_T(&d_msg0);
-    b_m2c_error(b_msg0);
-    emxFree_char_T(&b_msg0);
+    emxInit_char_T(&c_msg0, 1);
+    resultlen = c_msg0->size[0];
+    c_msg0->size[0] = loop_ub;
+    emxEnsureCapacity_char_T(c_msg0, resultlen);
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
+    }
+
+    emxFree_uint8_T(&b_msg0);
+    resultlen = b_stat->size[0] * b_stat->size[1];
+    b_stat->size[0] = 1;
+    b_stat->size[1] = (short)loop_ub;
+    emxEnsureCapacity_char_T(b_stat, resultlen);
+    loop_ub = (short)loop_ub;
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      b_stat->data[b_stat->size[0] * resultlen] = c_msg0->data[resultlen];
+    }
+
+    emxFree_char_T(&c_msg0);
+    b_m2c_error(b_stat);
   }
+
+  emxFree_char_T(&b_stat);
 }
 
 void mpi_Test_cancelled_initialize(void)

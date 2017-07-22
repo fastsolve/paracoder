@@ -1,7 +1,6 @@
 #ifndef MPI_TYPE_CREATE_INDEXED_BLOCK_TYPES_H
 #define MPI_TYPE_CREATE_INDEXED_BLOCK_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

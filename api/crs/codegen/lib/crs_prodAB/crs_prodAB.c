@@ -25,7 +25,7 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   emxInit_int32_T(&t0_row_ptr, 1);
   k = t0_row_ptr->size[0];
   t0_row_ptr->size[0] = A->nrows + 1;
-  emxEnsureCapacity((emxArray__common *)t0_row_ptr, k, sizeof(int));
+  emxEnsureCapacity_int32_T(t0_row_ptr, k);
   loop_ub = A->nrows;
   for (k = 0; k <= loop_ub; k++) {
     t0_row_ptr->data[k] = 0;
@@ -38,24 +38,18 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
 
   k = C->row_ptr->size[0];
   C->row_ptr->size[0] = t0_row_ptr->size[0];
-  emxEnsureCapacity((emxArray__common *)C->row_ptr, k, sizeof(int));
+  emxEnsureCapacity_int32_T(C->row_ptr, k);
   loop_ub = t0_row_ptr->size[0];
   for (k = 0; k < loop_ub; k++) {
     C->row_ptr->data[k] = t0_row_ptr->data[k];
   }
 
   emxFree_int32_T(&t0_row_ptr);
-  k = C->col_ind->size[0];
-  C->col_ind->size[0] = 0;
-  emxEnsureCapacity((emxArray__common *)C->col_ind, k, sizeof(int));
-  k = C->val->size[0];
-  C->val->size[0] = 0;
-  emxEnsureCapacity((emxArray__common *)C->val, k, sizeof(double));
   C->nrows = A->nrows;
   C->ncols = B->ncols;
   k = C->row_ptr->size[0];
   C->row_ptr->size[0] = A->row_ptr->size[0];
-  emxEnsureCapacity((emxArray__common *)C->row_ptr, k, sizeof(int));
+  emxEnsureCapacity_int32_T(C->row_ptr, k);
   C->row_ptr->data[0] = 1;
   loop_ub = A->ncols;
   clength = B->ncols;
@@ -66,7 +60,7 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   emxInit_int32_T(&b_index, 1);
   k = b_index->size[0];
   b_index->size[0] = clength;
-  emxEnsureCapacity((emxArray__common *)b_index, k, sizeof(int));
+  emxEnsureCapacity_int32_T(b_index, k);
   for (k = 0; k < clength; k++) {
     b_index->data[k] = 0;
   }
@@ -99,7 +93,7 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
 
   k = C->col_ind->size[0];
   C->col_ind->size[0] = C->row_ptr->data[A->nrows] - 1;
-  emxEnsureCapacity((emxArray__common *)C->col_ind, k, sizeof(int));
+  emxEnsureCapacity_int32_T(C->col_ind, k);
   for (i = 1; i <= A->nrows; i++) {
     istart = -1;
     clength = 0;
@@ -129,10 +123,10 @@ void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
   emxInit_real_T(&temp, 1);
   k = C->val->size[0];
   C->val->size[0] = C->row_ptr->data[A->nrows] - 1;
-  emxEnsureCapacity((emxArray__common *)C->val, k, sizeof(double));
+  emxEnsureCapacity_real_T(C->val, k);
   k = temp->size[0];
   temp->size[0] = b_index->size[0];
-  emxEnsureCapacity((emxArray__common *)temp, k, sizeof(double));
+  emxEnsureCapacity_real_T(temp, k);
   loop_ub = b_index->size[0];
   emxFree_int32_T(&b_index);
   for (k = 0; k < loop_ub; k++) {

@@ -44,7 +44,7 @@ static void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
     if (!ascend) {
       j = buf_indx->size[0];
       buf_indx->size[0] = row_ptr->data[i] - row_ptr->data[i - 1];
-      emxEnsureCapacity((emxArray__common *)buf_indx, j, sizeof(int));
+      emxEnsureCapacity_int32_T(buf_indx, j);
       n = row_ptr->data[i] - row_ptr->data[i - 1];
       for (j = 0; j < n; j++) {
         buf_indx->data[j] = 0;
@@ -52,7 +52,7 @@ static void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
 
       j = buf_val->size[0];
       buf_val->size[0] = row_ptr->data[i] - row_ptr->data[i - 1];
-      emxEnsureCapacity((emxArray__common *)buf_val, j, sizeof(double));
+      emxEnsureCapacity_real_T(buf_val, j);
       n = row_ptr->data[i] - row_ptr->data[i - 1];
       for (j = 0; j < n; j++) {
         buf_val->data[j] = 0.0;
@@ -161,7 +161,7 @@ void crs_triu(const struct0_T *A, struct0_T *U)
   emxCopyStruct_struct0_T(U, A);
   i0 = b_U->size[0];
   b_U->size[0] = U->row_ptr->size[0];
-  emxEnsureCapacity((emxArray__common *)b_U, i0, sizeof(int));
+  emxEnsureCapacity_int32_T(b_U, i0);
   offset = U->row_ptr->size[0];
   for (i0 = 0; i0 < offset; i0++) {
     b_U->data[i0] = U->row_ptr->data[i0];
@@ -197,7 +197,7 @@ void crs_triu(const struct0_T *A, struct0_T *U)
     start = U->col_ind->size[0] - offset;
     i0 = b_A->size[0];
     b_A->size[0] = U->col_ind->size[0];
-    emxEnsureCapacity((emxArray__common *)b_A, i0, sizeof(int));
+    emxEnsureCapacity_int32_T(b_A, i0);
     offset = U->col_ind->size[0];
     for (i0 = 0; i0 < offset; i0++) {
       b_A->data[i0] = U->col_ind->data[i0];
@@ -206,11 +206,11 @@ void crs_triu(const struct0_T *A, struct0_T *U)
     if (start < 1) {
       i0 = U->col_ind->size[0];
       U->col_ind->size[0] = 0;
-      emxEnsureCapacity((emxArray__common *)U->col_ind, i0, sizeof(int));
+      emxEnsureCapacity_int32_T(U->col_ind, i0);
     } else {
       i0 = U->col_ind->size[0];
       U->col_ind->size[0] = start;
-      emxEnsureCapacity((emxArray__common *)U->col_ind, i0, sizeof(int));
+      emxEnsureCapacity_int32_T(U->col_ind, i0);
       for (i = 0; i < start; i++) {
         U->col_ind->data[i] = b_A->data[i];
       }
@@ -220,7 +220,7 @@ void crs_triu(const struct0_T *A, struct0_T *U)
     emxInit_real_T(&c_A, 1);
     i0 = c_A->size[0];
     c_A->size[0] = U->val->size[0];
-    emxEnsureCapacity((emxArray__common *)c_A, i0, sizeof(double));
+    emxEnsureCapacity_real_T(c_A, i0);
     offset = U->val->size[0];
     for (i0 = 0; i0 < offset; i0++) {
       c_A->data[i0] = U->val->data[i0];
@@ -229,11 +229,11 @@ void crs_triu(const struct0_T *A, struct0_T *U)
     if (start < 1) {
       i0 = U->val->size[0];
       U->val->size[0] = 0;
-      emxEnsureCapacity((emxArray__common *)U->val, i0, sizeof(double));
+      emxEnsureCapacity_real_T(U->val, i0);
     } else {
       i0 = U->val->size[0];
       U->val->size[0] = start;
-      emxEnsureCapacity((emxArray__common *)U->val, i0, sizeof(double));
+      emxEnsureCapacity_real_T(U->val, i0);
       for (i = 0; i < start; i++) {
         U->val->data[i] = c_A->data[i];
       }
@@ -256,7 +256,7 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
   emxCopyStruct_struct0_T(U, A);
   i1 = b_U->size[0];
   b_U->size[0] = U->row_ptr->size[0];
-  emxEnsureCapacity((emxArray__common *)b_U, i1, sizeof(int));
+  emxEnsureCapacity_int32_T(b_U, i1);
   offset = U->row_ptr->size[0];
   for (i1 = 0; i1 < offset; i1++) {
     b_U->data[i1] = U->row_ptr->data[i1];
@@ -292,7 +292,7 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
     start = U->col_ind->size[0] - offset;
     i1 = b_A->size[0];
     b_A->size[0] = U->col_ind->size[0];
-    emxEnsureCapacity((emxArray__common *)b_A, i1, sizeof(int));
+    emxEnsureCapacity_int32_T(b_A, i1);
     offset = U->col_ind->size[0];
     for (i1 = 0; i1 < offset; i1++) {
       b_A->data[i1] = U->col_ind->data[i1];
@@ -301,11 +301,11 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
     if (start < 1) {
       i1 = U->col_ind->size[0];
       U->col_ind->size[0] = 0;
-      emxEnsureCapacity((emxArray__common *)U->col_ind, i1, sizeof(int));
+      emxEnsureCapacity_int32_T(U->col_ind, i1);
     } else {
       i1 = U->col_ind->size[0];
       U->col_ind->size[0] = start;
-      emxEnsureCapacity((emxArray__common *)U->col_ind, i1, sizeof(int));
+      emxEnsureCapacity_int32_T(U->col_ind, i1);
       for (i = 0; i < start; i++) {
         U->col_ind->data[i] = b_A->data[i];
       }
@@ -315,7 +315,7 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
     emxInit_real_T(&c_A, 1);
     i1 = c_A->size[0];
     c_A->size[0] = U->val->size[0];
-    emxEnsureCapacity((emxArray__common *)c_A, i1, sizeof(double));
+    emxEnsureCapacity_real_T(c_A, i1);
     offset = U->val->size[0];
     for (i1 = 0; i1 < offset; i1++) {
       c_A->data[i1] = U->val->data[i1];
@@ -324,11 +324,11 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
     if (start < 1) {
       i1 = U->val->size[0];
       U->val->size[0] = 0;
-      emxEnsureCapacity((emxArray__common *)U->val, i1, sizeof(double));
+      emxEnsureCapacity_real_T(U->val, i1);
     } else {
       i1 = U->val->size[0];
       U->val->size[0] = start;
-      emxEnsureCapacity((emxArray__common *)U->val, i1, sizeof(double));
+      emxEnsureCapacity_real_T(U->val, i1);
       for (i = 0; i < start; i++) {
         U->val->data[i] = c_A->data[i];
       }

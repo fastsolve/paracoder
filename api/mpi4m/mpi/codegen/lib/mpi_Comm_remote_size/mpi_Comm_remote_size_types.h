@@ -1,7 +1,6 @@
 #ifndef MPI_COMM_REMOTE_SIZE_TYPES_H
 #define MPI_COMM_REMOTE_SIZE_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

@@ -1,13 +1,14 @@
 function build_crs(varargin)
 %BUILD_CRS Build script for CRS
 
-crsroot = [m2croot '/api/crs'];
+apiroot = [m2croot '/api'];
 
 curpath = pwd;
-cd(crsroot);
+cd(apiroot);
 
 try
-    lines = grep_pattern('crs*.m', '\n%#codegen -args');
+    lines = [grep_pattern('crs/crs*.m', '\n%#codegen -args'), ...
+        grep_pattern('dense/solve/*.m', '\n%#codegen -args')];
     files = regexp(lines, '[\w\\\/]+\.m', 'match');
 
     for j=1:length(files)

@@ -1168,7 +1168,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -2080,105 +2080,48 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
   int loop_ub;
   emxArray_uint8_T *data0;
   MPI_Datatype arg;
-  emxArray_char_T *c_name;
   char t4_type[12];
   static const char cv0[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
     'p', 'e' };
 
-  emxArray_char_T *d_name;
   char * ptr;
-  emxArray_char_T *e_name;
-  emxArray_char_T *f_name;
-  emxArray_char_T *g_name;
-  emxArray_char_T *h_name;
-  emxArray_char_T *i_name;
-  emxArray_char_T *j_name;
-  emxArray_char_T *k_name;
-  emxArray_char_T *l_name;
-  emxArray_char_T *m_name;
-  emxArray_char_T *n_name;
-  emxArray_char_T *o_name;
-  emxArray_char_T *p_name;
-  emxArray_char_T *q_name;
-  emxArray_char_T *r_name;
-  emxArray_char_T *s_name;
-  emxArray_char_T *t_name;
-  emxArray_char_T *u_name;
-  emxArray_char_T *v_name;
-  emxArray_char_T *w_name;
   MPI_Comm b_arg;
-  emxArray_char_T *x_name;
   char t3_type[8];
   static const char cv1[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
 
-  emxArray_char_T *y_name;
-  emxArray_char_T *ab_name;
   MPI_Op c_arg;
-  emxArray_char_T *bb_name;
   char t0_type[6];
   static const char cv2[6] = { 'M', 'P', 'I', '_', 'O', 'p' };
 
-  emxArray_char_T *cb_name;
-  emxArray_char_T *db_name;
-  emxArray_char_T *eb_name;
-  emxArray_char_T *fb_name;
-  emxArray_char_T *gb_name;
-  emxArray_char_T *hb_name;
-  emxArray_char_T *ib_name;
-  emxArray_char_T *jb_name;
-  emxArray_char_T *kb_name;
-  emxArray_char_T *lb_name;
-  emxArray_char_T *mb_name;
-  emxArray_char_T *nb_name;
   int d_arg;
-  emxArray_char_T *ob_name;
   char t7_type[3];
   static const char cv3[3] = { 'i', 'n', 't' };
 
-  emxArray_char_T *pb_name;
   void * e_arg;
-  emxArray_char_T *qb_name;
   static const char cv4[6] = { 'v', 'o', 'i', 'd', ' ', '*' };
 
   MPI_Errhandler f_arg;
-  emxArray_char_T *rb_name;
   char t8_type[14];
   static const char cv5[14] = { 'M', 'P', 'I', '_', 'E', 'r', 'r', 'h', 'a', 'n',
     'd', 'l', 'e', 'r' };
 
-  emxArray_char_T *sb_name;
-  emxArray_char_T *tb_name;
-  emxArray_char_T *ub_name;
-  emxArray_char_T *vb_name;
-  emxArray_char_T *wb_name;
-  emxArray_char_T *xb_name;
-  emxArray_char_T *yb_name;
-  emxArray_char_T *ac_name;
-  emxArray_char_T *bc_name;
-  emxArray_char_T *cc_name;
   MPI_Request g_arg;
-  emxArray_char_T *dc_name;
   char t6_type[11];
   static const char cv6[11] = { 'M', 'P', 'I', '_', 'R', 'e', 'q', 'u', 'e', 's',
     't' };
 
   MPI_Group h_arg;
-  emxArray_char_T *ec_name;
   char t5_type[9];
   static const char cv7[9] = { 'M', 'P', 'I', '_', 'G', 'r', 'o', 'u', 'p' };
 
-  emxArray_char_T *fc_name;
   MPI_Status * i_arg;
-  emxArray_char_T *gc_name;
   static const char cv8[12] = { 'M', 'P', 'I', '_', 'S', 't', 'a', 't', 'u', 's',
     ' ', '*' };
 
   MPI_Info j_arg;
-  emxArray_char_T *hc_name;
   static const char cv9[8] = { 'M', 'P', 'I', '_', 'I', 'n', 'f', 'o' };
 
   char ** k_arg;
-  emxArray_char_T *ic_name;
   char t2_type[7];
   static const char cv10[7] = { 'c', 'h', 'a', 'r', ' ', '*', '*' };
 
@@ -2186,7 +2129,6 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
   char t1_type[5];
   static const char cv11[5] = { 'i', 'n', 't', ' ', '*' };
 
-  emxArray_char_T *jc_name;
   if (5 > name->size[1]) {
     i0 = 0;
     sizepe = 0;
@@ -2199,7 +2141,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
   loop_ub = b_name->size[0] * b_name->size[1];
   b_name->size[0] = 1;
   b_name->size[1] = sizepe - i0;
-  emxEnsureCapacity((emxArray__common *)b_name, loop_ub, sizeof(char));
+  emxEnsureCapacity_char_T(b_name, loop_ub);
   loop_ub = sizepe - i0;
   for (sizepe = 0; sizepe < loop_ub; sizepe++) {
     b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
@@ -2211,14 +2153,14 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
     sizepe = sizeof(MPI_Datatype);
     i0 = data0->size[0];
     data0->size[0] = sizepe;
-    emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned char));
+    emxEnsureCapacity_uint8_T(data0, i0);
     for (i0 = 0; i0 < 12; i0++) {
       t4_type[i0] = cv0[i0];
     }
 
     i0 = obj->data->size[0];
     obj->data->size[0] = data0->size[0];
-    emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof(unsigned char));
+    emxEnsureCapacity_uint8_T(obj->data, i0);
     loop_ub = data0->size[0];
     for (i0 = 0; i0 < loop_ub; i0++) {
       obj->data->data[i0] = data0->data[i0];
@@ -2227,7 +2169,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
     i0 = obj->type->size[0] * obj->type->size[1];
     obj->type->size[0] = 1;
     obj->type->size[1] = 12;
-    emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+    emxEnsureCapacity_char_T(obj->type, i0);
     for (i0 = 0; i0 < 12; i0++) {
       obj->type->data[i0] = t4_type[i0];
     }
@@ -2247,29 +2189,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
       sizepe = name->size[1];
     }
 
-    emxInit_char_T(&c_name, 2);
-    loop_ub = c_name->size[0] * c_name->size[1];
-    c_name->size[0] = 1;
-    c_name->size[1] = sizepe - i0;
-    emxEnsureCapacity((emxArray__common *)c_name, loop_ub, sizeof(char));
+    loop_ub = b_name->size[0] * b_name->size[1];
+    b_name->size[0] = 1;
+    b_name->size[1] = sizepe - i0;
+    emxEnsureCapacity_char_T(b_name, loop_ub);
     loop_ub = sizepe - i0;
     for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-      c_name->data[c_name->size[0] * sizepe] = name->data[i0 + sizepe];
+      b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
     }
 
-    if (b_isequal(c_name)) {
+    if (b_isequal(b_name)) {
       arg = MPI_DOUBLE;
       sizepe = sizeof(MPI_Datatype);
       i0 = data0->size[0];
       data0->size[0] = sizepe;
-      emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned char));
+      emxEnsureCapacity_uint8_T(data0, i0);
       for (i0 = 0; i0 < 12; i0++) {
         t4_type[i0] = cv0[i0];
       }
 
       i0 = obj->data->size[0];
       obj->data->size[0] = data0->size[0];
-      emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof(unsigned char));
+      emxEnsureCapacity_uint8_T(obj->data, i0);
       loop_ub = data0->size[0];
       for (i0 = 0; i0 < loop_ub; i0++) {
         obj->data->data[i0] = data0->data[i0];
@@ -2278,7 +2219,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
       i0 = obj->type->size[0] * obj->type->size[1];
       obj->type->size[0] = 1;
       obj->type->size[1] = 12;
-      emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+      emxEnsureCapacity_char_T(obj->type, i0);
       for (i0 = 0; i0 < 12; i0++) {
         obj->type->data[i0] = t4_type[i0];
       }
@@ -2298,30 +2239,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
         sizepe = name->size[1];
       }
 
-      emxInit_char_T(&d_name, 2);
-      loop_ub = d_name->size[0] * d_name->size[1];
-      d_name->size[0] = 1;
-      d_name->size[1] = sizepe - i0;
-      emxEnsureCapacity((emxArray__common *)d_name, loop_ub, sizeof(char));
+      loop_ub = b_name->size[0] * b_name->size[1];
+      b_name->size[0] = 1;
+      b_name->size[1] = sizepe - i0;
+      emxEnsureCapacity_char_T(b_name, loop_ub);
       loop_ub = sizepe - i0;
       for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-        d_name->data[d_name->size[0] * sizepe] = name->data[i0 + sizepe];
+        b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
       }
 
-      if (c_isequal(d_name)) {
+      if (c_isequal(b_name)) {
         arg = MPI_LONG_DOUBLE;
         sizepe = sizeof(MPI_Datatype);
         i0 = data0->size[0];
         data0->size[0] = sizepe;
-        emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned char));
+        emxEnsureCapacity_uint8_T(data0, i0);
         for (i0 = 0; i0 < 12; i0++) {
           t4_type[i0] = cv0[i0];
         }
 
         i0 = obj->data->size[0];
         obj->data->size[0] = data0->size[0];
-        emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof(unsigned
-          char));
+        emxEnsureCapacity_uint8_T(obj->data, i0);
         loop_ub = data0->size[0];
         for (i0 = 0; i0 < loop_ub; i0++) {
           obj->data->data[i0] = data0->data[i0];
@@ -2330,7 +2269,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
         i0 = obj->type->size[0] * obj->type->size[1];
         obj->type->size[0] = 1;
         obj->type->size[1] = 12;
-        emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+        emxEnsureCapacity_char_T(obj->type, i0);
         for (i0 = 0; i0 < 12; i0++) {
           obj->type->data[i0] = t4_type[i0];
         }
@@ -2350,30 +2289,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
           sizepe = name->size[1];
         }
 
-        emxInit_char_T(&e_name, 2);
-        loop_ub = e_name->size[0] * e_name->size[1];
-        e_name->size[0] = 1;
-        e_name->size[1] = sizepe - i0;
-        emxEnsureCapacity((emxArray__common *)e_name, loop_ub, sizeof(char));
+        loop_ub = b_name->size[0] * b_name->size[1];
+        b_name->size[0] = 1;
+        b_name->size[1] = sizepe - i0;
+        emxEnsureCapacity_char_T(b_name, loop_ub);
         loop_ub = sizepe - i0;
         for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-          e_name->data[e_name->size[0] * sizepe] = name->data[i0 + sizepe];
+          b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
         }
 
-        if (d_isequal(e_name)) {
+        if (d_isequal(b_name)) {
           arg = MPI_INT;
           sizepe = sizeof(MPI_Datatype);
           i0 = data0->size[0];
           data0->size[0] = sizepe;
-          emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned char));
+          emxEnsureCapacity_uint8_T(data0, i0);
           for (i0 = 0; i0 < 12; i0++) {
             t4_type[i0] = cv0[i0];
           }
 
           i0 = obj->data->size[0];
           obj->data->size[0] = data0->size[0];
-          emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof(unsigned
-            char));
+          emxEnsureCapacity_uint8_T(obj->data, i0);
           loop_ub = data0->size[0];
           for (i0 = 0; i0 < loop_ub; i0++) {
             obj->data->data[i0] = data0->data[i0];
@@ -2382,7 +2319,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
           i0 = obj->type->size[0] * obj->type->size[1];
           obj->type->size[0] = 1;
           obj->type->size[1] = 12;
-          emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+          emxEnsureCapacity_char_T(obj->type, i0);
           for (i0 = 0; i0 < 12; i0++) {
             obj->type->data[i0] = t4_type[i0];
           }
@@ -2402,31 +2339,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
             sizepe = name->size[1];
           }
 
-          emxInit_char_T(&f_name, 2);
-          loop_ub = f_name->size[0] * f_name->size[1];
-          f_name->size[0] = 1;
-          f_name->size[1] = sizepe - i0;
-          emxEnsureCapacity((emxArray__common *)f_name, loop_ub, sizeof(char));
+          loop_ub = b_name->size[0] * b_name->size[1];
+          b_name->size[0] = 1;
+          b_name->size[1] = sizepe - i0;
+          emxEnsureCapacity_char_T(b_name, loop_ub);
           loop_ub = sizepe - i0;
           for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-            f_name->data[f_name->size[0] * sizepe] = name->data[i0 + sizepe];
+            b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
           }
 
-          if (e_isequal(f_name)) {
+          if (e_isequal(b_name)) {
             arg = MPI_UNSIGNED;
             sizepe = sizeof(MPI_Datatype);
             i0 = data0->size[0];
             data0->size[0] = sizepe;
-            emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned
-              char));
+            emxEnsureCapacity_uint8_T(data0, i0);
             for (i0 = 0; i0 < 12; i0++) {
               t4_type[i0] = cv0[i0];
             }
 
             i0 = obj->data->size[0];
             obj->data->size[0] = data0->size[0];
-            emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof(unsigned
-              char));
+            emxEnsureCapacity_uint8_T(obj->data, i0);
             loop_ub = data0->size[0];
             for (i0 = 0; i0 < loop_ub; i0++) {
               obj->data->data[i0] = data0->data[i0];
@@ -2435,7 +2369,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
             i0 = obj->type->size[0] * obj->type->size[1];
             obj->type->size[0] = 1;
             obj->type->size[1] = 12;
-            emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+            emxEnsureCapacity_char_T(obj->type, i0);
             for (i0 = 0; i0 < 12; i0++) {
               obj->type->data[i0] = t4_type[i0];
             }
@@ -2455,31 +2389,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
               sizepe = name->size[1];
             }
 
-            emxInit_char_T(&g_name, 2);
-            loop_ub = g_name->size[0] * g_name->size[1];
-            g_name->size[0] = 1;
-            g_name->size[1] = sizepe - i0;
-            emxEnsureCapacity((emxArray__common *)g_name, loop_ub, sizeof(char));
+            loop_ub = b_name->size[0] * b_name->size[1];
+            b_name->size[0] = 1;
+            b_name->size[1] = sizepe - i0;
+            emxEnsureCapacity_char_T(b_name, loop_ub);
             loop_ub = sizepe - i0;
             for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-              g_name->data[g_name->size[0] * sizepe] = name->data[i0 + sizepe];
+              b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
             }
 
-            if (f_isequal(g_name)) {
+            if (f_isequal(b_name)) {
               arg = MPI_LONG;
               sizepe = sizeof(MPI_Datatype);
               i0 = data0->size[0];
               data0->size[0] = sizepe;
-              emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned
-                char));
+              emxEnsureCapacity_uint8_T(data0, i0);
               for (i0 = 0; i0 < 12; i0++) {
                 t4_type[i0] = cv0[i0];
               }
 
               i0 = obj->data->size[0];
               obj->data->size[0] = data0->size[0];
-              emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof
-                                (unsigned char));
+              emxEnsureCapacity_uint8_T(obj->data, i0);
               loop_ub = data0->size[0];
               for (i0 = 0; i0 < loop_ub; i0++) {
                 obj->data->data[i0] = data0->data[i0];
@@ -2488,7 +2419,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
               i0 = obj->type->size[0] * obj->type->size[1];
               obj->type->size[0] = 1;
               obj->type->size[1] = 12;
-              emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+              emxEnsureCapacity_char_T(obj->type, i0);
               for (i0 = 0; i0 < 12; i0++) {
                 obj->type->data[i0] = t4_type[i0];
               }
@@ -2508,31 +2439,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                 sizepe = name->size[1];
               }
 
-              emxInit_char_T(&h_name, 2);
-              loop_ub = h_name->size[0] * h_name->size[1];
-              h_name->size[0] = 1;
-              h_name->size[1] = sizepe - i0;
-              emxEnsureCapacity((emxArray__common *)h_name, loop_ub, sizeof(char));
+              loop_ub = b_name->size[0] * b_name->size[1];
+              b_name->size[0] = 1;
+              b_name->size[1] = sizepe - i0;
+              emxEnsureCapacity_char_T(b_name, loop_ub);
               loop_ub = sizepe - i0;
               for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                h_name->data[h_name->size[0] * sizepe] = name->data[i0 + sizepe];
+                b_name->data[b_name->size[0] * sizepe] = name->data[i0 + sizepe];
               }
 
-              if (g_isequal(h_name)) {
+              if (g_isequal(b_name)) {
                 arg = MPI_UNSIGNED_LONG;
                 sizepe = sizeof(MPI_Datatype);
                 i0 = data0->size[0];
                 data0->size[0] = sizepe;
-                emxEnsureCapacity((emxArray__common *)data0, i0, sizeof(unsigned
-                  char));
+                emxEnsureCapacity_uint8_T(data0, i0);
                 for (i0 = 0; i0 < 12; i0++) {
                   t4_type[i0] = cv0[i0];
                 }
 
                 i0 = obj->data->size[0];
                 obj->data->size[0] = data0->size[0];
-                emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof
-                                  (unsigned char));
+                emxEnsureCapacity_uint8_T(obj->data, i0);
                 loop_ub = data0->size[0];
                 for (i0 = 0; i0 < loop_ub; i0++) {
                   obj->data->data[i0] = data0->data[i0];
@@ -2541,7 +2469,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                 i0 = obj->type->size[0] * obj->type->size[1];
                 obj->type->size[0] = 1;
                 obj->type->size[1] = 12;
-                emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof(char));
+                emxEnsureCapacity_char_T(obj->type, i0);
                 for (i0 = 0; i0 < 12; i0++) {
                   obj->type->data[i0] = t4_type[i0];
                 }
@@ -2561,33 +2489,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                   sizepe = name->size[1];
                 }
 
-                emxInit_char_T(&i_name, 2);
-                loop_ub = i_name->size[0] * i_name->size[1];
-                i_name->size[0] = 1;
-                i_name->size[1] = sizepe - i0;
-                emxEnsureCapacity((emxArray__common *)i_name, loop_ub, sizeof
-                                  (char));
+                loop_ub = b_name->size[0] * b_name->size[1];
+                b_name->size[0] = 1;
+                b_name->size[1] = sizepe - i0;
+                emxEnsureCapacity_char_T(b_name, loop_ub);
                 loop_ub = sizepe - i0;
                 for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                  i_name->data[i_name->size[0] * sizepe] = name->data[i0 +
+                  b_name->data[b_name->size[0] * sizepe] = name->data[i0 +
                     sizepe];
                 }
 
-                if (h_isequal(i_name)) {
+                if (h_isequal(b_name)) {
                   arg = MPI_LONG_LONG;
                   sizepe = sizeof(MPI_Datatype);
                   i0 = data0->size[0];
                   data0->size[0] = sizepe;
-                  emxEnsureCapacity((emxArray__common *)data0, i0, sizeof
-                                    (unsigned char));
+                  emxEnsureCapacity_uint8_T(data0, i0);
                   for (i0 = 0; i0 < 12; i0++) {
                     t4_type[i0] = cv0[i0];
                   }
 
                   i0 = obj->data->size[0];
                   obj->data->size[0] = data0->size[0];
-                  emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof
-                                    (unsigned char));
+                  emxEnsureCapacity_uint8_T(obj->data, i0);
                   loop_ub = data0->size[0];
                   for (i0 = 0; i0 < loop_ub; i0++) {
                     obj->data->data[i0] = data0->data[i0];
@@ -2596,8 +2520,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                   i0 = obj->type->size[0] * obj->type->size[1];
                   obj->type->size[0] = 1;
                   obj->type->size[1] = 12;
-                  emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof
-                                    (char));
+                  emxEnsureCapacity_char_T(obj->type, i0);
                   for (i0 = 0; i0 < 12; i0++) {
                     obj->type->data[i0] = t4_type[i0];
                   }
@@ -2617,33 +2540,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                     sizepe = name->size[1];
                   }
 
-                  emxInit_char_T(&j_name, 2);
-                  loop_ub = j_name->size[0] * j_name->size[1];
-                  j_name->size[0] = 1;
-                  j_name->size[1] = sizepe - i0;
-                  emxEnsureCapacity((emxArray__common *)j_name, loop_ub, sizeof
-                                    (char));
+                  loop_ub = b_name->size[0] * b_name->size[1];
+                  b_name->size[0] = 1;
+                  b_name->size[1] = sizepe - i0;
+                  emxEnsureCapacity_char_T(b_name, loop_ub);
                   loop_ub = sizepe - i0;
                   for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                    j_name->data[j_name->size[0] * sizepe] = name->data[i0 +
+                    b_name->data[b_name->size[0] * sizepe] = name->data[i0 +
                       sizepe];
                   }
 
-                  if (i_isequal(j_name)) {
+                  if (i_isequal(b_name)) {
                     arg = MPI_LONG_LONG_INT;
                     sizepe = sizeof(MPI_Datatype);
                     i0 = data0->size[0];
                     data0->size[0] = sizepe;
-                    emxEnsureCapacity((emxArray__common *)data0, i0, sizeof
-                                      (unsigned char));
+                    emxEnsureCapacity_uint8_T(data0, i0);
                     for (i0 = 0; i0 < 12; i0++) {
                       t4_type[i0] = cv0[i0];
                     }
 
                     i0 = obj->data->size[0];
                     obj->data->size[0] = data0->size[0];
-                    emxEnsureCapacity((emxArray__common *)obj->data, i0, sizeof
-                                      (unsigned char));
+                    emxEnsureCapacity_uint8_T(obj->data, i0);
                     loop_ub = data0->size[0];
                     for (i0 = 0; i0 < loop_ub; i0++) {
                       obj->data->data[i0] = data0->data[i0];
@@ -2652,8 +2571,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                     i0 = obj->type->size[0] * obj->type->size[1];
                     obj->type->size[0] = 1;
                     obj->type->size[1] = 12;
-                    emxEnsureCapacity((emxArray__common *)obj->type, i0, sizeof
-                                      (char));
+                    emxEnsureCapacity_char_T(obj->type, i0);
                     for (i0 = 0; i0 < 12; i0++) {
                       obj->type->data[i0] = t4_type[i0];
                     }
@@ -2673,33 +2591,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                       sizepe = name->size[1];
                     }
 
-                    emxInit_char_T(&k_name, 2);
-                    loop_ub = k_name->size[0] * k_name->size[1];
-                    k_name->size[0] = 1;
-                    k_name->size[1] = sizepe - i0;
-                    emxEnsureCapacity((emxArray__common *)k_name, loop_ub,
-                                      sizeof(char));
+                    loop_ub = b_name->size[0] * b_name->size[1];
+                    b_name->size[0] = 1;
+                    b_name->size[1] = sizepe - i0;
+                    emxEnsureCapacity_char_T(b_name, loop_ub);
                     loop_ub = sizepe - i0;
                     for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                      k_name->data[k_name->size[0] * sizepe] = name->data[i0 +
+                      b_name->data[b_name->size[0] * sizepe] = name->data[i0 +
                         sizepe];
                     }
 
-                    if (j_isequal(k_name)) {
+                    if (j_isequal(b_name)) {
                       arg = MPI_UNSIGNED_LONG_LONG;
                       sizepe = sizeof(MPI_Datatype);
                       i0 = data0->size[0];
                       data0->size[0] = sizepe;
-                      emxEnsureCapacity((emxArray__common *)data0, i0, sizeof
-                                        (unsigned char));
+                      emxEnsureCapacity_uint8_T(data0, i0);
                       for (i0 = 0; i0 < 12; i0++) {
                         t4_type[i0] = cv0[i0];
                       }
 
                       i0 = obj->data->size[0];
                       obj->data->size[0] = data0->size[0];
-                      emxEnsureCapacity((emxArray__common *)obj->data, i0,
-                                        sizeof(unsigned char));
+                      emxEnsureCapacity_uint8_T(obj->data, i0);
                       loop_ub = data0->size[0];
                       for (i0 = 0; i0 < loop_ub; i0++) {
                         obj->data->data[i0] = data0->data[i0];
@@ -2708,8 +2622,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                       i0 = obj->type->size[0] * obj->type->size[1];
                       obj->type->size[0] = 1;
                       obj->type->size[1] = 12;
-                      emxEnsureCapacity((emxArray__common *)obj->type, i0,
-                                        sizeof(char));
+                      emxEnsureCapacity_char_T(obj->type, i0);
                       for (i0 = 0; i0 < 12; i0++) {
                         obj->type->data[i0] = t4_type[i0];
                       }
@@ -2729,33 +2642,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                         sizepe = name->size[1];
                       }
 
-                      emxInit_char_T(&l_name, 2);
-                      loop_ub = l_name->size[0] * l_name->size[1];
-                      l_name->size[0] = 1;
-                      l_name->size[1] = sizepe - i0;
-                      emxEnsureCapacity((emxArray__common *)l_name, loop_ub,
-                                        sizeof(char));
+                      loop_ub = b_name->size[0] * b_name->size[1];
+                      b_name->size[0] = 1;
+                      b_name->size[1] = sizepe - i0;
+                      emxEnsureCapacity_char_T(b_name, loop_ub);
                       loop_ub = sizepe - i0;
                       for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                        l_name->data[l_name->size[0] * sizepe] = name->data[i0 +
+                        b_name->data[b_name->size[0] * sizepe] = name->data[i0 +
                           sizepe];
                       }
 
-                      if (k_isequal(l_name)) {
+                      if (k_isequal(b_name)) {
                         arg = MPI_SHORT;
                         sizepe = sizeof(MPI_Datatype);
                         i0 = data0->size[0];
                         data0->size[0] = sizepe;
-                        emxEnsureCapacity((emxArray__common *)data0, i0, sizeof
-                                          (unsigned char));
+                        emxEnsureCapacity_uint8_T(data0, i0);
                         for (i0 = 0; i0 < 12; i0++) {
                           t4_type[i0] = cv0[i0];
                         }
 
                         i0 = obj->data->size[0];
                         obj->data->size[0] = data0->size[0];
-                        emxEnsureCapacity((emxArray__common *)obj->data, i0,
-                                          sizeof(unsigned char));
+                        emxEnsureCapacity_uint8_T(obj->data, i0);
                         loop_ub = data0->size[0];
                         for (i0 = 0; i0 < loop_ub; i0++) {
                           obj->data->data[i0] = data0->data[i0];
@@ -2764,8 +2673,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                         i0 = obj->type->size[0] * obj->type->size[1];
                         obj->type->size[0] = 1;
                         obj->type->size[1] = 12;
-                        emxEnsureCapacity((emxArray__common *)obj->type, i0,
-                                          sizeof(char));
+                        emxEnsureCapacity_char_T(obj->type, i0);
                         for (i0 = 0; i0 < 12; i0++) {
                           obj->type->data[i0] = t4_type[i0];
                         }
@@ -2785,33 +2693,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                           sizepe = name->size[1];
                         }
 
-                        emxInit_char_T(&m_name, 2);
-                        loop_ub = m_name->size[0] * m_name->size[1];
-                        m_name->size[0] = 1;
-                        m_name->size[1] = sizepe - i0;
-                        emxEnsureCapacity((emxArray__common *)m_name, loop_ub,
-                                          sizeof(char));
+                        loop_ub = b_name->size[0] * b_name->size[1];
+                        b_name->size[0] = 1;
+                        b_name->size[1] = sizepe - i0;
+                        emxEnsureCapacity_char_T(b_name, loop_ub);
                         loop_ub = sizepe - i0;
                         for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                          m_name->data[m_name->size[0] * sizepe] = name->data[i0
+                          b_name->data[b_name->size[0] * sizepe] = name->data[i0
                             + sizepe];
                         }
 
-                        if (l_isequal(m_name)) {
+                        if (l_isequal(b_name)) {
                           arg = MPI_UNSIGNED_SHORT;
                           sizepe = sizeof(MPI_Datatype);
                           i0 = data0->size[0];
                           data0->size[0] = sizepe;
-                          emxEnsureCapacity((emxArray__common *)data0, i0,
-                                            sizeof(unsigned char));
+                          emxEnsureCapacity_uint8_T(data0, i0);
                           for (i0 = 0; i0 < 12; i0++) {
                             t4_type[i0] = cv0[i0];
                           }
 
                           i0 = obj->data->size[0];
                           obj->data->size[0] = data0->size[0];
-                          emxEnsureCapacity((emxArray__common *)obj->data, i0,
-                                            sizeof(unsigned char));
+                          emxEnsureCapacity_uint8_T(obj->data, i0);
                           loop_ub = data0->size[0];
                           for (i0 = 0; i0 < loop_ub; i0++) {
                             obj->data->data[i0] = data0->data[i0];
@@ -2820,8 +2724,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                           i0 = obj->type->size[0] * obj->type->size[1];
                           obj->type->size[0] = 1;
                           obj->type->size[1] = 12;
-                          emxEnsureCapacity((emxArray__common *)obj->type, i0,
-                                            sizeof(char));
+                          emxEnsureCapacity_char_T(obj->type, i0);
                           for (i0 = 0; i0 < 12; i0++) {
                             obj->type->data[i0] = t4_type[i0];
                           }
@@ -2841,33 +2744,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                             sizepe = name->size[1];
                           }
 
-                          emxInit_char_T(&n_name, 2);
-                          loop_ub = n_name->size[0] * n_name->size[1];
-                          n_name->size[0] = 1;
-                          n_name->size[1] = sizepe - i0;
-                          emxEnsureCapacity((emxArray__common *)n_name, loop_ub,
-                                            sizeof(char));
+                          loop_ub = b_name->size[0] * b_name->size[1];
+                          b_name->size[0] = 1;
+                          b_name->size[1] = sizepe - i0;
+                          emxEnsureCapacity_char_T(b_name, loop_ub);
                           loop_ub = sizepe - i0;
                           for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                            n_name->data[n_name->size[0] * sizepe] = name->
+                            b_name->data[b_name->size[0] * sizepe] = name->
                               data[i0 + sizepe];
                           }
 
-                          if (m_isequal(n_name)) {
+                          if (m_isequal(b_name)) {
                             arg = MPI_CHAR;
                             sizepe = sizeof(MPI_Datatype);
                             i0 = data0->size[0];
                             data0->size[0] = sizepe;
-                            emxEnsureCapacity((emxArray__common *)data0, i0,
-                                              sizeof(unsigned char));
+                            emxEnsureCapacity_uint8_T(data0, i0);
                             for (i0 = 0; i0 < 12; i0++) {
                               t4_type[i0] = cv0[i0];
                             }
 
                             i0 = obj->data->size[0];
                             obj->data->size[0] = data0->size[0];
-                            emxEnsureCapacity((emxArray__common *)obj->data, i0,
-                                              sizeof(unsigned char));
+                            emxEnsureCapacity_uint8_T(obj->data, i0);
                             loop_ub = data0->size[0];
                             for (i0 = 0; i0 < loop_ub; i0++) {
                               obj->data->data[i0] = data0->data[i0];
@@ -2876,8 +2775,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                             i0 = obj->type->size[0] * obj->type->size[1];
                             obj->type->size[0] = 1;
                             obj->type->size[1] = 12;
-                            emxEnsureCapacity((emxArray__common *)obj->type, i0,
-                                              sizeof(char));
+                            emxEnsureCapacity_char_T(obj->type, i0);
                             for (i0 = 0; i0 < 12; i0++) {
                               obj->type->data[i0] = t4_type[i0];
                             }
@@ -2897,33 +2795,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                               sizepe = name->size[1];
                             }
 
-                            emxInit_char_T(&o_name, 2);
-                            loop_ub = o_name->size[0] * o_name->size[1];
-                            o_name->size[0] = 1;
-                            o_name->size[1] = sizepe - i0;
-                            emxEnsureCapacity((emxArray__common *)o_name,
-                                              loop_ub, sizeof(char));
+                            loop_ub = b_name->size[0] * b_name->size[1];
+                            b_name->size[0] = 1;
+                            b_name->size[1] = sizepe - i0;
+                            emxEnsureCapacity_char_T(b_name, loop_ub);
                             loop_ub = sizepe - i0;
                             for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                              o_name->data[o_name->size[0] * sizepe] =
+                              b_name->data[b_name->size[0] * sizepe] =
                                 name->data[i0 + sizepe];
                             }
 
-                            if (n_isequal(o_name)) {
+                            if (n_isequal(b_name)) {
                               arg = MPI_UNSIGNED_CHAR;
                               sizepe = sizeof(MPI_Datatype);
                               i0 = data0->size[0];
                               data0->size[0] = sizepe;
-                              emxEnsureCapacity((emxArray__common *)data0, i0,
-                                                sizeof(unsigned char));
+                              emxEnsureCapacity_uint8_T(data0, i0);
                               for (i0 = 0; i0 < 12; i0++) {
                                 t4_type[i0] = cv0[i0];
                               }
 
                               i0 = obj->data->size[0];
                               obj->data->size[0] = data0->size[0];
-                              emxEnsureCapacity((emxArray__common *)obj->data,
-                                                i0, sizeof(unsigned char));
+                              emxEnsureCapacity_uint8_T(obj->data, i0);
                               loop_ub = data0->size[0];
                               for (i0 = 0; i0 < loop_ub; i0++) {
                                 obj->data->data[i0] = data0->data[i0];
@@ -2932,8 +2826,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                               i0 = obj->type->size[0] * obj->type->size[1];
                               obj->type->size[0] = 1;
                               obj->type->size[1] = 12;
-                              emxEnsureCapacity((emxArray__common *)obj->type,
-                                                i0, sizeof(char));
+                              emxEnsureCapacity_char_T(obj->type, i0);
                               for (i0 = 0; i0 < 12; i0++) {
                                 obj->type->data[i0] = t4_type[i0];
                               }
@@ -2953,33 +2846,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                 sizepe = name->size[1];
                               }
 
-                              emxInit_char_T(&p_name, 2);
-                              loop_ub = p_name->size[0] * p_name->size[1];
-                              p_name->size[0] = 1;
-                              p_name->size[1] = sizepe - i0;
-                              emxEnsureCapacity((emxArray__common *)p_name,
-                                                loop_ub, sizeof(char));
+                              loop_ub = b_name->size[0] * b_name->size[1];
+                              b_name->size[0] = 1;
+                              b_name->size[1] = sizepe - i0;
+                              emxEnsureCapacity_char_T(b_name, loop_ub);
                               loop_ub = sizepe - i0;
                               for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                                p_name->data[p_name->size[0] * sizepe] =
+                                b_name->data[b_name->size[0] * sizepe] =
                                   name->data[i0 + sizepe];
                               }
 
-                              if (o_isequal(p_name)) {
+                              if (o_isequal(b_name)) {
                                 arg = MPI_BYTE;
                                 sizepe = sizeof(MPI_Datatype);
                                 i0 = data0->size[0];
                                 data0->size[0] = sizepe;
-                                emxEnsureCapacity((emxArray__common *)data0, i0,
-                                                  sizeof(unsigned char));
+                                emxEnsureCapacity_uint8_T(data0, i0);
                                 for (i0 = 0; i0 < 12; i0++) {
                                   t4_type[i0] = cv0[i0];
                                 }
 
                                 i0 = obj->data->size[0];
                                 obj->data->size[0] = data0->size[0];
-                                emxEnsureCapacity((emxArray__common *)obj->data,
-                                                  i0, sizeof(unsigned char));
+                                emxEnsureCapacity_uint8_T(obj->data, i0);
                                 loop_ub = data0->size[0];
                                 for (i0 = 0; i0 < loop_ub; i0++) {
                                   obj->data->data[i0] = data0->data[i0];
@@ -2988,8 +2877,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                 i0 = obj->type->size[0] * obj->type->size[1];
                                 obj->type->size[0] = 1;
                                 obj->type->size[1] = 12;
-                                emxEnsureCapacity((emxArray__common *)obj->type,
-                                                  i0, sizeof(char));
+                                emxEnsureCapacity_char_T(obj->type, i0);
                                 for (i0 = 0; i0 < 12; i0++) {
                                   obj->type->data[i0] = t4_type[i0];
                                 }
@@ -3010,34 +2898,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                   sizepe = name->size[1];
                                 }
 
-                                emxInit_char_T(&q_name, 2);
-                                loop_ub = q_name->size[0] * q_name->size[1];
-                                q_name->size[0] = 1;
-                                q_name->size[1] = sizepe - i0;
-                                emxEnsureCapacity((emxArray__common *)q_name,
-                                                  loop_ub, sizeof(char));
+                                loop_ub = b_name->size[0] * b_name->size[1];
+                                b_name->size[0] = 1;
+                                b_name->size[1] = sizepe - i0;
+                                emxEnsureCapacity_char_T(b_name, loop_ub);
                                 loop_ub = sizepe - i0;
                                 for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                                  q_name->data[q_name->size[0] * sizepe] =
+                                  b_name->data[b_name->size[0] * sizepe] =
                                     name->data[i0 + sizepe];
                                 }
 
-                                if (p_isequal(q_name)) {
+                                if (p_isequal(b_name)) {
                                   arg = MPI_2INT;
                                   sizepe = sizeof(MPI_Datatype);
                                   i0 = data0->size[0];
                                   data0->size[0] = sizepe;
-                                  emxEnsureCapacity((emxArray__common *)data0,
-                                                    i0, sizeof(unsigned char));
+                                  emxEnsureCapacity_uint8_T(data0, i0);
                                   for (i0 = 0; i0 < 12; i0++) {
                                     t4_type[i0] = cv0[i0];
                                   }
 
                                   i0 = obj->data->size[0];
                                   obj->data->size[0] = data0->size[0];
-                                  emxEnsureCapacity((emxArray__common *)
-                                                    obj->data, i0, sizeof
-                                                    (unsigned char));
+                                  emxEnsureCapacity_uint8_T(obj->data, i0);
                                   loop_ub = data0->size[0];
                                   for (i0 = 0; i0 < loop_ub; i0++) {
                                     obj->data->data[i0] = data0->data[i0];
@@ -3046,8 +2929,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                   i0 = obj->type->size[0] * obj->type->size[1];
                                   obj->type->size[0] = 1;
                                   obj->type->size[1] = 12;
-                                  emxEnsureCapacity((emxArray__common *)
-                                                    obj->type, i0, sizeof(char));
+                                  emxEnsureCapacity_char_T(obj->type, i0);
                                   for (i0 = 0; i0 < 12; i0++) {
                                     obj->type->data[i0] = t4_type[i0];
                                   }
@@ -3068,34 +2950,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                     sizepe = name->size[1];
                                   }
 
-                                  emxInit_char_T(&r_name, 2);
-                                  loop_ub = r_name->size[0] * r_name->size[1];
-                                  r_name->size[0] = 1;
-                                  r_name->size[1] = sizepe - i0;
-                                  emxEnsureCapacity((emxArray__common *)r_name,
-                                                    loop_ub, sizeof(char));
+                                  loop_ub = b_name->size[0] * b_name->size[1];
+                                  b_name->size[0] = 1;
+                                  b_name->size[1] = sizepe - i0;
+                                  emxEnsureCapacity_char_T(b_name, loop_ub);
                                   loop_ub = sizepe - i0;
                                   for (sizepe = 0; sizepe < loop_ub; sizepe++) {
-                                    r_name->data[r_name->size[0] * sizepe] =
+                                    b_name->data[b_name->size[0] * sizepe] =
                                       name->data[i0 + sizepe];
                                   }
 
-                                  if (q_isequal(r_name)) {
+                                  if (q_isequal(b_name)) {
                                     arg = MPI_SHORT_INT;
                                     sizepe = sizeof(MPI_Datatype);
                                     i0 = data0->size[0];
                                     data0->size[0] = sizepe;
-                                    emxEnsureCapacity((emxArray__common *)data0,
-                                                      i0, sizeof(unsigned char));
+                                    emxEnsureCapacity_uint8_T(data0, i0);
                                     for (i0 = 0; i0 < 12; i0++) {
                                       t4_type[i0] = cv0[i0];
                                     }
 
                                     i0 = obj->data->size[0];
                                     obj->data->size[0] = data0->size[0];
-                                    emxEnsureCapacity((emxArray__common *)
-                                                      obj->data, i0, sizeof
-                                                      (unsigned char));
+                                    emxEnsureCapacity_uint8_T(obj->data, i0);
                                     loop_ub = data0->size[0];
                                     for (i0 = 0; i0 < loop_ub; i0++) {
                                       obj->data->data[i0] = data0->data[i0];
@@ -3104,8 +2981,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                     i0 = obj->type->size[0] * obj->type->size[1];
                                     obj->type->size[0] = 1;
                                     obj->type->size[1] = 12;
-                                    emxEnsureCapacity((emxArray__common *)
-                                                      obj->type, i0, sizeof(char));
+                                    emxEnsureCapacity_char_T(obj->type, i0);
                                     for (i0 = 0; i0 < 12; i0++) {
                                       obj->type->data[i0] = t4_type[i0];
                                     }
@@ -3126,36 +3002,30 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                       sizepe = name->size[1];
                                     }
 
-                                    emxInit_char_T(&s_name, 2);
-                                    loop_ub = s_name->size[0] * s_name->size[1];
-                                    s_name->size[0] = 1;
-                                    s_name->size[1] = sizepe - i0;
-                                    emxEnsureCapacity((emxArray__common *)s_name,
-                                                      loop_ub, sizeof(char));
+                                    loop_ub = b_name->size[0] * b_name->size[1];
+                                    b_name->size[0] = 1;
+                                    b_name->size[1] = sizepe - i0;
+                                    emxEnsureCapacity_char_T(b_name, loop_ub);
                                     loop_ub = sizepe - i0;
                                     for (sizepe = 0; sizepe < loop_ub; sizepe++)
                                     {
-                                      s_name->data[s_name->size[0] * sizepe] =
+                                      b_name->data[b_name->size[0] * sizepe] =
                                         name->data[i0 + sizepe];
                                     }
 
-                                    if (r_isequal(s_name)) {
+                                    if (r_isequal(b_name)) {
                                       arg = MPI_FLOAT_INT;
                                       sizepe = sizeof(MPI_Datatype);
                                       i0 = data0->size[0];
                                       data0->size[0] = sizepe;
-                                      emxEnsureCapacity((emxArray__common *)
-                                                        data0, i0, sizeof
-                                                        (unsigned char));
+                                      emxEnsureCapacity_uint8_T(data0, i0);
                                       for (i0 = 0; i0 < 12; i0++) {
                                         t4_type[i0] = cv0[i0];
                                       }
 
                                       i0 = obj->data->size[0];
                                       obj->data->size[0] = data0->size[0];
-                                      emxEnsureCapacity((emxArray__common *)
-                                                        obj->data, i0, sizeof
-                                                        (unsigned char));
+                                      emxEnsureCapacity_uint8_T(obj->data, i0);
                                       loop_ub = data0->size[0];
                                       for (i0 = 0; i0 < loop_ub; i0++) {
                                         obj->data->data[i0] = data0->data[i0];
@@ -3165,9 +3035,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                         [1];
                                       obj->type->size[0] = 1;
                                       obj->type->size[1] = 12;
-                                      emxEnsureCapacity((emxArray__common *)
-                                                        obj->type, i0, sizeof
-                                                        (char));
+                                      emxEnsureCapacity_char_T(obj->type, i0);
                                       for (i0 = 0; i0 < 12; i0++) {
                                         obj->type->data[i0] = t4_type[i0];
                                       }
@@ -3188,37 +3056,30 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                         sizepe = name->size[1];
                                       }
 
-                                      emxInit_char_T(&t_name, 2);
-                                      loop_ub = t_name->size[0] * t_name->size[1];
-                                      t_name->size[0] = 1;
-                                      t_name->size[1] = sizepe - i0;
-                                      emxEnsureCapacity((emxArray__common *)
-                                                        t_name, loop_ub, sizeof
-                                                        (char));
+                                      loop_ub = b_name->size[0] * b_name->size[1];
+                                      b_name->size[0] = 1;
+                                      b_name->size[1] = sizepe - i0;
+                                      emxEnsureCapacity_char_T(b_name, loop_ub);
                                       loop_ub = sizepe - i0;
                                       for (sizepe = 0; sizepe < loop_ub; sizepe
                                            ++) {
-                                        t_name->data[t_name->size[0] * sizepe] =
+                                        b_name->data[b_name->size[0] * sizepe] =
                                           name->data[i0 + sizepe];
                                       }
 
-                                      if (s_isequal(t_name)) {
+                                      if (s_isequal(b_name)) {
                                         arg = MPI_DOUBLE_INT;
                                         sizepe = sizeof(MPI_Datatype);
                                         i0 = data0->size[0];
                                         data0->size[0] = sizepe;
-                                        emxEnsureCapacity((emxArray__common *)
-                                                          data0, i0, sizeof
-                                                          (unsigned char));
+                                        emxEnsureCapacity_uint8_T(data0, i0);
                                         for (i0 = 0; i0 < 12; i0++) {
                                           t4_type[i0] = cv0[i0];
                                         }
 
                                         i0 = obj->data->size[0];
                                         obj->data->size[0] = data0->size[0];
-                                        emxEnsureCapacity((emxArray__common *)
-                                                          obj->data, i0, sizeof
-                                                          (unsigned char));
+                                        emxEnsureCapacity_uint8_T(obj->data, i0);
                                         loop_ub = data0->size[0];
                                         for (i0 = 0; i0 < loop_ub; i0++) {
                                           obj->data->data[i0] = data0->data[i0];
@@ -3228,9 +3089,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                           type->size[1];
                                         obj->type->size[0] = 1;
                                         obj->type->size[1] = 12;
-                                        emxEnsureCapacity((emxArray__common *)
-                                                          obj->type, i0, sizeof
-                                                          (char));
+                                        emxEnsureCapacity_char_T(obj->type, i0);
                                         for (i0 = 0; i0 < 12; i0++) {
                                           obj->type->data[i0] = t4_type[i0];
                                         }
@@ -3251,38 +3110,32 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                           sizepe = name->size[1];
                                         }
 
-                                        emxInit_char_T(&u_name, 2);
-                                        loop_ub = u_name->size[0] * u_name->
+                                        loop_ub = b_name->size[0] * b_name->
                                           size[1];
-                                        u_name->size[0] = 1;
-                                        u_name->size[1] = sizepe - i0;
-                                        emxEnsureCapacity((emxArray__common *)
-                                                          u_name, loop_ub,
-                                                          sizeof(char));
+                                        b_name->size[0] = 1;
+                                        b_name->size[1] = sizepe - i0;
+                                        emxEnsureCapacity_char_T(b_name, loop_ub);
                                         loop_ub = sizepe - i0;
                                         for (sizepe = 0; sizepe < loop_ub;
                                              sizepe++) {
-                                          u_name->data[u_name->size[0] * sizepe]
+                                          b_name->data[b_name->size[0] * sizepe]
                                             = name->data[i0 + sizepe];
                                         }
 
-                                        if (t_isequal(u_name)) {
+                                        if (t_isequal(b_name)) {
                                           arg = MPI_PACKED;
                                           sizepe = sizeof(MPI_Datatype);
                                           i0 = data0->size[0];
                                           data0->size[0] = sizepe;
-                                          emxEnsureCapacity((emxArray__common *)
-                                                            data0, i0, sizeof
-                                                            (unsigned char));
+                                          emxEnsureCapacity_uint8_T(data0, i0);
                                           for (i0 = 0; i0 < 12; i0++) {
                                             t4_type[i0] = cv0[i0];
                                           }
 
                                           i0 = obj->data->size[0];
                                           obj->data->size[0] = data0->size[0];
-                                          emxEnsureCapacity((emxArray__common *)
-                                                            obj->data, i0,
-                                                            sizeof(unsigned char));
+                                          emxEnsureCapacity_uint8_T(obj->data,
+                                            i0);
                                           loop_ub = data0->size[0];
                                           for (i0 = 0; i0 < loop_ub; i0++) {
                                             obj->data->data[i0] = data0->data[i0];
@@ -3292,9 +3145,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                             type->size[1];
                                           obj->type->size[0] = 1;
                                           obj->type->size[1] = 12;
-                                          emxEnsureCapacity((emxArray__common *)
-                                                            obj->type, i0,
-                                                            sizeof(char));
+                                          emxEnsureCapacity_char_T(obj->type, i0);
                                           for (i0 = 0; i0 < 12; i0++) {
                                             obj->type->data[i0] = t4_type[i0];
                                           }
@@ -3315,37 +3166,33 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                             sizepe = name->size[1];
                                           }
 
-                                          emxInit_char_T(&v_name, 2);
-                                          loop_ub = v_name->size[0] *
-                                            v_name->size[1];
-                                          v_name->size[0] = 1;
-                                          v_name->size[1] = sizepe - i0;
-                                          emxEnsureCapacity((emxArray__common *)
-                                                            v_name, loop_ub,
-                                                            sizeof(char));
+                                          loop_ub = b_name->size[0] *
+                                            b_name->size[1];
+                                          b_name->size[0] = 1;
+                                          b_name->size[1] = sizepe - i0;
+                                          emxEnsureCapacity_char_T(b_name,
+                                            loop_ub);
                                           loop_ub = sizepe - i0;
                                           for (sizepe = 0; sizepe < loop_ub;
                                                sizepe++) {
-                                            v_name->data[v_name->size[0] *
+                                            b_name->data[b_name->size[0] *
                                               sizepe] = name->data[i0 + sizepe];
                                           }
 
-                                          if (u_isequal(v_name)) {
+                                          if (u_isequal(b_name)) {
                                             arg = MPI_DATATYPE_NULL;
                                             sizepe = sizeof(MPI_Datatype);
                                             i0 = data0->size[0];
                                             data0->size[0] = sizepe;
-                                            emxEnsureCapacity((emxArray__common *)
-                                              data0, i0, sizeof(unsigned char));
+                                            emxEnsureCapacity_uint8_T(data0, i0);
                                             for (i0 = 0; i0 < 12; i0++) {
                                               t4_type[i0] = cv0[i0];
                                             }
 
                                             i0 = obj->data->size[0];
                                             obj->data->size[0] = data0->size[0];
-                                            emxEnsureCapacity((emxArray__common *)
-                                              obj->data, i0, sizeof(unsigned
-                                              char));
+                                            emxEnsureCapacity_uint8_T(obj->data,
+                                              i0);
                                             loop_ub = data0->size[0];
                                             for (i0 = 0; i0 < loop_ub; i0++) {
                                               obj->data->data[i0] = data0->
@@ -3356,8 +3203,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                               type->size[1];
                                             obj->type->size[0] = 1;
                                             obj->type->size[1] = 12;
-                                            emxEnsureCapacity((emxArray__common *)
-                                              obj->type, i0, sizeof(char));
+                                            emxEnsureCapacity_char_T(obj->type,
+                                              i0);
                                             for (i0 = 0; i0 < 12; i0++) {
                                               obj->type->data[i0] = t4_type[i0];
                                             }
@@ -3379,37 +3226,34 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                               sizepe = name->size[1];
                                             }
 
-                                            emxInit_char_T(&w_name, 2);
-                                            loop_ub = w_name->size[0] *
-                                              w_name->size[1];
-                                            w_name->size[0] = 1;
-                                            w_name->size[1] = sizepe - i0;
-                                            emxEnsureCapacity((emxArray__common *)
-                                              w_name, loop_ub, sizeof(char));
+                                            loop_ub = b_name->size[0] *
+                                              b_name->size[1];
+                                            b_name->size[0] = 1;
+                                            b_name->size[1] = sizepe - i0;
+                                            emxEnsureCapacity_char_T(b_name,
+                                              loop_ub);
                                             loop_ub = sizepe - i0;
                                             for (sizepe = 0; sizepe < loop_ub;
                                                  sizepe++) {
-                                              w_name->data[w_name->size[0] *
+                                              b_name->data[b_name->size[0] *
                                                 sizepe] = name->data[i0 + sizepe];
                                             }
 
-                                            if (v_isequal(w_name)) {
+                                            if (v_isequal(b_name)) {
                                               b_arg = MPI_COMM_WORLD;
                                               sizepe = sizeof(MPI_Comm);
                                               i0 = data0->size[0];
                                               data0->size[0] = sizepe;
-                                              emxEnsureCapacity
-                                                ((emxArray__common *)data0, i0,
-                                                 sizeof(unsigned char));
+                                              emxEnsureCapacity_uint8_T(data0,
+                                                i0);
                                               for (i0 = 0; i0 < 8; i0++) {
                                                 t3_type[i0] = cv1[i0];
                                               }
 
                                               i0 = obj->data->size[0];
                                               obj->data->size[0] = data0->size[0];
-                                              emxEnsureCapacity
-                                                ((emxArray__common *)obj->data,
-                                                 i0, sizeof(unsigned char));
+                                              emxEnsureCapacity_uint8_T
+                                                (obj->data, i0);
                                               loop_ub = data0->size[0];
                                               for (i0 = 0; i0 < loop_ub; i0++) {
                                                 obj->data->data[i0] =
@@ -3420,9 +3264,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                 obj->type->size[1];
                                               obj->type->size[0] = 1;
                                               obj->type->size[1] = 8;
-                                              emxEnsureCapacity
-                                                ((emxArray__common *)obj->type,
-                                                 i0, sizeof(char));
+                                              emxEnsureCapacity_char_T(obj->type,
+                                                i0);
                                               for (i0 = 0; i0 < 8; i0++) {
                                                 obj->type->data[i0] = t3_type[i0];
                                               }
@@ -3444,30 +3287,27 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                 sizepe = name->size[1];
                                               }
 
-                                              emxInit_char_T(&x_name, 2);
-                                              loop_ub = x_name->size[0] *
-                                                x_name->size[1];
-                                              x_name->size[0] = 1;
-                                              x_name->size[1] = sizepe - i0;
-                                              emxEnsureCapacity
-                                                ((emxArray__common *)x_name,
-                                                 loop_ub, sizeof(char));
+                                              loop_ub = b_name->size[0] *
+                                                b_name->size[1];
+                                              b_name->size[0] = 1;
+                                              b_name->size[1] = sizepe - i0;
+                                              emxEnsureCapacity_char_T(b_name,
+                                                loop_ub);
                                               loop_ub = sizepe - i0;
                                               for (sizepe = 0; sizepe < loop_ub;
                                                    sizepe++) {
-                                                x_name->data[x_name->size[0] *
+                                                b_name->data[b_name->size[0] *
                                                   sizepe] = name->data[i0 +
                                                   sizepe];
                                               }
 
-                                              if (w_isequal(x_name)) {
+                                              if (w_isequal(b_name)) {
                                                 b_arg = MPI_COMM_SELF;
                                                 sizepe = sizeof(MPI_Comm);
                                                 i0 = data0->size[0];
                                                 data0->size[0] = sizepe;
-                                                emxEnsureCapacity
-                                                  ((emxArray__common *)data0, i0,
-                                                   sizeof(unsigned char));
+                                                emxEnsureCapacity_uint8_T(data0,
+                                                  i0);
                                                 for (i0 = 0; i0 < 8; i0++) {
                                                   t3_type[i0] = cv1[i0];
                                                 }
@@ -3475,9 +3315,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                 i0 = obj->data->size[0];
                                                 obj->data->size[0] = data0->
                                                   size[0];
-                                                emxEnsureCapacity
-                                                  ((emxArray__common *)obj->data,
-                                                   i0, sizeof(unsigned char));
+                                                emxEnsureCapacity_uint8_T
+                                                  (obj->data, i0);
                                                 loop_ub = data0->size[0];
                                                 for (i0 = 0; i0 < loop_ub; i0++)
                                                 {
@@ -3489,9 +3328,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                   obj->type->size[1];
                                                 obj->type->size[0] = 1;
                                                 obj->type->size[1] = 8;
-                                                emxEnsureCapacity
-                                                  ((emxArray__common *)obj->type,
-                                                   i0, sizeof(char));
+                                                emxEnsureCapacity_char_T
+                                                  (obj->type, i0);
                                                 for (i0 = 0; i0 < 8; i0++) {
                                                   obj->type->data[i0] =
                                                     t3_type[i0];
@@ -3514,30 +3352,27 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                   sizepe = name->size[1];
                                                 }
 
-                                                emxInit_char_T(&y_name, 2);
-                                                loop_ub = y_name->size[0] *
-                                                  y_name->size[1];
-                                                y_name->size[0] = 1;
-                                                y_name->size[1] = sizepe - i0;
-                                                emxEnsureCapacity
-                                                  ((emxArray__common *)y_name,
-                                                   loop_ub, sizeof(char));
+                                                loop_ub = b_name->size[0] *
+                                                  b_name->size[1];
+                                                b_name->size[0] = 1;
+                                                b_name->size[1] = sizepe - i0;
+                                                emxEnsureCapacity_char_T(b_name,
+                                                  loop_ub);
                                                 loop_ub = sizepe - i0;
                                                 for (sizepe = 0; sizepe <
                                                      loop_ub; sizepe++) {
-                                                  y_name->data[y_name->size[0] *
+                                                  b_name->data[b_name->size[0] *
                                                     sizepe] = name->data[i0 +
                                                     sizepe];
                                                 }
 
-                                                if (x_isequal(y_name)) {
+                                                if (x_isequal(b_name)) {
                                                   b_arg = MPI_COMM_NULL;
                                                   sizepe = sizeof(MPI_Comm);
                                                   i0 = data0->size[0];
                                                   data0->size[0] = sizepe;
-                                                  emxEnsureCapacity
-                                                    ((emxArray__common *)data0,
-                                                     i0, sizeof(unsigned char));
+                                                  emxEnsureCapacity_uint8_T
+                                                    (data0, i0);
                                                   for (i0 = 0; i0 < 8; i0++) {
                                                     t3_type[i0] = cv1[i0];
                                                   }
@@ -3545,10 +3380,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                   i0 = obj->data->size[0];
                                                   obj->data->size[0] =
                                                     data0->size[0];
-                                                  emxEnsureCapacity
-                                                    ((emxArray__common *)
-                                                     obj->data, i0, sizeof
-                                                     (unsigned char));
+                                                  emxEnsureCapacity_uint8_T
+                                                    (obj->data, i0);
                                                   loop_ub = data0->size[0];
                                                   for (i0 = 0; i0 < loop_ub; i0
                                                        ++) {
@@ -3560,9 +3393,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                     obj->type->size[1];
                                                   obj->type->size[0] = 1;
                                                   obj->type->size[1] = 8;
-                                                  emxEnsureCapacity
-                                                    ((emxArray__common *)
-                                                     obj->type, i0, sizeof(char));
+                                                  emxEnsureCapacity_char_T
+                                                    (obj->type, i0);
                                                   for (i0 = 0; i0 < 8; i0++) {
                                                     obj->type->data[i0] =
                                                       t3_type[i0];
@@ -3585,30 +3417,27 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                     sizepe = name->size[1];
                                                   }
 
-                                                  emxInit_char_T(&ab_name, 2);
-                                                  loop_ub = ab_name->size[0] *
-                                                    ab_name->size[1];
-                                                  ab_name->size[0] = 1;
-                                                  ab_name->size[1] = sizepe - i0;
-                                                  emxEnsureCapacity
-                                                    ((emxArray__common *)ab_name,
-                                                     loop_ub, sizeof(char));
+                                                  loop_ub = b_name->size[0] *
+                                                    b_name->size[1];
+                                                  b_name->size[0] = 1;
+                                                  b_name->size[1] = sizepe - i0;
+                                                  emxEnsureCapacity_char_T
+                                                    (b_name, loop_ub);
                                                   loop_ub = sizepe - i0;
                                                   for (sizepe = 0; sizepe <
                                                        loop_ub; sizepe++) {
-                                                    ab_name->data[ab_name->size
-                                                      [0] * sizepe] = name->
-                                                      data[i0 + sizepe];
+                                                    b_name->data[b_name->size[0]
+                                                      * sizepe] = name->data[i0
+                                                      + sizepe];
                                                   }
 
-                                                  if (y_isequal(ab_name)) {
+                                                  if (y_isequal(b_name)) {
                                                     c_arg = MPI_SUM;
                                                     sizepe = sizeof(MPI_Op);
                                                     i0 = data0->size[0];
                                                     data0->size[0] = sizepe;
-                                                    emxEnsureCapacity
-                                                      ((emxArray__common *)data0,
-                                                       i0, sizeof(unsigned char));
+                                                    emxEnsureCapacity_uint8_T
+                                                      (data0, i0);
                                                     for (i0 = 0; i0 < 6; i0++) {
                                                       t0_type[i0] = cv2[i0];
                                                     }
@@ -3616,10 +3445,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                     i0 = obj->data->size[0];
                                                     obj->data->size[0] =
                                                       data0->size[0];
-                                                    emxEnsureCapacity
-                                                      ((emxArray__common *)
-                                                       obj->data, i0, sizeof
-                                                       (unsigned char));
+                                                    emxEnsureCapacity_uint8_T
+                                                      (obj->data, i0);
                                                     loop_ub = data0->size[0];
                                                     for (i0 = 0; i0 < loop_ub;
                                                          i0++) {
@@ -3631,10 +3458,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                       obj->type->size[1];
                                                     obj->type->size[0] = 1;
                                                     obj->type->size[1] = 6;
-                                                    emxEnsureCapacity
-                                                      ((emxArray__common *)
-                                                       obj->type, i0, sizeof
-                                                       (char));
+                                                    emxEnsureCapacity_char_T
+                                                      (obj->type, i0);
                                                     for (i0 = 0; i0 < 6; i0++) {
                                                       obj->type->data[i0] =
                                                         t0_type[i0];
@@ -3657,34 +3482,28 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                       sizepe = name->size[1];
                                                     }
 
-                                                    emxInit_char_T(&bb_name, 2);
-                                                    loop_ub = bb_name->size[0] *
-                                                      bb_name->size[1];
-                                                    bb_name->size[0] = 1;
-                                                    bb_name->size[1] = sizepe -
+                                                    loop_ub = b_name->size[0] *
+                                                      b_name->size[1];
+                                                    b_name->size[0] = 1;
+                                                    b_name->size[1] = sizepe -
                                                       i0;
-                                                    emxEnsureCapacity
-                                                      ((emxArray__common *)
-                                                       bb_name, loop_ub, sizeof
-                                                       (char));
+                                                    emxEnsureCapacity_char_T
+                                                      (b_name, loop_ub);
                                                     loop_ub = sizepe - i0;
                                                     for (sizepe = 0; sizepe <
                                                          loop_ub; sizepe++) {
-                                                      bb_name->data
-                                                        [bb_name->size[0] *
-                                                        sizepe] = name->data[i0
-                                                        + sizepe];
+                                                      b_name->data[b_name->size
+                                                        [0] * sizepe] =
+                                                        name->data[i0 + sizepe];
                                                     }
 
-                                                    if (ab_isequal(bb_name)) {
+                                                    if (ab_isequal(b_name)) {
                                                       c_arg = MPI_PROD;
                                                       sizepe = sizeof(MPI_Op);
                                                       i0 = data0->size[0];
                                                       data0->size[0] = sizepe;
-                                                      emxEnsureCapacity
-                                                        ((emxArray__common *)
-                                                         data0, i0, sizeof
-                                                         (unsigned char));
+                                                      emxEnsureCapacity_uint8_T
+                                                        (data0, i0);
                                                       for (i0 = 0; i0 < 6; i0++)
                                                       {
                                                         t0_type[i0] = cv2[i0];
@@ -3693,10 +3512,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                       i0 = obj->data->size[0];
                                                       obj->data->size[0] =
                                                         data0->size[0];
-                                                      emxEnsureCapacity
-                                                        ((emxArray__common *)
-                                                         obj->data, i0, sizeof
-                                                         (unsigned char));
+                                                      emxEnsureCapacity_uint8_T
+                                                        (obj->data, i0);
                                                       loop_ub = data0->size[0];
                                                       for (i0 = 0; i0 < loop_ub;
                                                            i0++) {
@@ -3708,10 +3525,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                         obj->type->size[1];
                                                       obj->type->size[0] = 1;
                                                       obj->type->size[1] = 6;
-                                                      emxEnsureCapacity
-                                                        ((emxArray__common *)
-                                                         obj->type, i0, sizeof
-                                                         (char));
+                                                      emxEnsureCapacity_char_T
+                                                        (obj->type, i0);
                                                       for (i0 = 0; i0 < 6; i0++)
                                                       {
                                                         obj->type->data[i0] =
@@ -3735,34 +3550,29 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                         sizepe = name->size[1];
                                                       }
 
-                                                      emxInit_char_T(&cb_name, 2);
-                                                      loop_ub = cb_name->size[0]
-                                                        * cb_name->size[1];
-                                                      cb_name->size[0] = 1;
-                                                      cb_name->size[1] = sizepe
-                                                        - i0;
-                                                      emxEnsureCapacity
-                                                        ((emxArray__common *)
-                                                         cb_name, loop_ub,
-                                                         sizeof(char));
+                                                      loop_ub = b_name->size[0] *
+                                                        b_name->size[1];
+                                                      b_name->size[0] = 1;
+                                                      b_name->size[1] = sizepe -
+                                                        i0;
+                                                      emxEnsureCapacity_char_T
+                                                        (b_name, loop_ub);
                                                       loop_ub = sizepe - i0;
                                                       for (sizepe = 0; sizepe <
                                                            loop_ub; sizepe++) {
-                                                        cb_name->data
-                                                          [cb_name->size[0] *
+                                                        b_name->data
+                                                          [b_name->size[0] *
                                                           sizepe] = name->
                                                           data[i0 + sizepe];
                                                       }
 
-                                                      if (bb_isequal(cb_name)) {
+                                                      if (bb_isequal(b_name)) {
                                                         c_arg = MPI_MIN;
                                                         sizepe = sizeof(MPI_Op);
                                                         i0 = data0->size[0];
                                                         data0->size[0] = sizepe;
-                                                        emxEnsureCapacity
-                                                          ((emxArray__common *)
-                                                           data0, i0, sizeof
-                                                           (unsigned char));
+                                                        emxEnsureCapacity_uint8_T
+                                                          (data0, i0);
                                                         for (i0 = 0; i0 < 6; i0
                                                              ++) {
                                                           t0_type[i0] = cv2[i0];
@@ -3771,10 +3581,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                         i0 = obj->data->size[0];
                                                         obj->data->size[0] =
                                                           data0->size[0];
-                                                        emxEnsureCapacity
-                                                          ((emxArray__common *)
-                                                           obj->data, i0, sizeof
-                                                           (unsigned char));
+                                                        emxEnsureCapacity_uint8_T
+                                                          (obj->data, i0);
                                                         loop_ub = data0->size[0];
                                                         for (i0 = 0; i0 <
                                                              loop_ub; i0++) {
@@ -3786,10 +3594,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                           obj->type->size[1];
                                                         obj->type->size[0] = 1;
                                                         obj->type->size[1] = 6;
-                                                        emxEnsureCapacity
-                                                          ((emxArray__common *)
-                                                           obj->type, i0, sizeof
-                                                           (char));
+                                                        emxEnsureCapacity_char_T
+                                                          (obj->type, i0);
                                                         for (i0 = 0; i0 < 6; i0
                                                              ++) {
                                                           obj->type->data[i0] =
@@ -3815,38 +3621,32 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                           sizepe = name->size[1];
                                                         }
 
-                                                        emxInit_char_T(&db_name,
-                                                          2);
-                                                        loop_ub = db_name->size
-                                                          [0] * db_name->size[1];
-                                                        db_name->size[0] = 1;
-                                                        db_name->size[1] =
-                                                          sizepe - i0;
-                                                        emxEnsureCapacity
-                                                          ((emxArray__common *)
-                                                           db_name, loop_ub,
-                                                           sizeof(char));
+                                                        loop_ub = b_name->size[0]
+                                                          * b_name->size[1];
+                                                        b_name->size[0] = 1;
+                                                        b_name->size[1] = sizepe
+                                                          - i0;
+                                                        emxEnsureCapacity_char_T
+                                                          (b_name, loop_ub);
                                                         loop_ub = sizepe - i0;
                                                         for (sizepe = 0; sizepe <
                                                              loop_ub; sizepe++)
                                                         {
-                                                          db_name->data
-                                                            [db_name->size[0] *
+                                                          b_name->data
+                                                            [b_name->size[0] *
                                                             sizepe] = name->
                                                             data[i0 + sizepe];
                                                         }
 
-                                                        if (cb_isequal(db_name))
+                                                        if (cb_isequal(b_name))
                                                         {
                                                           c_arg = MPI_MAX;
                                                           sizepe = sizeof(MPI_Op);
                                                           i0 = data0->size[0];
                                                           data0->size[0] =
                                                             sizepe;
-                                                          emxEnsureCapacity
-                                                            ((emxArray__common *)
-                                                             data0, i0, sizeof
-                                                             (unsigned char));
+                                                          emxEnsureCapacity_uint8_T
+                                                            (data0, i0);
                                                           for (i0 = 0; i0 < 6;
                                                                i0++) {
                                                             t0_type[i0] = cv2[i0];
@@ -3855,11 +3655,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                           i0 = obj->data->size[0];
                                                           obj->data->size[0] =
                                                             data0->size[0];
-                                                          emxEnsureCapacity
-                                                            ((emxArray__common *)
-                                                             obj->data, i0,
-                                                             sizeof(unsigned
-                                                              char));
+                                                          emxEnsureCapacity_uint8_T
+                                                            (obj->data, i0);
                                                           loop_ub = data0->size
                                                             [0];
                                                           for (i0 = 0; i0 <
@@ -3872,10 +3669,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                             * obj->type->size[1];
                                                           obj->type->size[0] = 1;
                                                           obj->type->size[1] = 6;
-                                                          emxEnsureCapacity
-                                                            ((emxArray__common *)
-                                                             obj->type, i0,
-                                                             sizeof(char));
+                                                          emxEnsureCapacity_char_T
+                                                            (obj->type, i0);
                                                           for (i0 = 0; i0 < 6;
                                                                i0++) {
                                                             obj->type->data[i0] =
@@ -3903,30 +3698,26 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                               [1];
                                                           }
 
-                                                          emxInit_char_T
-                                                            (&eb_name, 2);
-                                                          loop_ub =
-                                                            eb_name->size[0] *
-                                                            eb_name->size[1];
-                                                          eb_name->size[0] = 1;
-                                                          eb_name->size[1] =
+                                                          loop_ub = b_name->
+                                                            size[0] *
+                                                            b_name->size[1];
+                                                          b_name->size[0] = 1;
+                                                          b_name->size[1] =
                                                             sizepe - i0;
-                                                          emxEnsureCapacity
-                                                            ((emxArray__common *)
-                                                             eb_name, loop_ub,
-                                                             sizeof(char));
+                                                          emxEnsureCapacity_char_T
+                                                            (b_name, loop_ub);
                                                           loop_ub = sizepe - i0;
                                                           for (sizepe = 0;
                                                                sizepe < loop_ub;
                                                                sizepe++) {
-                                                            eb_name->
-                                                              data[eb_name->
-                                                              size[0] * sizepe] =
+                                                            b_name->data
+                                                              [b_name->size[0] *
+                                                              sizepe] =
                                                               name->data[i0 +
                                                               sizepe];
                                                           }
 
-                                                          if (db_isequal(eb_name))
+                                                          if (db_isequal(b_name))
                                                           {
                                                             c_arg = MPI_BOR;
                                                             sizepe = sizeof
@@ -3934,11 +3725,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                             i0 = data0->size[0];
                                                             data0->size[0] =
                                                               sizepe;
-                                                            emxEnsureCapacity
-                                                              ((emxArray__common
-                                                                *)data0, i0,
-                                                               sizeof(unsigned
-                                                                char));
+                                                            emxEnsureCapacity_uint8_T
+                                                              (data0, i0);
                                                             for (i0 = 0; i0 < 6;
                                                                  i0++) {
                                                               t0_type[i0] =
@@ -3949,11 +3737,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                               size[0];
                                                             obj->data->size[0] =
                                                               data0->size[0];
-                                                            emxEnsureCapacity
-                                                              ((emxArray__common
-                                                                *)obj->data, i0,
-                                                               sizeof(unsigned
-                                                                char));
+                                                            emxEnsureCapacity_uint8_T
+                                                              (obj->data, i0);
                                                             loop_ub =
                                                               data0->size[0];
                                                             for (i0 = 0; i0 <
@@ -3970,10 +3755,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                               1;
                                                             obj->type->size[1] =
                                                               6;
-                                                            emxEnsureCapacity
-                                                              ((emxArray__common
-                                                                *)obj->type, i0,
-                                                               sizeof(char));
+                                                            emxEnsureCapacity_char_T
+                                                              (obj->type, i0);
                                                             for (i0 = 0; i0 < 6;
                                                                  i0++) {
                                                               obj->type->data[i0]
@@ -4004,46 +3787,38 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                 name->size[1];
                                                             }
 
-                                                            emxInit_char_T
-                                                              (&fb_name, 2);
                                                             loop_ub =
-                                                              fb_name->size[0] *
-                                                              fb_name->size[1];
-                                                            fb_name->size[0] = 1;
-                                                            fb_name->size[1] =
+                                                              b_name->size[0] *
+                                                              b_name->size[1];
+                                                            b_name->size[0] = 1;
+                                                            b_name->size[1] =
                                                               sizepe - i0;
-                                                            emxEnsureCapacity
-                                                              ((emxArray__common
-                                                                *)fb_name,
-                                                               loop_ub, sizeof
-                                                               (char));
+                                                            emxEnsureCapacity_char_T
+                                                              (b_name, loop_ub);
                                                             loop_ub = sizepe -
                                                               i0;
                                                             for (sizepe = 0;
                                                                  sizepe <
                                                                  loop_ub; sizepe
                                                                  ++) {
-                                                              fb_name->
+                                                              b_name->
                                                                 data
-                                                                [fb_name->size[0]
+                                                                [b_name->size[0]
                                                                 * sizepe] =
                                                                 name->data[i0 +
                                                                 sizepe];
                                                             }
 
                                                             if (eb_isequal
-                                                                (fb_name)) {
+                                                                (b_name)) {
                                                               c_arg = MPI_BAND;
                                                               sizepe = sizeof
                                                                 (MPI_Op);
                                                               i0 = data0->size[0];
                                                               data0->size[0] =
                                                                 sizepe;
-                                                              emxEnsureCapacity
-                                                                ((emxArray__common
-                                                                  *)data0, i0,
-                                                                 sizeof(unsigned
-                                                                  char));
+                                                              emxEnsureCapacity_uint8_T
+                                                                (data0, i0);
                                                               for (i0 = 0; i0 <
                                                                    6; i0++) {
                                                                 t0_type[i0] =
@@ -4054,11 +3829,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                 data->size[0];
                                                               obj->data->size[0]
                                                                 = data0->size[0];
-                                                              emxEnsureCapacity
-                                                                ((emxArray__common
-                                                                  *)obj->data,
-                                                                 i0, sizeof
-                                                                 (unsigned char));
+                                                              emxEnsureCapacity_uint8_T
+                                                                (obj->data, i0);
                                                               loop_ub =
                                                                 data0->size[0];
                                                               for (i0 = 0; i0 <
@@ -4077,10 +3849,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                 = 1;
                                                               obj->type->size[1]
                                                                 = 6;
-                                                              emxEnsureCapacity
-                                                                ((emxArray__common
-                                                                  *)obj->type,
-                                                                 i0, sizeof(char));
+                                                              emxEnsureCapacity_char_T
+                                                                (obj->type, i0);
                                                               for (i0 = 0; i0 <
                                                                    6; i0++) {
                                                                 obj->type->
@@ -4112,38 +3882,31 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                   name->size[1];
                                                               }
 
-                                                              emxInit_char_T
-                                                                (&gb_name, 2);
                                                               loop_ub =
-                                                                gb_name->size[0]
-                                                                * gb_name->size
-                                                                [1];
-                                                              gb_name->size[0] =
+                                                                b_name->size[0] *
+                                                                b_name->size[1];
+                                                              b_name->size[0] =
                                                                 1;
-                                                              gb_name->size[1] =
+                                                              b_name->size[1] =
                                                                 sizepe - i0;
-                                                              emxEnsureCapacity
-                                                                ((emxArray__common
-                                                                  *)gb_name,
-                                                                 loop_ub, sizeof
-                                                                (char));
+                                                              emxEnsureCapacity_char_T
+                                                                (b_name, loop_ub);
                                                               loop_ub = sizepe -
                                                                 i0;
                                                               for (sizepe = 0;
                                                                    sizepe <
                                                                    loop_ub;
                                                                    sizepe++) {
-                                                                gb_name->
+                                                                b_name->
                                                                   data
-                                                                  [gb_name->
-                                                                  size[0] *
-                                                                  sizepe] =
+                                                                  [b_name->size
+                                                                  [0] * sizepe] =
                                                                   name->data[i0
                                                                   + sizepe];
                                                               }
 
                                                               if (fb_isequal
-                                                                  (gb_name)) {
+                                                                  (b_name)) {
                                                                 c_arg = MPI_BXOR;
                                                                 sizepe = sizeof
                                                                   (MPI_Op);
@@ -4151,12 +3914,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                   size[0];
                                                                 data0->size[0] =
                                                                   sizepe;
-                                                                emxEnsureCapacity
-                                                                  ((emxArray__common
-                                                                    *)data0, i0,
-                                                                   sizeof
-                                                                   (unsigned
-                                                                    char));
+                                                                emxEnsureCapacity_uint8_T
+                                                                  (data0, i0);
                                                                 for (i0 = 0; i0 <
                                                                      6; i0++) {
                                                                   t0_type[i0] =
@@ -4168,12 +3927,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                 obj->data->size
                                                                   [0] =
                                                                   data0->size[0];
-                                                                emxEnsureCapacity
-                                                                  ((emxArray__common
-                                                                    *)obj->data,
-                                                                   i0, sizeof
-                                                                   (unsigned
-                                                                    char));
+                                                                emxEnsureCapacity_uint8_T
+                                                                  (obj->data, i0);
                                                                 loop_ub =
                                                                   data0->size[0];
                                                                 for (i0 = 0; i0 <
@@ -4194,11 +3949,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                   [0] = 1;
                                                                 obj->type->size
                                                                   [1] = 6;
-                                                                emxEnsureCapacity
-                                                                  ((emxArray__common
-                                                                    *)obj->type,
-                                                                   i0, sizeof
-                                                                   (char));
+                                                                emxEnsureCapacity_char_T
+                                                                  (obj->type, i0);
                                                                 for (i0 = 0; i0 <
                                                                      6; i0++) {
                                                                   obj->
@@ -4234,31 +3986,26 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                     name->size[1];
                                                                 }
 
-                                                                emxInit_char_T
-                                                                  (&hb_name, 2);
                                                                 loop_ub =
-                                                                  hb_name->size
-                                                                  [0] *
-                                                                  hb_name->size
-                                                                  [1];
-                                                                hb_name->size[0]
-                                                                  = 1;
-                                                                hb_name->size[1]
-                                                                  = sizepe - i0;
-                                                                emxEnsureCapacity
-                                                                  ((emxArray__common
-                                                                    *)hb_name,
-                                                                   loop_ub,
-                                                                   sizeof(char));
+                                                                  b_name->size[0]
+                                                                  * b_name->
+                                                                  size[1];
+                                                                b_name->size[0] =
+                                                                  1;
+                                                                b_name->size[1] =
+                                                                  sizepe - i0;
+                                                                emxEnsureCapacity_char_T
+                                                                  (b_name,
+                                                                   loop_ub);
                                                                 loop_ub = sizepe
                                                                   - i0;
                                                                 for (sizepe = 0;
                                                                      sizepe <
                                                                      loop_ub;
                                                                      sizepe++) {
-                                                                  hb_name->
+                                                                  b_name->
                                                                     data
-                                                                    [hb_name->size
+                                                                    [b_name->size
                                                                     [0] * sizepe]
                                                                     = name->
                                                                     data[i0 +
@@ -4266,7 +4013,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                 }
 
                                                                 if (gb_isequal
-                                                                    (hb_name)) {
+                                                                    (b_name)) {
                                                                   c_arg =
                                                                     MPI_LOR;
                                                                   sizepe =
@@ -4277,12 +4024,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                     [0];
                                                                   data0->size[0]
                                                                     = sizepe;
-                                                                  emxEnsureCapacity
-                                                                    ((emxArray__common
-                                                                      *)data0,
-                                                                     i0, sizeof
-                                                                     (unsigned
-                                                                      char));
+                                                                  emxEnsureCapacity_uint8_T
+                                                                    (data0, i0);
                                                                   for (i0 = 0;
                                                                       i0 < 6; i0
                                                                       ++) {
@@ -4297,13 +4040,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                     =
                                                                     data0->size
                                                                     [0];
-                                                                  emxEnsureCapacity
-                                                                    ((emxArray__common
-                                                                      *)
-                                                                     obj->data,
-                                                                     i0, sizeof
-                                                                     (unsigned
-                                                                      char));
+                                                                  emxEnsureCapacity_uint8_T
+                                                                    (obj->data,
+                                                                     i0);
                                                                   loop_ub =
                                                                     data0->size
                                                                     [0];
@@ -4328,12 +4067,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                   obj->
                                                                     type->size[1]
                                                                     = 6;
-                                                                  emxEnsureCapacity
-                                                                    ((emxArray__common
-                                                                      *)
-                                                                     obj->type,
-                                                                     i0, sizeof
-                                                                     (char));
+                                                                  emxEnsureCapacity_char_T
+                                                                    (obj->type,
+                                                                     i0);
                                                                   for (i0 = 0;
                                                                       i0 < 6; i0
                                                                       ++) {
@@ -4373,23 +4109,19 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                   }
 
-                                                                  emxInit_char_T
-                                                                    (&ib_name, 2);
                                                                   loop_ub =
-                                                                    ib_name->size
-                                                                    [0] *
-                                                                    ib_name->size
-                                                                    [1];
-                                                                  ib_name->size
-                                                                    [0] = 1;
-                                                                  ib_name->size
-                                                                    [1] = sizepe
-                                                                    - i0;
-                                                                  emxEnsureCapacity
-                                                                    ((emxArray__common
-                                                                      *)ib_name,
-                                                                     loop_ub,
-                                                                     sizeof(char));
+                                                                    b_name->
+                                                                    size[0] *
+                                                                    b_name->
+                                                                    size[1];
+                                                                  b_name->size[0]
+                                                                    = 1;
+                                                                  b_name->size[1]
+                                                                    = sizepe -
+                                                                    i0;
+                                                                  emxEnsureCapacity_char_T
+                                                                    (b_name,
+                                                                     loop_ub);
                                                                   loop_ub =
                                                                     sizepe - i0;
                                                                   for (sizepe =
@@ -4397,9 +4129,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                   {
-                                                                    ib_name->data
-                                                                      [ib_name->size
-                                                                      [0] *
+                                                                    b_name->
+                                                                      data[b_name
+                                                                      ->size[0] *
                                                                       sizepe] =
                                                                       name->
                                                                       data[i0 +
@@ -4407,7 +4139,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                   }
 
                                                                   if (hb_isequal
-                                                                      (ib_name))
+                                                                      (b_name))
                                                                   {
                                                                     c_arg =
                                                                       MPI_LAND;
@@ -4420,12 +4152,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                     data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                    emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                    emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                     for (i0 = 0;
                                                                       i0 < 6; i0
                                                                       ++) {
@@ -4442,13 +4170,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                    emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                    emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                     loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -4478,12 +4202,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                    emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                    emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                     for (i0 = 0;
                                                                       i0 < 6; i0
                                                                       ++) {
@@ -4524,26 +4245,21 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                     }
 
-                                                                    emxInit_char_T
-                                                                      (&jb_name,
-                                                                      2);
                                                                     loop_ub =
-                                                                      jb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      jb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                    jb_name->size
-                                                                      [0] = 1;
-                                                                    jb_name->size
-                                                                      [1] =
+                                                                    b_name->
+                                                                      size[0] =
+                                                                      1;
+                                                                    b_name->
+                                                                      size[1] =
                                                                       sizepe -
                                                                       i0;
-                                                                    emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)jb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                    emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                     loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -4552,8 +4268,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                     {
-                                                                      jb_name->data
-                                                                      [jb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -4563,7 +4279,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                     if
                                                                       (ib_isequal
-                                                                      (jb_name))
+                                                                      (b_name))
                                                                     {
                                                                       c_arg =
                                                                       MPI_LXOR;
@@ -4576,12 +4292,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4598,13 +4310,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -4634,12 +4342,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4681,26 +4386,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&kb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      kb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      kb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      kb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      kb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)kb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -4710,8 +4409,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      kb_name->data
-                                                                      [kb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -4721,7 +4420,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (jb_isequal
-                                                                      (kb_name))
+                                                                      (b_name))
                                                                       {
                                                                       c_arg =
                                                                       MPI_MAXLOC;
@@ -4734,12 +4433,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4756,13 +4451,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -4792,12 +4483,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4839,26 +4527,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&lb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      lb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      lb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      lb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      lb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)lb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -4868,8 +4550,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      lb_name->data
-                                                                      [lb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -4879,7 +4561,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (kb_isequal
-                                                                      (lb_name))
+                                                                      (b_name))
                                                                       {
                                                                       c_arg =
                                                                       MPI_MINLOC;
@@ -4892,12 +4574,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4914,13 +4592,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -4950,12 +4624,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -4997,26 +4668,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&mb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      mb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      mb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      mb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      mb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)mb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5026,8 +4691,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      mb_name->data
-                                                                      [mb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5037,7 +4702,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (lb_isequal
-                                                                      (mb_name))
+                                                                      (b_name))
                                                                       {
                                                                       c_arg =
                                                                       MPI_OP_NULL;
@@ -5050,12 +4715,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -5072,13 +4733,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5108,12 +4765,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -5155,26 +4809,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&nb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      nb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      nb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      nb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      nb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)nb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5184,8 +4832,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      nb_name->data
-                                                                      [nb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5195,7 +4843,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (mb_isequal
-                                                                      (nb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_ANY_SOURCE;
@@ -5207,12 +4855,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -5229,13 +4873,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5265,12 +4905,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -5312,26 +4949,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&ob_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      ob_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      ob_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      ob_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      ob_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)ob_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5341,8 +4972,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      ob_name->data
-                                                                      [ob_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5352,7 +4983,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (nb_isequal
-                                                                      (ob_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_ANY_TAG;
@@ -5364,12 +4995,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -5386,13 +5013,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5422,12 +5045,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -5469,26 +5089,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&pb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      pb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      pb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      pb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      pb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)pb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5498,8 +5112,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      pb_name->data
-                                                                      [pb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5509,7 +5123,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (ob_isequal
-                                                                      (pb_name))
+                                                                      (b_name))
                                                                       {
                                                                       e_arg =
                                                                       MPI_IN_PLACE;
@@ -5522,12 +5136,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -5544,13 +5154,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5580,12 +5186,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -5627,26 +5230,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&qb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      qb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      qb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      qb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      qb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)qb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5656,8 +5253,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      qb_name->data
-                                                                      [qb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5667,7 +5264,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (pb_isequal
-                                                                      (qb_name))
+                                                                      (b_name))
                                                                       {
                                                                       f_arg =
                                                                       MPI_ERRORS_ARE_FATAL;
@@ -5680,12 +5277,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 14;
                                                                       i0++) {
@@ -5702,13 +5295,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5738,12 +5327,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       14;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 14;
                                                                       i0++) {
@@ -5785,26 +5371,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&rb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      rb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      rb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      rb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      rb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)rb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5814,8 +5394,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      rb_name->data
-                                                                      [rb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5825,7 +5405,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (qb_isequal
-                                                                      (rb_name))
+                                                                      (b_name))
                                                                       {
                                                                       f_arg =
                                                                       MPI_ERRORS_RETURN;
@@ -5838,12 +5418,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 14;
                                                                       i0++) {
@@ -5860,13 +5436,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -5896,12 +5468,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       14;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 14;
                                                                       i0++) {
@@ -5943,26 +5512,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&sb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      sb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      sb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      sb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      sb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)sb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -5972,8 +5535,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      sb_name->data
-                                                                      [sb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -5983,7 +5546,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (rb_isequal
-                                                                      (sb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_BSEND_OVERHEAD;
@@ -5995,12 +5558,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6017,13 +5576,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6053,12 +5608,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6100,26 +5652,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&tb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      tb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      tb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      tb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      tb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)tb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6129,8 +5675,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      tb_name->data
-                                                                      [tb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6140,7 +5686,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (sb_isequal
-                                                                      (tb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_UNDEFINED;
@@ -6152,12 +5698,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6174,13 +5716,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6210,12 +5748,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6257,26 +5792,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&ub_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      ub_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      ub_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      ub_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      ub_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)ub_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6286,8 +5815,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      ub_name->data
-                                                                      [ub_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6297,7 +5826,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (tb_isequal
-                                                                      (ub_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_IDENT;
@@ -6309,12 +5838,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6331,13 +5856,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6367,12 +5888,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6414,26 +5932,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&vb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      vb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      vb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      vb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      vb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)vb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6443,8 +5955,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      vb_name->data
-                                                                      [vb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6454,7 +5966,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (ub_isequal
-                                                                      (vb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_CONGRUENT;
@@ -6466,12 +5978,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6488,13 +5996,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6524,12 +6028,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6571,26 +6072,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&wb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      wb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      wb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      wb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      wb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)wb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6600,8 +6095,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      wb_name->data
-                                                                      [wb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6611,7 +6106,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (vb_isequal
-                                                                      (wb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_SIMILAR;
@@ -6623,12 +6118,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6645,13 +6136,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6681,12 +6168,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6728,26 +6212,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&xb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      xb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      xb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      xb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      xb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)xb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6757,8 +6235,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      xb_name->data
-                                                                      [xb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6768,7 +6246,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (wb_isequal
-                                                                      (xb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_UNEQUAL;
@@ -6780,12 +6258,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6802,13 +6276,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6838,12 +6308,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6885,26 +6352,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&yb_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      yb_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      yb_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      yb_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      yb_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)yb_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -6914,8 +6375,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      yb_name->data
-                                                                      [yb_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -6925,7 +6386,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (xb_isequal
-                                                                      (yb_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_MAX_PROCESSOR_NAME;
@@ -6937,12 +6398,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -6959,13 +6416,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -6995,12 +6448,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -7042,26 +6492,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&ac_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      ac_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      ac_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      ac_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      ac_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)ac_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7071,8 +6515,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      ac_name->data
-                                                                      [ac_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7082,7 +6526,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (yb_isequal
-                                                                      (ac_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_GRAPH;
@@ -7094,12 +6538,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -7116,13 +6556,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7152,12 +6588,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -7199,26 +6632,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&bc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      bc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      bc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      bc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      bc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)bc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7228,8 +6655,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      bc_name->data
-                                                                      [bc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7239,7 +6666,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (ac_isequal
-                                                                      (bc_name))
+                                                                      (b_name))
                                                                       {
                                                                       d_arg =
                                                                       MPI_CART;
@@ -7251,12 +6678,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -7273,13 +6696,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7309,12 +6728,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       3;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 3;
                                                                       i0++) {
@@ -7356,26 +6772,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&cc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      cc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      cc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      cc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      cc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)cc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7385,8 +6795,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      cc_name->data
-                                                                      [cc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7396,7 +6806,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (bc_isequal
-                                                                      (cc_name))
+                                                                      (b_name))
                                                                       {
                                                                       g_arg =
                                                                       MPI_REQUEST_NULL;
@@ -7409,12 +6819,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 11;
                                                                       i0++) {
@@ -7431,13 +6837,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7467,12 +6869,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       11;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 11;
                                                                       i0++) {
@@ -7514,26 +6913,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&dc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      dc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      dc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      dc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      dc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)dc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7543,8 +6936,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      dc_name->data
-                                                                      [dc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7554,7 +6947,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (cc_isequal
-                                                                      (dc_name))
+                                                                      (b_name))
                                                                       {
                                                                       h_arg =
                                                                       MPI_GROUP_NULL;
@@ -7567,12 +6960,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 9;
                                                                       i0++) {
@@ -7589,13 +6978,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7625,12 +7010,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       9;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 9;
                                                                       i0++) {
@@ -7672,26 +7054,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&ec_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      ec_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      ec_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      ec_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      ec_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)ec_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7701,8 +7077,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      ec_name->data
-                                                                      [ec_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7712,7 +7088,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (dc_isequal
-                                                                      (ec_name))
+                                                                      (b_name))
                                                                       {
                                                                       h_arg =
                                                                       MPI_GROUP_EMPTY;
@@ -7725,12 +7101,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 9;
                                                                       i0++) {
@@ -7747,13 +7119,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7783,12 +7151,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       9;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 9;
                                                                       i0++) {
@@ -7830,26 +7195,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&fc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      fc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      fc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      fc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      fc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)fc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -7859,8 +7218,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      fc_name->data
-                                                                      [fc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -7870,7 +7229,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (ec_isequal
-                                                                      (fc_name))
+                                                                      (b_name))
                                                                       {
                                                                       i_arg =
                                                                       MPI_STATUS_IGNORE;
@@ -7884,12 +7243,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 12;
                                                                       i0++) {
@@ -7906,13 +7261,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -7942,12 +7293,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       12;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 12;
                                                                       i0++) {
@@ -7989,26 +7337,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&gc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      gc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      gc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      gc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      gc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)gc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -8018,8 +7360,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      gc_name->data
-                                                                      [gc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -8029,7 +7371,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (fc_isequal
-                                                                      (gc_name))
+                                                                      (b_name))
                                                                       {
                                                                       j_arg =
                                                                       MPI_INFO_NULL;
@@ -8042,12 +7384,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 8;
                                                                       i0++) {
@@ -8064,13 +7402,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -8100,12 +7434,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       8;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 8;
                                                                       i0++) {
@@ -8147,26 +7478,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&hc_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      hc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      hc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      hc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      hc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)hc_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -8176,8 +7501,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      hc_name->data
-                                                                      [hc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -8187,7 +7512,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (gc_isequal
-                                                                      (hc_name))
+                                                                      (b_name))
                                                                       {
                                                                       k_arg =
                                                                       MPI_ARGV_NULL;
@@ -8200,12 +7525,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 7;
                                                                       i0++) {
@@ -8222,13 +7543,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -8258,12 +7575,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       7;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 7;
                                                                       i0++) {
@@ -8305,26 +7619,20 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[1];
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&ic_name,
-                                                                      2);
                                                                       loop_ub =
-                                                                      ic_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      ic_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      ic_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      ic_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       sizepe -
                                                                       i0;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)ic_name,
-                                                                      loop_ub,
-                                                                      sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      loop_ub);
                                                                       loop_ub =
                                                                       sizepe -
                                                                       i0;
@@ -8334,8 +7642,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       loop_ub;
                                                                       sizepe++)
                                                                       {
-                                                                      ic_name->data
-                                                                      [ic_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       sizepe] =
                                                                       name->
@@ -8345,7 +7653,7 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
 
                                                                       if
                                                                       (hc_isequal
-                                                                      (ic_name))
+                                                                      (b_name))
                                                                       {
                                                                       l_arg =
                                                                       MPI_ERRCODES_IGNORE;
@@ -8358,12 +7666,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 5;
                                                                       i0++) {
@@ -8380,13 +7684,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -8416,12 +7716,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       5;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 5;
                                                                       i0++) {
@@ -8462,12 +7759,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       data0->size
                                                                       [0] =
                                                                       sizepe;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)data0,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (data0, i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -8484,13 +7777,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       size[0] =
                                                                       data0->size
                                                                       [0];
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->data,
-                                                                      i0, sizeof
-                                                                      (unsigned
-                                                                      char));
+                                                                      emxEnsureCapacity_uint8_T
+                                                                      (obj->data,
+                                                                      i0);
                                                                       loop_ub =
                                                                       data0->size
                                                                       [0];
@@ -8520,12 +7809,9 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       type->
                                                                       size[1] =
                                                                       6;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)
-                                                                      obj->type,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (obj->type,
+                                                                      i0);
                                                                       for (i0 =
                                                                       0; i0 < 6;
                                                                       i0++) {
@@ -8555,26 +7841,21 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       ptr + 1;
                                                                       }
 
-                                                                      emxInit_char_T
-                                                                      (&jc_name,
-                                                                      2);
                                                                       i0 =
-                                                                      jc_name->size
+                                                                      b_name->size
                                                                       [0] *
-                                                                      jc_name->size
+                                                                      b_name->size
                                                                       [1];
-                                                                      jc_name->size
+                                                                      b_name->size
                                                                       [0] = 1;
-                                                                      jc_name->size
+                                                                      b_name->size
                                                                       [1] =
                                                                       name->
                                                                       size[1] +
                                                                       1;
-                                                                      emxEnsureCapacity
-                                                                      ((emxArray__common
-                                                                      *)jc_name,
-                                                                      i0, sizeof
-                                                                      (char));
+                                                                      emxEnsureCapacity_char_T
+                                                                      (b_name,
+                                                                      i0);
                                                                       loop_ub =
                                                                       name->
                                                                       size[1];
@@ -8582,8 +7863,8 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       0; i0 <
                                                                       loop_ub;
                                                                       i0++) {
-                                                                      jc_name->data
-                                                                      [jc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] * i0] =
                                                                       name->
                                                                       data
@@ -8591,217 +7872,71 @@ void mpi_get_const(const emxArray_char_T *name, struct0_T *obj)
                                                                       [0] * i0];
                                                                       }
 
-                                                                      jc_name->data
-                                                                      [jc_name->size
+                                                                      b_name->data
+                                                                      [b_name->size
                                                                       [0] *
                                                                       name->
                                                                       size[1]] =
                                                                       '\x00';
                                                                       m2c_error
-                                                                      (jc_name);
-                                                                      emxFree_char_T
-                                                                      (&jc_name);
+                                                                      (b_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&ic_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&hc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&gc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&fc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&ec_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&dc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&cc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&bc_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&ac_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&yb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&xb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&wb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&vb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&ub_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&tb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&sb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&rb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&qb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&pb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&ob_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&nb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&mb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&lb_name);
                                                                       }
-
-                                                                      emxFree_char_T
-                                                                      (&kb_name);
                                                                     }
-
-                                                                    emxFree_char_T
-                                                                      (&jb_name);
                                                                   }
-
-                                                                  emxFree_char_T
-                                                                    (&ib_name);
                                                                 }
-
-                                                                emxFree_char_T
-                                                                  (&hb_name);
                                                               }
-
-                                                              emxFree_char_T
-                                                                (&gb_name);
                                                             }
-
-                                                            emxFree_char_T
-                                                              (&fb_name);
                                                           }
-
-                                                          emxFree_char_T
-                                                            (&eb_name);
                                                         }
-
-                                                        emxFree_char_T(&db_name);
                                                       }
-
-                                                      emxFree_char_T(&cb_name);
                                                     }
-
-                                                    emxFree_char_T(&bb_name);
                                                   }
-
-                                                  emxFree_char_T(&ab_name);
                                                 }
-
-                                                emxFree_char_T(&y_name);
                                               }
-
-                                              emxFree_char_T(&x_name);
                                             }
-
-                                            emxFree_char_T(&w_name);
                                           }
-
-                                          emxFree_char_T(&v_name);
                                         }
-
-                                        emxFree_char_T(&u_name);
                                       }
-
-                                      emxFree_char_T(&t_name);
                                     }
-
-                                    emxFree_char_T(&s_name);
                                   }
-
-                                  emxFree_char_T(&r_name);
                                 }
-
-                                emxFree_char_T(&q_name);
                               }
-
-                              emxFree_char_T(&p_name);
                             }
-
-                            emxFree_char_T(&o_name);
                           }
-
-                          emxFree_char_T(&n_name);
                         }
-
-                        emxFree_char_T(&m_name);
                       }
-
-                      emxFree_char_T(&l_name);
                     }
-
-                    emxFree_char_T(&k_name);
                   }
-
-                  emxFree_char_T(&j_name);
                 }
-
-                emxFree_char_T(&i_name);
               }
-
-              emxFree_char_T(&h_name);
             }
-
-            emxFree_char_T(&g_name);
           }
-
-          emxFree_char_T(&f_name);
         }
-
-        emxFree_char_T(&e_name);
       }
-
-      emxFree_char_T(&d_name);
     }
-
-    emxFree_char_T(&c_name);
   }
 
   emxFree_char_T(&b_name);

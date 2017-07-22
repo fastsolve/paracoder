@@ -12,6 +12,9 @@ function varargout = crs_matrix(varargin) %#codegen
 %    A = crs_matrix(m, n);
 % Create an empty sparse matrix with m rows and n colmns.
 %
+% Note: In the special case where A.val has size (m*n,1), it is a dense 
+% matrix and then row_ptr and col_ind are ignored.
+%
 % See also crs_2sparse, crs_createFromAIJ, crs_createFromSparse
 %
 % Note: This function does not support multithreading. If there is no input,

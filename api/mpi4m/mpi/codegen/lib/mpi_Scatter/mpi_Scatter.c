@@ -2,6 +2,9 @@
 #include "m2c.h"
 #include "mpi.h"
 
+static const char cv0[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
+  'p', 'e' };
+
 static void b_m2c_error(const emxArray_char_T *varargin_3);
 static void c_m2c_error(void);
 static void d_m2c_error(void);
@@ -20,7 +23,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -53,14 +56,14 @@ static boolean_T isequal(const char varargin_1[6])
   boolean_T b_p;
   int k;
   boolean_T exitg1;
-  static const char cv3[6] = { 'c', 'o', 'n', 's', 't', ' ' };
+  static const char cv2[6] = { 'c', 'o', 'n', 's', 't', ' ' };
 
   p = false;
   b_p = true;
   k = 0;
   exitg1 = false;
   while ((!exitg1) && (k < 6)) {
-    if (!(varargin_1[k] == cv3[k])) {
+    if (!(varargin_1[k] == cv2[k])) {
       b_p = false;
       exitg1 = true;
     } else {
@@ -84,7 +87,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -111,9 +114,6 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
   int k;
   boolean_T exitg1;
   emxArray_char_T *b_datatype_type;
-  static const char cv2[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
-    'p', 'e' };
-
   emxArray_uint8_T *data;
   int loop_ub;
   MPI_Datatype datatype;
@@ -127,7 +127,7 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
     k = 0;
     exitg1 = false;
     while ((!exitg1) && (k < 12)) {
-      if (!(datatype_type->data[k] == cv2[k])) {
+      if (!(datatype_type->data[k] == cv0[k])) {
         b_p = false;
         exitg1 = true;
       } else {
@@ -145,7 +145,7 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
     k = b_datatype_type->size[0] * b_datatype_type->size[1];
     b_datatype_type->size[0] = 1;
     b_datatype_type->size[1] = datatype_type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_datatype_type, k, sizeof(char));
+    emxEnsureCapacity_char_T(b_datatype_type, k);
     loop_ub = datatype_type->size[1];
     for (k = 0; k < loop_ub; k++) {
       b_datatype_type->data[b_datatype_type->size[0] * k] = datatype_type->
@@ -161,7 +161,7 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
   emxInit_uint8_T(&data, 1);
   k = data->size[0];
   data->size[0] = datatype_data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = datatype_data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = datatype_data->data[k];
@@ -177,89 +177,80 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
                  const struct0_T *rptr, int rcount, const struct1_T *rtype, int
                  root, const struct1_T *comm, int *info, boolean_T *toplevel)
 {
-  emxArray_uint8_T *data;
-  unsigned long b_data;
   boolean_T p;
-  const char * ptr;
   boolean_T b_p;
   int k;
   boolean_T exitg1;
   emxArray_char_T *b_comm;
-  static const char cv0[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
+  static const char cv1[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
 
+  emxArray_uint8_T *data;
   int loop_ub;
-  emxArray_char_T *b_stype;
-  static const char cv1[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
-    'p', 'e' };
-
   MPI_Comm c_comm;
   int rank;
+  unsigned long b_data;
+  const char * ptr;
   MPI_Datatype datatype;
   char * b_ptr;
-  emxArray_char_T *b_rtype;
   MPI_Datatype b_datatype;
-  emxArray_char_T *d_comm;
-  emxInit_uint8_T(&data, 1);
-  if (emlrtIsMATLABThread(emlrtRootTLSGlobal)) {
-    p = false;
-    b_p = false;
-    if (comm->type->size[1] == 8) {
-      b_p = true;
-    }
+  p = false;
+  b_p = false;
+  if (comm->type->size[1] == 8) {
+    b_p = true;
+  }
 
-    if (b_p && (!(comm->type->size[1] == 0))) {
-      k = 0;
-      exitg1 = false;
-      while ((!exitg1) && (k < 8)) {
-        if (!(comm->type->data[k] == cv0[k])) {
-          b_p = false;
-          exitg1 = true;
-        } else {
-          k++;
-        }
+  if (b_p && (!(comm->type->size[1] == 0))) {
+    k = 0;
+    exitg1 = false;
+    while ((!exitg1) && (k < 8)) {
+      if (!(comm->type->data[k] == cv1[k])) {
+        b_p = false;
+        exitg1 = true;
+      } else {
+        k++;
       }
     }
+  }
 
-    if (b_p) {
-      p = true;
-    }
+  if (b_p) {
+    p = true;
+  }
 
-    if (!p) {
-      emxInit_char_T(&b_comm, 2);
-      k = b_comm->size[0] * b_comm->size[1];
-      b_comm->size[0] = 1;
-      b_comm->size[1] = comm->type->size[1] + 1;
-      emxEnsureCapacity((emxArray__common *)b_comm, k, sizeof(char));
-      loop_ub = comm->type->size[1];
-      for (k = 0; k < loop_ub; k++) {
-        b_comm->data[b_comm->size[0] * k] = comm->type->data[comm->type->size[0]
-          * k];
-      }
-
-      b_comm->data[b_comm->size[0] * comm->type->size[1]] = '\x00';
-      m2c_error(b_comm);
-      emxFree_char_T(&b_comm);
-    }
-
-    k = data->size[0];
-    data->size[0] = comm->data->size[0];
-    emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
-    loop_ub = comm->data->size[0];
+  emxInit_char_T(&b_comm, 2);
+  if (!p) {
+    k = b_comm->size[0] * b_comm->size[1];
+    b_comm->size[0] = 1;
+    b_comm->size[1] = comm->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_comm, k);
+    loop_ub = comm->type->size[1];
     for (k = 0; k < loop_ub; k++) {
-      data->data[k] = comm->data->data[k];
+      b_comm->data[b_comm->size[0] * k] = comm->type->data[comm->type->size[0] *
+        k];
     }
 
-    c_comm = *(MPI_Comm*)(&data->data[0]);
-    MPI_Comm_rank(c_comm, &rank);
-    if ((rank == root) && (sptr->nbytes - sptr->offset < scount * mpi_Type_size
-                           (stype->data, stype->type))) {
-      c_m2c_error();
-    }
+    b_comm->data[b_comm->size[0] * comm->type->size[1]] = '\x00';
+    m2c_error(b_comm);
+  }
 
-    if (rptr->nbytes - rptr->offset < rcount * mpi_Type_size(rtype->data,
-         rtype->type)) {
-      d_m2c_error();
-    }
+  emxInit_uint8_T(&data, 1);
+  k = data->size[0];
+  data->size[0] = comm->data->size[0];
+  emxEnsureCapacity_uint8_T(data, k);
+  loop_ub = comm->data->size[0];
+  for (k = 0; k < loop_ub; k++) {
+    data->data[k] = comm->data->data[k];
+  }
+
+  c_comm = *(MPI_Comm*)(&data->data[0]);
+  MPI_Comm_rank(c_comm, &rank);
+  if ((rank == root) && (sptr->nbytes - sptr->offset < scount * mpi_Type_size
+                         (stype->data, stype->type))) {
+    c_m2c_error();
+  }
+
+  if (rptr->nbytes - rptr->offset < rcount * mpi_Type_size(rtype->data,
+       rtype->type)) {
+    d_m2c_error();
   }
 
   b_data = sptr->data;
@@ -278,7 +269,7 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
     k = 0;
     exitg1 = false;
     while ((!exitg1) && (k < 12)) {
-      if (!(stype->type->data[k] == cv1[k])) {
+      if (!(stype->type->data[k] == cv0[k])) {
         b_p = false;
         exitg1 = true;
       } else {
@@ -292,25 +283,23 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
   }
 
   if (!p) {
-    emxInit_char_T(&b_stype, 2);
-    k = b_stype->size[0] * b_stype->size[1];
-    b_stype->size[0] = 1;
-    b_stype->size[1] = stype->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stype, k, sizeof(char));
+    k = b_comm->size[0] * b_comm->size[1];
+    b_comm->size[0] = 1;
+    b_comm->size[1] = stype->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_comm, k);
     loop_ub = stype->type->size[1];
     for (k = 0; k < loop_ub; k++) {
-      b_stype->data[b_stype->size[0] * k] = stype->type->data[stype->type->size
-        [0] * k];
+      b_comm->data[b_comm->size[0] * k] = stype->type->data[stype->type->size[0]
+        * k];
     }
 
-    b_stype->data[b_stype->size[0] * stype->type->size[1]] = '\x00';
-    b_m2c_error(b_stype);
-    emxFree_char_T(&b_stype);
+    b_comm->data[b_comm->size[0] * stype->type->size[1]] = '\x00';
+    b_m2c_error(b_comm);
   }
 
   k = data->size[0];
   data->size[0] = stype->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = stype->data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = stype->data->data[k];
@@ -338,7 +327,7 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
     k = 0;
     exitg1 = false;
     while ((!exitg1) && (k < 12)) {
-      if (!(rtype->type->data[k] == cv1[k])) {
+      if (!(rtype->type->data[k] == cv0[k])) {
         b_p = false;
         exitg1 = true;
       } else {
@@ -352,25 +341,23 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
   }
 
   if (!p) {
-    emxInit_char_T(&b_rtype, 2);
-    k = b_rtype->size[0] * b_rtype->size[1];
-    b_rtype->size[0] = 1;
-    b_rtype->size[1] = rtype->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_rtype, k, sizeof(char));
+    k = b_comm->size[0] * b_comm->size[1];
+    b_comm->size[0] = 1;
+    b_comm->size[1] = rtype->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_comm, k);
     loop_ub = rtype->type->size[1];
     for (k = 0; k < loop_ub; k++) {
-      b_rtype->data[b_rtype->size[0] * k] = rtype->type->data[rtype->type->size
-        [0] * k];
+      b_comm->data[b_comm->size[0] * k] = rtype->type->data[rtype->type->size[0]
+        * k];
     }
 
-    b_rtype->data[b_rtype->size[0] * rtype->type->size[1]] = '\x00';
-    b_m2c_error(b_rtype);
-    emxFree_char_T(&b_rtype);
+    b_comm->data[b_comm->size[0] * rtype->type->size[1]] = '\x00';
+    b_m2c_error(b_comm);
   }
 
   k = data->size[0];
   data->size[0] = rtype->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = rtype->data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = rtype->data->data[k];
@@ -387,7 +374,7 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
     k = 0;
     exitg1 = false;
     while ((!exitg1) && (k < 8)) {
-      if (!(comm->type->data[k] == cv0[k])) {
+      if (!(comm->type->data[k] == cv1[k])) {
         b_p = false;
         exitg1 = true;
       } else {
@@ -401,25 +388,24 @@ void mpi_Scatter(const struct0_T *sptr, int scount, const struct1_T *stype,
   }
 
   if (!p) {
-    emxInit_char_T(&d_comm, 2);
-    k = d_comm->size[0] * d_comm->size[1];
-    d_comm->size[0] = 1;
-    d_comm->size[1] = comm->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)d_comm, k, sizeof(char));
+    k = b_comm->size[0] * b_comm->size[1];
+    b_comm->size[0] = 1;
+    b_comm->size[1] = comm->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_comm, k);
     loop_ub = comm->type->size[1];
     for (k = 0; k < loop_ub; k++) {
-      d_comm->data[d_comm->size[0] * k] = comm->type->data[comm->type->size[0] *
+      b_comm->data[b_comm->size[0] * k] = comm->type->data[comm->type->size[0] *
         k];
     }
 
-    d_comm->data[d_comm->size[0] * comm->type->size[1]] = '\x00';
-    m2c_error(d_comm);
-    emxFree_char_T(&d_comm);
+    b_comm->data[b_comm->size[0] * comm->type->size[1]] = '\x00';
+    m2c_error(b_comm);
   }
 
+  emxFree_char_T(&b_comm);
   k = data->size[0];
   data->size[0] = comm->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = comm->data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = comm->data->data[k];

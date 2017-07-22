@@ -22,7 +22,7 @@ static void b_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
   i0 = b->size[0] * b->size[1];
   b->size[0] = A_ncols;
   b->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)b, i0, sizeof(double));
+  emxEnsureCapacity_real_T(b, i0);
   i0 = b->size[0];
   crs_prodAtx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i0, A_nrows,
                      A_ncols, x->size[1], false);

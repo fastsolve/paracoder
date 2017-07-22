@@ -1,7 +1,6 @@
 #ifndef CRS_DIAG_TYPES_H
 #define CRS_DIAG_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_int32_T
 #define struct_emxArray_int32_T
 

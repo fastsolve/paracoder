@@ -15,7 +15,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -36,7 +36,7 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i2, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i2);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i2 = 0; i2 < loop_ub; i2++) {
     b_varargin_3->data[i2] = varargin_3->data[i2];
@@ -57,7 +57,7 @@ static void d_m2c_error(const emxArray_char_T *varargin_3)
   i3 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i3, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i3);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i3 = 0; i3 < loop_ub; i3++) {
     b_varargin_3->data[i3] = varargin_3->data[i3];
@@ -77,7 +77,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -104,14 +104,12 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
   int loop_ub;
   emxArray_char_T *r0;
   char ** args;
-  emxArray_char_T *b_mpiinfo;
   static const char cv1[8] = { 'M', 'P', 'I', '_', 'I', 'n', 'f', 'o' };
 
   MPI_Info obj;
-  emxArray_char_T *b_comm;
   static const char cv2[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
 
-  MPI_Comm c_comm;
+  MPI_Comm b_comm;
   MPI_Comm intercomm0;
   int sizepe;
   char t0_type[8];
@@ -119,12 +117,11 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
 
   char * ptr;
   unsigned char msg0[1024];
-  emxArray_char_T *b_msg0;
-  emxArray_uint8_T *c_msg0;
-  emxArray_char_T *d_msg0;
+  emxArray_uint8_T *b_msg0;
+  emxArray_char_T *c_msg0;
   resultlen = errcodes->size[0];
   errcodes->size[0] = maxprocs;
-  emxEnsureCapacity((emxArray__common *)errcodes, resultlen, sizeof(int));
+  emxEnsureCapacity_int32_T(errcodes, resultlen);
   p = false;
   b_p = false;
   if (argv->type->size[1] == 7) {
@@ -148,12 +145,12 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
     p = true;
   }
 
+  emxInit_char_T(&b_argv, 2);
   if (!p) {
-    emxInit_char_T(&b_argv, 2);
     resultlen = b_argv->size[0] * b_argv->size[1];
     b_argv->size[0] = 1;
     b_argv->size[1] = argv->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_argv, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_argv, resultlen);
     loop_ub = argv->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_argv->data[b_argv->size[0] * resultlen] = argv->type->data[argv->
@@ -162,13 +159,12 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
 
     b_argv->data[b_argv->size[0] * argv->type->size[1]] = '\x00';
     m2c_error(b_argv);
-    emxFree_char_T(&b_argv);
   }
 
   emxInit_uint8_T(&data0, 1);
   resultlen = data0->size[0];
   data0->size[0] = argv->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = argv->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = argv->data->data[resultlen];
@@ -179,7 +175,7 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
   resultlen = r0->size[0] * r0->size[1];
   r0->size[0] = 1;
   r0->size[1] = command->size[1] + 1;
-  emxEnsureCapacity((emxArray__common *)r0, resultlen, sizeof(char));
+  emxEnsureCapacity_char_T(r0, resultlen);
   loop_ub = command->size[1];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     r0->data[r0->size[0] * resultlen] = command->data[command->size[0] *
@@ -211,25 +207,23 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
   }
 
   if (!p) {
-    emxInit_char_T(&b_mpiinfo, 2);
-    resultlen = b_mpiinfo->size[0] * b_mpiinfo->size[1];
-    b_mpiinfo->size[0] = 1;
-    b_mpiinfo->size[1] = mpiinfo->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_mpiinfo, resultlen, sizeof(char));
+    resultlen = b_argv->size[0] * b_argv->size[1];
+    b_argv->size[0] = 1;
+    b_argv->size[1] = mpiinfo->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_argv, resultlen);
     loop_ub = mpiinfo->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_mpiinfo->data[b_mpiinfo->size[0] * resultlen] = mpiinfo->type->
-        data[mpiinfo->type->size[0] * resultlen];
+      b_argv->data[b_argv->size[0] * resultlen] = mpiinfo->type->data
+        [mpiinfo->type->size[0] * resultlen];
     }
 
-    b_mpiinfo->data[b_mpiinfo->size[0] * mpiinfo->type->size[1]] = '\x00';
-    b_m2c_error(b_mpiinfo);
-    emxFree_char_T(&b_mpiinfo);
+    b_argv->data[b_argv->size[0] * mpiinfo->type->size[1]] = '\x00';
+    b_m2c_error(b_argv);
   }
 
   resultlen = data0->size[0];
   data0->size[0] = mpiinfo->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = mpiinfo->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = mpiinfo->data->data[resultlen];
@@ -260,37 +254,35 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
   }
 
   if (!p) {
-    emxInit_char_T(&b_comm, 2);
-    resultlen = b_comm->size[0] * b_comm->size[1];
-    b_comm->size[0] = 1;
-    b_comm->size[1] = comm->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_comm, resultlen, sizeof(char));
+    resultlen = b_argv->size[0] * b_argv->size[1];
+    b_argv->size[0] = 1;
+    b_argv->size[1] = comm->type->size[1] + 1;
+    emxEnsureCapacity_char_T(b_argv, resultlen);
     loop_ub = comm->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_comm->data[b_comm->size[0] * resultlen] = comm->type->data[comm->
+      b_argv->data[b_argv->size[0] * resultlen] = comm->type->data[comm->
         type->size[0] * resultlen];
     }
 
-    b_comm->data[b_comm->size[0] * comm->type->size[1]] = '\x00';
-    c_m2c_error(b_comm);
-    emxFree_char_T(&b_comm);
+    b_argv->data[b_argv->size[0] * comm->type->size[1]] = '\x00';
+    c_m2c_error(b_argv);
   }
 
   resultlen = data0->size[0];
   data0->size[0] = comm->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = comm->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = comm->data->data[resultlen];
   }
 
-  c_comm = *(MPI_Comm*)(&data0->data[0]);
-  *info = MPI_Comm_spawn(&r0->data[0], args, maxprocs, obj, root, c_comm,
+  b_comm = *(MPI_Comm*)(&data0->data[0]);
+  *info = MPI_Comm_spawn(&r0->data[0], args, maxprocs, obj, root, b_comm,
     &intercomm0, &errcodes->data[0]);
   sizepe = sizeof(MPI_Comm);
   resultlen = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   emxFree_char_T(&r0);
   for (resultlen = 0; resultlen < 8; resultlen++) {
     t0_type[resultlen] = x2[resultlen];
@@ -298,8 +290,7 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
 
   resultlen = intercomm->data->size[0];
   intercomm->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)intercomm->data, resultlen, sizeof
-                    (unsigned char));
+  emxEnsureCapacity_uint8_T(intercomm->data, resultlen);
   loop_ub = data0->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     intercomm->data->data[resultlen] = data0->data[resultlen];
@@ -309,7 +300,7 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
   resultlen = intercomm->type->size[0] * intercomm->type->size[1];
   intercomm->type->size[0] = 1;
   intercomm->type->size[1] = 8;
-  emxEnsureCapacity((emxArray__common *)intercomm->type, resultlen, sizeof(char));
+  emxEnsureCapacity_char_T(intercomm->type, resultlen);
   for (resultlen = 0; resultlen < 8; resultlen++) {
     intercomm->type->data[resultlen] = t0_type[resultlen];
   }
@@ -332,40 +323,38 @@ void mpi_Comm_spawn(const emxArray_char_T *command, const struct0_T *argv, int
       loop_ub = resultlen;
     }
 
-    emxInit_char_T(&b_msg0, 2);
-    emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
-    c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&c_msg0);
+    emxInit_uint8_T(&b_msg0, 2);
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
+    b_msg0->size[1] = loop_ub;
+    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
     }
 
-    emxFree_char_T(&d_msg0);
-    d_m2c_error(b_msg0);
-    emxFree_char_T(&b_msg0);
+    emxInit_char_T(&c_msg0, 1);
+    resultlen = c_msg0->size[0];
+    c_msg0->size[0] = loop_ub;
+    emxEnsureCapacity_char_T(c_msg0, resultlen);
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
+    }
+
+    emxFree_uint8_T(&b_msg0);
+    resultlen = b_argv->size[0] * b_argv->size[1];
+    b_argv->size[0] = 1;
+    b_argv->size[1] = (short)loop_ub;
+    emxEnsureCapacity_char_T(b_argv, resultlen);
+    loop_ub = (short)loop_ub;
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      b_argv->data[b_argv->size[0] * resultlen] = c_msg0->data[resultlen];
+    }
+
+    emxFree_char_T(&c_msg0);
+    d_m2c_error(b_argv);
   }
 
+  emxFree_char_T(&b_argv);
   *toplevel = true;
 }
 

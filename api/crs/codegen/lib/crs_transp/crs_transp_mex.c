@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_transp/crs_transp_mex.c
+ * crs/codegen/lib/crs_transp/crs_transp_mex.c
  *
  * Auxiliary code for mexFunction of crs_transp
  *

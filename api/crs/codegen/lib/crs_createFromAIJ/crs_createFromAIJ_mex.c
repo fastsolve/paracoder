@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_createFromAIJ/crs_createFromAIJ_mex.c
+ * crs/codegen/lib/crs_createFromAIJ/crs_createFromAIJ_mex.c
  *
  * Auxiliary code for mexFunction of crs_createFromAIJ
  *

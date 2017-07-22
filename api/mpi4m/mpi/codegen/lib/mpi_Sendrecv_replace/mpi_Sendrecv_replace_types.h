@@ -1,7 +1,6 @@
 #ifndef MPI_SENDRECV_REPLACE_TYPES_H
 #define MPI_SENDRECV_REPLACE_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

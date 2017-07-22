@@ -8,7 +8,7 @@ void crs_diag(const struct0_T *A, emxArray_real_T *D)
   boolean_T exitg1;
   i = D->size[0];
   D->size[0] = A->nrows;
-  emxEnsureCapacity((emxArray__common *)D, i, sizeof(double));
+  emxEnsureCapacity_real_T(D, i);
   loop_ub = A->nrows;
   for (i = 0; i < loop_ub; i++) {
     D->data[i] = 0.0;
@@ -41,7 +41,7 @@ void crs_diag1(const struct0_T *A, int k, emxArray_real_T *D)
 
   j = D->size[0];
   D->size[0] = A->nrows - y;
-  emxEnsureCapacity((emxArray__common *)D, j, sizeof(double));
+  emxEnsureCapacity_real_T(D, j);
   y = A->nrows - y;
   for (j = 0; j < y; j++) {
     D->data[j] = 0.0;

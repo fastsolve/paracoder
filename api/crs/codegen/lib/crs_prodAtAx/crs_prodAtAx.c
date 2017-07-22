@@ -43,7 +43,7 @@ static void b_crs_prodAtAx(const emxArray_int32_T *A_row_ptr, const
   i0 = Ax->size[0] * Ax->size[1];
   Ax->size[0] = A_nrows;
   Ax->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)Ax, i0, sizeof(double));
+  emxEnsureCapacity_real_T(Ax, i0);
   loop_ub = A_nrows * x->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     Ax->data[i0] = 0.0;
@@ -53,7 +53,7 @@ static void b_crs_prodAtAx(const emxArray_int32_T *A_row_ptr, const
   i0 = b->size[0] * b->size[1];
   b->size[0] = A_ncols;
   b->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)b, i0, sizeof(double));
+  emxEnsureCapacity_real_T(b, i0);
   loop_ub = A_ncols * x->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b->data[i0] = 0.0;
@@ -116,7 +116,7 @@ static void c_crs_prodAtAx(const emxArray_int32_T *A_row_ptr, const
   i5 = Ax->size[0] * Ax->size[1];
   Ax->size[0] = A_nrows;
   Ax->size[1] = x->size[1];
-  emxEnsureCapacity((emxArray__common *)Ax, i5, sizeof(double));
+  emxEnsureCapacity_real_T(Ax, i5);
   loop_ub = A_nrows * x->size[1];
   for (i5 = 0; i5 < loop_ub; i5++) {
     Ax->data[i5] = 0.0;

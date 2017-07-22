@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_sort/crs_sort_mex.c
+ * crs/codegen/lib/crs_sort/crs_sort_mex.c
  *
  * Auxiliary code for mexFunction of crs_sort
  *

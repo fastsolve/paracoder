@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_triu/crs_triu_mex.c
+ * crs/codegen/lib/crs_triu/crs_triu_mex.c
  *
  * Auxiliary code for mexFunction of crs_triu
  *

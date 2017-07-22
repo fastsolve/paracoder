@@ -22,7 +22,7 @@ static void emxCopy_int32_T(emxArray_int32_T **dst, emxArray_int32_T * const
     (*dst)->size[i] = (*src)->size[i];
   }
 
-  emxEnsureCapacity((emxArray__common *)*dst, numElDst, sizeof(int));
+  emxEnsureCapacity_int32_T(*dst, numElDst);
   for (i = 0; i < numElSrc; i++) {
     (*dst)->data[i] = (*src)->data[i];
   }
@@ -44,7 +44,7 @@ static void emxCopy_real_T(emxArray_real_T **dst, emxArray_real_T * const *src)
     (*dst)->size[i] = (*src)->size[i];
   }
 
-  emxEnsureCapacity((emxArray__common *)*dst, numElDst, sizeof(double));
+  emxEnsureCapacity_real_T(*dst, numElDst);
   for (i = 0; i < numElSrc; i++) {
     (*dst)->data[i] = (*src)->data[i];
   }

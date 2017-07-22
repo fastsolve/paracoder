@@ -13,7 +13,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -33,7 +33,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -60,10 +60,9 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
   int loop_ub;
   MPI_Status t_stat;
   const MPI_Status * stat_ptr;
-  emxArray_char_T *b_field;
   boolean_T guard1 = false;
-  int exitg2;
   boolean_T guard2 = false;
+  int exitg2;
   boolean_T guard3 = false;
   static const char cv1[6] = { 's', 'o', 'u', 'r', 'c', 'e' };
 
@@ -101,12 +100,12 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
     p = true;
   }
 
+  emxInit_char_T(&b_stat, 2);
   if (!p) {
-    emxInit_char_T(&b_stat, 2);
     k = b_stat->size[0] * b_stat->size[1];
     b_stat->size[0] = 1;
     b_stat->size[1] = stat->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_stat, k, sizeof(char));
+    emxEnsureCapacity_char_T(b_stat, k);
     loop_ub = stat->type->size[1];
     for (k = 0; k < loop_ub; k++) {
       b_stat->data[b_stat->size[0] * k] = stat->type->data[stat->type->size[0] *
@@ -115,13 +114,12 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
 
     b_stat->data[b_stat->size[0] * stat->type->size[1]] = '\x00';
     m2c_error(b_stat);
-    emxFree_char_T(&b_stat);
   }
 
   emxInit_uint8_T(&data, 1);
   k = data->size[0];
   data->size[0] = stat->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = stat->data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = stat->data->data[k];
@@ -148,7 +146,6 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
     } while (exitg2 == 0);
   }
 
-  emxInit_char_T(&b_field, 2);
   guard1 = false;
   guard2 = false;
   guard3 = false;
@@ -260,18 +257,18 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
             if (p) {
               guard1 = true;
             } else {
-              k = b_field->size[0] * b_field->size[1];
-              b_field->size[0] = 1;
-              b_field->size[1] = field->size[1] + 1;
-              emxEnsureCapacity((emxArray__common *)b_field, k, sizeof(char));
+              k = b_stat->size[0] * b_stat->size[1];
+              b_stat->size[0] = 1;
+              b_stat->size[1] = field->size[1] + 1;
+              emxEnsureCapacity_char_T(b_stat, k);
               loop_ub = field->size[1];
               for (k = 0; k < loop_ub; k++) {
-                b_field->data[b_field->size[0] * k] = field->data[field->size[0]
-                  * k];
+                b_stat->data[b_stat->size[0] * k] = field->data[field->size[0] *
+                  k];
               }
 
-              b_field->data[b_field->size[0] * field->size[1]] = '\x00';
-              b_m2c_error(b_field);
+              b_stat->data[b_stat->size[0] * field->size[1]] = '\x00';
+              b_m2c_error(b_stat);
               output = -1;
             }
           }
@@ -292,7 +289,7 @@ int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
     output = stat_ptr->MPI_ERROR;
   }
 
-  emxFree_char_T(&b_field);
+  emxFree_char_T(&b_stat);
 
   return output;
 }

@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_prodPtAP/crs_prodPtAP_mex.c
+ * crs/codegen/lib/crs_prodPtAP/crs_prodPtAP_mex.c
  *
  * Auxiliary code for mexFunction of crs_prodPtAP
  *

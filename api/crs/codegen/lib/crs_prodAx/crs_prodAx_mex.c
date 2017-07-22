@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_prodAx/crs_prodAx_mex.c
+ * crs/codegen/lib/crs_prodAx/crs_prodAx_mex.c
  *
  * Auxiliary code for mexFunction of crs_prodAx
  *

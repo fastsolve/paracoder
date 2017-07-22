@@ -12,7 +12,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -44,15 +44,14 @@ void mpi_Buffer_detach(struct0_T *ptr, int *size, int *info, boolean_T *toplevel
   sizepe = sizeof(void **);
   resultlen = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   for (resultlen = 0; resultlen < 7; resultlen++) {
     t0_type[resultlen] = cv0[resultlen];
   }
 
   resultlen = ptr->data->size[0];
   ptr->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)ptr->data, resultlen, sizeof(unsigned
-    char));
+  emxEnsureCapacity_uint8_T(ptr->data, resultlen);
   loop_ub = data0->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     ptr->data->data[resultlen] = data0->data[resultlen];
@@ -62,7 +61,7 @@ void mpi_Buffer_detach(struct0_T *ptr, int *size, int *info, boolean_T *toplevel
   resultlen = ptr->type->size[0] * ptr->type->size[1];
   ptr->type->size[0] = 1;
   ptr->type->size[1] = 7;
-  emxEnsureCapacity((emxArray__common *)ptr->type, resultlen, sizeof(char));
+  emxEnsureCapacity_char_T(ptr->type, resultlen);
   for (resultlen = 0; resultlen < 7; resultlen++) {
     ptr->type->data[resultlen] = t0_type[resultlen];
   }
@@ -90,8 +89,7 @@ void mpi_Buffer_detach(struct0_T *ptr, int *size, int *info, boolean_T *toplevel
     resultlen = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
     c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
+    emxEnsureCapacity_uint8_T(c_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
     }
@@ -99,7 +97,7 @@ void mpi_Buffer_detach(struct0_T *ptr, int *size, int *info, boolean_T *toplevel
     emxInit_char_T(&d_msg0, 1);
     resultlen = d_msg0->size[0];
     d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(d_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
     }
@@ -108,7 +106,7 @@ void mpi_Buffer_detach(struct0_T *ptr, int *size, int *info, boolean_T *toplevel
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_msg0, resultlen);
     loop_ub = (short)loop_ub;
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];

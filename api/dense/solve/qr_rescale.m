@@ -82,7 +82,7 @@ ts = coder.nullcopy(zeros(ncols,1));
 
 for ii=1:ncols
     v = A(:,ii);
-    ts(ii) = norm2_vec(v);
+    ts(ii) = vec_norm2(v);
     
     if abs(ts(ii)) == 0
         ts(ii)=0;

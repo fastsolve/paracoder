@@ -18,7 +18,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -71,7 +71,7 @@ void mpi_Start(const struct0_T *req, int *info, boolean_T *toplevel)
     k = b_req->size[0] * b_req->size[1];
     b_req->size[0] = 1;
     b_req->size[1] = req->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_req, k, sizeof(char));
+    emxEnsureCapacity_char_T(b_req, k);
     loop_ub = req->type->size[1];
     for (k = 0; k < loop_ub; k++) {
       b_req->data[b_req->size[0] * k] = req->type->data[req->type->size[0] * k];
@@ -85,7 +85,7 @@ void mpi_Start(const struct0_T *req, int *info, boolean_T *toplevel)
   emxInit_uint8_T(&data, 1);
   k = data->size[0];
   data->size[0] = req->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data, k, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data, k);
   loop_ub = req->data->size[0];
   for (k = 0; k < loop_ub; k++) {
     data->data[k] = req->data->data[k];

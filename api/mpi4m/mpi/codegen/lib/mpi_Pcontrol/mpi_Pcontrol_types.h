@@ -1,7 +1,6 @@
 #ifndef MPI_PCONTROL_TYPES_H
 #define MPI_PCONTROL_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

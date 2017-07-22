@@ -335,7 +335,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i2, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i2);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i2 = 0; i2 < loop_ub; i2++) {
     b_varargin_3->data[i2] = varargin_3->data[i2];
@@ -467,21 +467,6 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
   int i1;
   emxArray_char_T *b_typename;
   int loop_ub;
-  emxArray_char_T *c_typename;
-  emxArray_char_T *d_typename;
-  emxArray_char_T *e_typename;
-  emxArray_char_T *f_typename;
-  emxArray_char_T *g_typename;
-  emxArray_char_T *h_typename;
-  emxArray_char_T *i_typename;
-  emxArray_char_T *j_typename;
-  emxArray_char_T *k_typename;
-  emxArray_char_T *l_typename;
-  emxArray_char_T *m_typename;
-  emxArray_char_T *n_typename;
-  emxArray_char_T *o_typename;
-  emxArray_char_T *p_typename;
-  emxArray_char_T *q_typename;
   n = 0;
   if (5 > typename->size[1]) {
     i0 = 0;
@@ -495,7 +480,7 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
   loop_ub = b_typename->size[0] * b_typename->size[1];
   b_typename->size[0] = 1;
   b_typename->size[1] = i1 - i0;
-  emxEnsureCapacity((emxArray__common *)b_typename, loop_ub, sizeof(char));
+  emxEnsureCapacity_char_T(b_typename, loop_ub);
   loop_ub = i1 - i0;
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_typename->data[b_typename->size[0] * i1] = typename->data[i0 + i1];
@@ -512,17 +497,16 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
       i1 = typename->size[1];
     }
 
-    emxInit_char_T(&c_typename, 2);
-    loop_ub = c_typename->size[0] * c_typename->size[1];
-    c_typename->size[0] = 1;
-    c_typename->size[1] = i1 - i0;
-    emxEnsureCapacity((emxArray__common *)c_typename, loop_ub, sizeof(char));
+    loop_ub = b_typename->size[0] * b_typename->size[1];
+    b_typename->size[0] = 1;
+    b_typename->size[1] = i1 - i0;
+    emxEnsureCapacity_char_T(b_typename, loop_ub);
     loop_ub = i1 - i0;
     for (i1 = 0; i1 < loop_ub; i1++) {
-      c_typename->data[c_typename->size[0] * i1] = typename->data[i0 + i1];
+      b_typename->data[b_typename->size[0] * i1] = typename->data[i0 + i1];
     }
 
-    if (c_strcmp(c_typename)) {
+    if (c_strcmp(b_typename)) {
       n = sizeof(MPI_Status);
     } else {
       if (5 > typename->size[1]) {
@@ -533,17 +517,16 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
         i1 = typename->size[1];
       }
 
-      emxInit_char_T(&d_typename, 2);
-      loop_ub = d_typename->size[0] * d_typename->size[1];
-      d_typename->size[0] = 1;
-      d_typename->size[1] = i1 - i0;
-      emxEnsureCapacity((emxArray__common *)d_typename, loop_ub, sizeof(char));
+      loop_ub = b_typename->size[0] * b_typename->size[1];
+      b_typename->size[0] = 1;
+      b_typename->size[1] = i1 - i0;
+      emxEnsureCapacity_char_T(b_typename, loop_ub);
       loop_ub = i1 - i0;
       for (i1 = 0; i1 < loop_ub; i1++) {
-        d_typename->data[d_typename->size[0] * i1] = typename->data[i0 + i1];
+        b_typename->data[b_typename->size[0] * i1] = typename->data[i0 + i1];
       }
 
-      if (d_strcmp(d_typename)) {
+      if (d_strcmp(b_typename)) {
         n = sizeof(MPI_Aint);
       } else {
         if (5 > typename->size[1]) {
@@ -554,17 +537,16 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
           i1 = typename->size[1];
         }
 
-        emxInit_char_T(&e_typename, 2);
-        loop_ub = e_typename->size[0] * e_typename->size[1];
-        e_typename->size[0] = 1;
-        e_typename->size[1] = i1 - i0;
-        emxEnsureCapacity((emxArray__common *)e_typename, loop_ub, sizeof(char));
+        loop_ub = b_typename->size[0] * b_typename->size[1];
+        b_typename->size[0] = 1;
+        b_typename->size[1] = i1 - i0;
+        emxEnsureCapacity_char_T(b_typename, loop_ub);
         loop_ub = i1 - i0;
         for (i1 = 0; i1 < loop_ub; i1++) {
-          e_typename->data[e_typename->size[0] * i1] = typename->data[i0 + i1];
+          b_typename->data[b_typename->size[0] * i1] = typename->data[i0 + i1];
         }
 
-        if (e_strcmp(e_typename)) {
+        if (e_strcmp(b_typename)) {
           n = sizeof(MPI_Op);
         } else {
           if (5 > typename->size[1]) {
@@ -575,17 +557,16 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
             i1 = typename->size[1];
           }
 
-          emxInit_char_T(&f_typename, 2);
-          loop_ub = f_typename->size[0] * f_typename->size[1];
-          f_typename->size[0] = 1;
-          f_typename->size[1] = i1 - i0;
-          emxEnsureCapacity((emxArray__common *)f_typename, loop_ub, sizeof(char));
+          loop_ub = b_typename->size[0] * b_typename->size[1];
+          b_typename->size[0] = 1;
+          b_typename->size[1] = i1 - i0;
+          emxEnsureCapacity_char_T(b_typename, loop_ub);
           loop_ub = i1 - i0;
           for (i1 = 0; i1 < loop_ub; i1++) {
-            f_typename->data[f_typename->size[0] * i1] = typename->data[i0 + i1];
+            b_typename->data[b_typename->size[0] * i1] = typename->data[i0 + i1];
           }
 
-          if (f_strcmp(f_typename)) {
+          if (f_strcmp(b_typename)) {
             n = sizeof(MPI_Datatype);
           } else {
             if (5 > typename->size[1]) {
@@ -596,29 +577,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
               i1 = typename->size[1];
             }
 
-            emxInit_char_T(&g_typename, 2);
-            loop_ub = g_typename->size[0] * g_typename->size[1];
-            g_typename->size[0] = 1;
-            g_typename->size[1] = i1 - i0;
-            emxEnsureCapacity((emxArray__common *)g_typename, loop_ub, sizeof
-                              (char));
+            loop_ub = b_typename->size[0] * b_typename->size[1];
+            b_typename->size[0] = 1;
+            b_typename->size[1] = i1 - i0;
+            emxEnsureCapacity_char_T(b_typename, loop_ub);
             loop_ub = i1 - i0;
             for (i1 = 0; i1 < loop_ub; i1++) {
-              g_typename->data[g_typename->size[0] * i1] = typename->data[i0 +
+              b_typename->data[b_typename->size[0] * i1] = typename->data[i0 +
                 i1];
             }
 
-            emxInit_char_T(&h_typename, 2);
-            emxInit_char_T(&i_typename, 2);
-            emxInit_char_T(&j_typename, 2);
-            emxInit_char_T(&k_typename, 2);
-            emxInit_char_T(&l_typename, 2);
-            emxInit_char_T(&m_typename, 2);
-            emxInit_char_T(&n_typename, 2);
-            emxInit_char_T(&o_typename, 2);
-            emxInit_char_T(&p_typename, 2);
-            emxInit_char_T(&q_typename, 2);
-            if (g_strcmp(g_typename)) {
+            if (g_strcmp(b_typename)) {
               n = 8;
             } else {
               if (5 > typename->size[1]) {
@@ -629,18 +598,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                 i1 = typename->size[1];
               }
 
-              loop_ub = q_typename->size[0] * q_typename->size[1];
-              q_typename->size[0] = 1;
-              q_typename->size[1] = i1 - i0;
-              emxEnsureCapacity((emxArray__common *)q_typename, loop_ub, sizeof
-                                (char));
+              loop_ub = b_typename->size[0] * b_typename->size[1];
+              b_typename->size[0] = 1;
+              b_typename->size[1] = i1 - i0;
+              emxEnsureCapacity_char_T(b_typename, loop_ub);
               loop_ub = i1 - i0;
               for (i1 = 0; i1 < loop_ub; i1++) {
-                q_typename->data[q_typename->size[0] * i1] = typename->data[i0 +
+                b_typename->data[b_typename->size[0] * i1] = typename->data[i0 +
                   i1];
               }
 
-              if (h_strcmp(q_typename)) {
+              if (h_strcmp(b_typename)) {
                 n = 8;
               } else {
                 if (5 > typename->size[1]) {
@@ -651,18 +619,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                   i1 = typename->size[1];
                 }
 
-                loop_ub = p_typename->size[0] * p_typename->size[1];
-                p_typename->size[0] = 1;
-                p_typename->size[1] = i1 - i0;
-                emxEnsureCapacity((emxArray__common *)p_typename, loop_ub,
-                                  sizeof(char));
+                loop_ub = b_typename->size[0] * b_typename->size[1];
+                b_typename->size[0] = 1;
+                b_typename->size[1] = i1 - i0;
+                emxEnsureCapacity_char_T(b_typename, loop_ub);
                 loop_ub = i1 - i0;
                 for (i1 = 0; i1 < loop_ub; i1++) {
-                  p_typename->data[p_typename->size[0] * i1] = typename->data[i0
+                  b_typename->data[b_typename->size[0] * i1] = typename->data[i0
                     + i1];
                 }
 
-                if (i_strcmp(p_typename)) {
+                if (i_strcmp(b_typename)) {
                   n = 4;
                 } else {
                   if (5 > typename->size[1]) {
@@ -673,18 +640,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                     i1 = typename->size[1];
                   }
 
-                  loop_ub = o_typename->size[0] * o_typename->size[1];
-                  o_typename->size[0] = 1;
-                  o_typename->size[1] = i1 - i0;
-                  emxEnsureCapacity((emxArray__common *)o_typename, loop_ub,
-                                    sizeof(char));
+                  loop_ub = b_typename->size[0] * b_typename->size[1];
+                  b_typename->size[0] = 1;
+                  b_typename->size[1] = i1 - i0;
+                  emxEnsureCapacity_char_T(b_typename, loop_ub);
                   loop_ub = i1 - i0;
                   for (i1 = 0; i1 < loop_ub; i1++) {
-                    o_typename->data[o_typename->size[0] * i1] = typename->
+                    b_typename->data[b_typename->size[0] * i1] = typename->
                       data[i0 + i1];
                   }
 
-                  if (j_strcmp(o_typename)) {
+                  if (j_strcmp(b_typename)) {
                     n = 4;
                   } else {
                     if (5 > typename->size[1]) {
@@ -695,18 +661,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                       i1 = typename->size[1];
                     }
 
-                    loop_ub = n_typename->size[0] * n_typename->size[1];
-                    n_typename->size[0] = 1;
-                    n_typename->size[1] = i1 - i0;
-                    emxEnsureCapacity((emxArray__common *)n_typename, loop_ub,
-                                      sizeof(char));
+                    loop_ub = b_typename->size[0] * b_typename->size[1];
+                    b_typename->size[0] = 1;
+                    b_typename->size[1] = i1 - i0;
+                    emxEnsureCapacity_char_T(b_typename, loop_ub);
                     loop_ub = i1 - i0;
                     for (i1 = 0; i1 < loop_ub; i1++) {
-                      n_typename->data[n_typename->size[0] * i1] =
+                      b_typename->data[b_typename->size[0] * i1] =
                         typename->data[i0 + i1];
                     }
 
-                    if (k_strcmp(n_typename)) {
+                    if (k_strcmp(b_typename)) {
                       n = 4;
                     } else {
                       if (5 > typename->size[1]) {
@@ -717,18 +682,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                         i1 = typename->size[1];
                       }
 
-                      loop_ub = m_typename->size[0] * m_typename->size[1];
-                      m_typename->size[0] = 1;
-                      m_typename->size[1] = i1 - i0;
-                      emxEnsureCapacity((emxArray__common *)m_typename, loop_ub,
-                                        sizeof(char));
+                      loop_ub = b_typename->size[0] * b_typename->size[1];
+                      b_typename->size[0] = 1;
+                      b_typename->size[1] = i1 - i0;
+                      emxEnsureCapacity_char_T(b_typename, loop_ub);
                       loop_ub = i1 - i0;
                       for (i1 = 0; i1 < loop_ub; i1++) {
-                        m_typename->data[m_typename->size[0] * i1] =
+                        b_typename->data[b_typename->size[0] * i1] =
                           typename->data[i0 + i1];
                       }
 
-                      if (l_strcmp(m_typename)) {
+                      if (l_strcmp(b_typename)) {
                         n = 2;
                       } else {
                         if (5 > typename->size[1]) {
@@ -739,18 +703,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                           i1 = typename->size[1];
                         }
 
-                        loop_ub = l_typename->size[0] * l_typename->size[1];
-                        l_typename->size[0] = 1;
-                        l_typename->size[1] = i1 - i0;
-                        emxEnsureCapacity((emxArray__common *)l_typename,
-                                          loop_ub, sizeof(char));
+                        loop_ub = b_typename->size[0] * b_typename->size[1];
+                        b_typename->size[0] = 1;
+                        b_typename->size[1] = i1 - i0;
+                        emxEnsureCapacity_char_T(b_typename, loop_ub);
                         loop_ub = i1 - i0;
                         for (i1 = 0; i1 < loop_ub; i1++) {
-                          l_typename->data[l_typename->size[0] * i1] =
+                          b_typename->data[b_typename->size[0] * i1] =
                             typename->data[i0 + i1];
                         }
 
-                        if (m_strcmp(l_typename)) {
+                        if (m_strcmp(b_typename)) {
                           n = 2;
                         } else {
                           if (5 > typename->size[1]) {
@@ -761,18 +724,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                             i1 = typename->size[1];
                           }
 
-                          loop_ub = k_typename->size[0] * k_typename->size[1];
-                          k_typename->size[0] = 1;
-                          k_typename->size[1] = i1 - i0;
-                          emxEnsureCapacity((emxArray__common *)k_typename,
-                                            loop_ub, sizeof(char));
+                          loop_ub = b_typename->size[0] * b_typename->size[1];
+                          b_typename->size[0] = 1;
+                          b_typename->size[1] = i1 - i0;
+                          emxEnsureCapacity_char_T(b_typename, loop_ub);
                           loop_ub = i1 - i0;
                           for (i1 = 0; i1 < loop_ub; i1++) {
-                            k_typename->data[k_typename->size[0] * i1] =
+                            b_typename->data[b_typename->size[0] * i1] =
                               typename->data[i0 + i1];
                           }
 
-                          if (n_strcmp(k_typename)) {
+                          if (n_strcmp(b_typename)) {
                             n = 1;
                           } else {
                             if (5 > typename->size[1]) {
@@ -783,18 +745,17 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                               i1 = typename->size[1];
                             }
 
-                            loop_ub = j_typename->size[0] * j_typename->size[1];
-                            j_typename->size[0] = 1;
-                            j_typename->size[1] = i1 - i0;
-                            emxEnsureCapacity((emxArray__common *)j_typename,
-                                              loop_ub, sizeof(char));
+                            loop_ub = b_typename->size[0] * b_typename->size[1];
+                            b_typename->size[0] = 1;
+                            b_typename->size[1] = i1 - i0;
+                            emxEnsureCapacity_char_T(b_typename, loop_ub);
                             loop_ub = i1 - i0;
                             for (i1 = 0; i1 < loop_ub; i1++) {
-                              j_typename->data[j_typename->size[0] * i1] =
+                              b_typename->data[b_typename->size[0] * i1] =
                                 typename->data[i0 + i1];
                             }
 
-                            if (o_strcmp(j_typename)) {
+                            if (o_strcmp(b_typename)) {
                               n = 1;
                             } else {
                               if (5 > typename->size[1]) {
@@ -805,34 +766,32 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                                 i1 = typename->size[1];
                               }
 
-                              loop_ub = i_typename->size[0] * i_typename->size[1];
-                              i_typename->size[0] = 1;
-                              i_typename->size[1] = i1 - i0;
-                              emxEnsureCapacity((emxArray__common *)i_typename,
-                                                loop_ub, sizeof(char));
+                              loop_ub = b_typename->size[0] * b_typename->size[1];
+                              b_typename->size[0] = 1;
+                              b_typename->size[1] = i1 - i0;
+                              emxEnsureCapacity_char_T(b_typename, loop_ub);
                               loop_ub = i1 - i0;
                               for (i1 = 0; i1 < loop_ub; i1++) {
-                                i_typename->data[i_typename->size[0] * i1] =
+                                b_typename->data[b_typename->size[0] * i1] =
                                   typename->data[i0 + i1];
                               }
 
-                              if (p_strcmp(i_typename)) {
+                              if (p_strcmp(b_typename)) {
                                 n = 1;
                               } else {
-                                i0 = h_typename->size[0] * h_typename->size[1];
-                                h_typename->size[0] = 1;
-                                h_typename->size[1] = typename->size[1] + 1;
-                                emxEnsureCapacity((emxArray__common *)h_typename,
-                                                  i0, sizeof(char));
+                                i0 = b_typename->size[0] * b_typename->size[1];
+                                b_typename->size[0] = 1;
+                                b_typename->size[1] = typename->size[1] + 1;
+                                emxEnsureCapacity_char_T(b_typename, i0);
                                 loop_ub = typename->size[1];
                                 for (i0 = 0; i0 < loop_ub; i0++) {
-                                  h_typename->data[h_typename->size[0] * i0] =
+                                  b_typename->data[b_typename->size[0] * i0] =
                                     typename->data[typename->size[0] * i0];
                                 }
 
-                                h_typename->data[h_typename->size[0] *
+                                b_typename->data[b_typename->size[0] *
                                   typename->size[1]] = '\x00';
-                                m2c_error(h_typename);
+                                m2c_error(b_typename);
                               }
                             }
                           }
@@ -843,30 +802,10 @@ int mpi_get_sizeof(const emxArray_char_T *typename)
                 }
               }
             }
-
-            emxFree_char_T(&g_typename);
-            emxFree_char_T(&q_typename);
-            emxFree_char_T(&p_typename);
-            emxFree_char_T(&o_typename);
-            emxFree_char_T(&n_typename);
-            emxFree_char_T(&m_typename);
-            emxFree_char_T(&l_typename);
-            emxFree_char_T(&k_typename);
-            emxFree_char_T(&j_typename);
-            emxFree_char_T(&i_typename);
-            emxFree_char_T(&h_typename);
           }
-
-          emxFree_char_T(&f_typename);
         }
-
-        emxFree_char_T(&e_typename);
       }
-
-      emxFree_char_T(&d_typename);
     }
-
-    emxFree_char_T(&c_typename);
   }
 
   emxFree_char_T(&b_typename);

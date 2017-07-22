@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_rowind/crs_rowind_mex.c
+ * crs/codegen/lib/crs_rowind/crs_rowind_mex.c
  *
  * Auxiliary code for mexFunction of crs_rowind
  *

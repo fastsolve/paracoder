@@ -14,7 +14,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -35,7 +35,7 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -71,9 +71,8 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
 
   char * ptr;
   unsigned char msg0[1024];
-  emxArray_char_T *b_msg0;
-  emxArray_uint8_T *c_msg0;
-  emxArray_char_T *d_msg0;
+  emxArray_uint8_T *b_msg0;
+  emxArray_char_T *c_msg0;
   if (ranks->size[0] < n) {
     m2c_error();
   }
@@ -101,12 +100,12 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
     p = true;
   }
 
+  emxInit_char_T(&b_group, 2);
   if (!p) {
-    emxInit_char_T(&b_group, 2);
     resultlen = b_group->size[0] * b_group->size[1];
     b_group->size[0] = 1;
     b_group->size[1] = group->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_group, resultlen, sizeof(char));
+    emxEnsureCapacity_char_T(b_group, resultlen);
     loop_ub = group->type->size[1];
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
       b_group->data[b_group->size[0] * resultlen] = group->type->data
@@ -115,13 +114,12 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
 
     b_group->data[b_group->size[0] * group->type->size[1]] = '\x00';
     b_m2c_error(b_group);
-    emxFree_char_T(&b_group);
   }
 
   emxInit_uint8_T(&data0, 1);
   resultlen = data0->size[0];
   data0->size[0] = group->data->size[0];
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   loop_ub = group->data->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     data0->data[resultlen] = group->data->data[resultlen];
@@ -132,15 +130,14 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
   sizepe = sizeof(MPI_Group);
   resultlen = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity((emxArray__common *)data0, resultlen, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(data0, resultlen);
   for (resultlen = 0; resultlen < 9; resultlen++) {
     t0_type[resultlen] = x2[resultlen];
   }
 
   resultlen = newgroup->data->size[0];
   newgroup->data->size[0] = data0->size[0];
-  emxEnsureCapacity((emxArray__common *)newgroup->data, resultlen, sizeof
-                    (unsigned char));
+  emxEnsureCapacity_uint8_T(newgroup->data, resultlen);
   loop_ub = data0->size[0];
   for (resultlen = 0; resultlen < loop_ub; resultlen++) {
     newgroup->data->data[resultlen] = data0->data[resultlen];
@@ -150,7 +147,7 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
   resultlen = newgroup->type->size[0] * newgroup->type->size[1];
   newgroup->type->size[0] = 1;
   newgroup->type->size[1] = 9;
-  emxEnsureCapacity((emxArray__common *)newgroup->type, resultlen, sizeof(char));
+  emxEnsureCapacity_char_T(newgroup->type, resultlen);
   for (resultlen = 0; resultlen < 9; resultlen++) {
     newgroup->type->data[resultlen] = t0_type[resultlen];
   }
@@ -173,40 +170,38 @@ void mpi_Group_excl(const struct0_T *group, int n, const emxArray_int32_T *ranks
       loop_ub = resultlen;
     }
 
-    emxInit_char_T(&b_msg0, 2);
-    emxInit_uint8_T(&c_msg0, 2);
-    resultlen = c_msg0->size[0] * c_msg0->size[1];
-    c_msg0->size[0] = 1;
-    c_msg0->size[1] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)c_msg0, resultlen, sizeof(unsigned
-      char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[c_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&d_msg0, 1);
-    resultlen = d_msg0->size[0];
-    d_msg0->size[0] = loop_ub;
-    emxEnsureCapacity((emxArray__common *)d_msg0, resultlen, sizeof(char));
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      d_msg0->data[resultlen] = (signed char)c_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&c_msg0);
+    emxInit_uint8_T(&b_msg0, 2);
     resultlen = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
-    b_msg0->size[1] = (short)loop_ub;
-    emxEnsureCapacity((emxArray__common *)b_msg0, resultlen, sizeof(char));
-    loop_ub = (short)loop_ub;
+    b_msg0->size[1] = loop_ub;
+    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
     for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = d_msg0->data[resultlen];
+      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
     }
 
-    emxFree_char_T(&d_msg0);
-    c_m2c_error(b_msg0);
-    emxFree_char_T(&b_msg0);
+    emxInit_char_T(&c_msg0, 1);
+    resultlen = c_msg0->size[0];
+    c_msg0->size[0] = loop_ub;
+    emxEnsureCapacity_char_T(c_msg0, resultlen);
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
+    }
+
+    emxFree_uint8_T(&b_msg0);
+    resultlen = b_group->size[0] * b_group->size[1];
+    b_group->size[0] = 1;
+    b_group->size[1] = (short)loop_ub;
+    emxEnsureCapacity_char_T(b_group, resultlen);
+    loop_ub = (short)loop_ub;
+    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
+      b_group->data[b_group->size[0] * resultlen] = c_msg0->data[resultlen];
+    }
+
+    emxFree_char_T(&c_msg0);
+    c_m2c_error(b_group);
   }
 
+  emxFree_char_T(&b_group);
   *toplevel = true;
 }
 

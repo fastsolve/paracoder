@@ -1,5 +1,5 @@
 /*
- * codegen/lib/crs_diag/crs_diag_mex.c
+ * crs/codegen/lib/crs_diag/crs_diag_mex.c
  *
  * Auxiliary code for mexFunction of crs_diag
  *

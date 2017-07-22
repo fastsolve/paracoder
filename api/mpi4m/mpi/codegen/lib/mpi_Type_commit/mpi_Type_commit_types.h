@@ -1,7 +1,6 @@
 #ifndef MPI_TYPE_COMMIT_TYPES_H
 #define MPI_TYPE_COMMIT_TYPES_H
 #include "rtwtypes.h"
-
 #ifndef struct_emxArray_char_T
 #define struct_emxArray_char_T
 

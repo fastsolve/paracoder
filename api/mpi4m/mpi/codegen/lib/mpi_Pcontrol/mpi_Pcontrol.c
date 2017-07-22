@@ -12,7 +12,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i1, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i1);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i1 = 0; i1 < loop_ub; i1++) {
     b_varargin_3->data[i1] = varargin_3->data[i1];
@@ -48,7 +48,7 @@ void mpi_Pcontrol(int level, int *info, boolean_T *toplevel)
     i0 = c_msg0->size[0] * c_msg0->size[1];
     c_msg0->size[0] = 1;
     c_msg0->size[1] = resultlen;
-    emxEnsureCapacity((emxArray__common *)c_msg0, i0, sizeof(unsigned char));
+    emxEnsureCapacity_uint8_T(c_msg0, i0);
     for (i0 = 0; i0 < resultlen; i0++) {
       c_msg0->data[c_msg0->size[0] * i0] = msg0[i0];
     }
@@ -56,7 +56,7 @@ void mpi_Pcontrol(int level, int *info, boolean_T *toplevel)
     emxInit_char_T(&d_msg0, 1);
     i0 = d_msg0->size[0];
     d_msg0->size[0] = resultlen;
-    emxEnsureCapacity((emxArray__common *)d_msg0, i0, sizeof(char));
+    emxEnsureCapacity_char_T(d_msg0, i0);
     for (i0 = 0; i0 < resultlen; i0++) {
       d_msg0->data[i0] = (signed char)c_msg0->data[i0];
     }
@@ -65,7 +65,7 @@ void mpi_Pcontrol(int level, int *info, boolean_T *toplevel)
     i0 = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = (short)resultlen;
-    emxEnsureCapacity((emxArray__common *)b_msg0, i0, sizeof(char));
+    emxEnsureCapacity_char_T(b_msg0, i0);
     resultlen = (short)resultlen;
     for (i0 = 0; i0 < resultlen; i0++) {
       b_msg0->data[b_msg0->size[0] * i0] = d_msg0->data[i0];

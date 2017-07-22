@@ -18,7 +18,7 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity((emxArray__common *)b_varargin_3, i0, sizeof(char));
+  emxEnsureCapacity_char_T(b_varargin_3, i0);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
   for (i0 = 0; i0 < loop_ub; i0++) {
     b_varargin_3->data[i0] = varargin_3->data[i0];
@@ -48,8 +48,8 @@ static void m2c_error(void)
 void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T
                   *toplevel)
 {
-  emxArray_uint8_T *output;
   int n;
+  emxArray_uint8_T *output;
   boolean_T p;
   boolean_T b_p;
   boolean_T exitg1;
@@ -59,11 +59,9 @@ void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T
 
   int loop_ub;
   MPI_Request * ptr;
-  if (emlrtIsMATLABThread(emlrtRootTLSGlobal)) {
-    n = sizeof(MPI_Request);
-    if (reqs->data->size[0] < count * n) {
-      m2c_error();
-    }
+  n = sizeof(MPI_Request);
+  if (reqs->data->size[0] < count * n) {
+    m2c_error();
   }
 
   emxInit_uint8_T(&output, 1);
@@ -95,7 +93,7 @@ void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T
     n = b_reqs->size[0] * b_reqs->size[1];
     b_reqs->size[0] = 1;
     b_reqs->size[1] = reqs->type->size[1] + 1;
-    emxEnsureCapacity((emxArray__common *)b_reqs, n, sizeof(char));
+    emxEnsureCapacity_char_T(b_reqs, n);
     loop_ub = reqs->type->size[1];
     for (n = 0; n < loop_ub; n++) {
       b_reqs->data[b_reqs->size[0] * n] = reqs->type->data[reqs->type->size[0] *
@@ -109,7 +107,7 @@ void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T
 
   n = output->size[0];
   output->size[0] = reqs->data->size[0];
-  emxEnsureCapacity((emxArray__common *)output, n, sizeof(unsigned char));
+  emxEnsureCapacity_uint8_T(output, n);
   loop_ub = reqs->data->size[0];
   for (n = 0; n < loop_ub; n++) {
     output->data[n] = reqs->data->data[n];
