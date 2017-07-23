@@ -69,9 +69,8 @@ end
 
 if has_emxutil
     [emxC_str, emxH_str] = remove_stdemx_funcs(emxC_str, emxH_str, ctypes_str);
-else
-    [cfile_str, hfile_str] = remove_stdemx_funcs(cfile_str, hfile_str, ctypes_str);
 end
+[cfile_str, hfile_str] = remove_stdemx_funcs(cfile_str, hfile_str, ctypes_str);
 
 cfile_str = fix_emxInit(cfile_str, ctypes_str);
 
