@@ -1,4 +1,4 @@
-function bs = backsolve(R, bs, cend, ws) 
+function bs = backsolve(R, bs, cend, ws)
 % Perform backward substitution.
 %     bs = backsolve(R, bs)
 %     bs = backsolve(R, bs, cend)
@@ -7,8 +7,9 @@ function bs = backsolve(R, bs, cend, ws)
 %  The right-hand side vector bs can have multiple columns.
 %  By default, cend is size(R,2), and ws is ones.
 
-%#codegen -args {coder.typeof(0,[inf,inf],[1,0]), coder.typeof(0, [inf,inf],[1,0]), int32(0),...
-%#codegen coder.typeof(0, [inf,inf],[1,0])}
+%#codegen -args {m2c_mat, m2c_mat, int32(0), m2c_vec}
+%#codegen backsolve_2args -args {m2c_mat, m2c_mat}
+%#codegen backsolve_3args -args {m2c_mat, m2c_mat, int32(0)}
 
 if nargin<3; cend = int32(size(R,2)); end
 
