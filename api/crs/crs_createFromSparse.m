@@ -16,7 +16,8 @@ else
     nrows = int32(size(sp, 1));
 end
 
-A = crs_createFromAIJ(int32(is), int32(js), vs, ...
+% Note: In Octave, find returns row vectors instead of column vectors
+A = crs_createFromAIJ(int32(is(:)), int32(js(:)), vs(:), ...
     nrows, int32(size(sp, 2)));
 
 if nargout <= 1

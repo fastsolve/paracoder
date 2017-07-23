@@ -93,10 +93,10 @@ end
 if ~usem2c && (length(cfile_str) ~= length(cfile_str_orig) || has_emxutil)
     cfile_str = regexprep(cfile_str, ['(^|\n)(#include\s+"', func, '.h"\n)'], ...
         '$1$2#include "m2c.h"\n');
-    if has_emxutil
-        emxC_str = regexprep(emxC_str, ['(^|\n)(#include\s+"', func, '.h"\n)'], ...
-            '$1$2#include "m2c.h"\n');
-    end
+end
+if has_emxutil
+    emxC_str = regexprep(emxC_str, ['(^|\n)(#include\s+"', func, '.h"\n)'], ...
+        '$1$2#include "m2c.h"\n');
 end
 
 %% Change API definitinons.

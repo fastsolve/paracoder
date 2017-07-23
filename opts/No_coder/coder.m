@@ -13,6 +13,7 @@ p.ismatlabthread = true;
 p.unroll = @copy;
 p.resize = @copy;
 p.nullcopy = @copy;
+p.ignoreConst = @copy;
 
 p.opaque = @opaque;
 p.typeof = @copy;

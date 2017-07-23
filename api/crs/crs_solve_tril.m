@@ -1,12 +1,14 @@
 function b = crs_solve_tril(A, b)
 % crs_solve_tril Solves A\b, where A is lower triangular
-%     b = crs_forwardsolve_trans(A, b)
+%     b = crs_solve_tril(A, b)
 %  The matrix is assumed to be lower triangular. The right-hand side vector
 %  will be overwritten by A\b at output.
 
 %#codegen -args {crs_matrix, coder.typeof(0, [inf,1])}
 
-for i = 1:int32(length(A.row_ptr)) - 1
+n = int32(length(A.row_ptr) - 1);
+
+for i = 1:n
     cend = A.row_ptr(i+1) - 1;
     assert(A.col_ind(cend) == i && A.val(cend) ~= 0);
 

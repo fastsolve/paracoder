@@ -8,7 +8,9 @@ function b = crs_solve_triu(A, b)
 
 %#codegen -args {crs_matrix, coder.typeof(0, [inf,1])}
 
-for i = int32(length(A.row_ptr)) - 1:-1:1
+n = int32(length(A.row_ptr) - 1);
+
+for i = n:-1:1
     rstart = A.row_ptr(i);
     assert(A.col_ind(rstart) == i && A.val(rstart) ~= 0);
 
