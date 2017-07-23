@@ -5,13 +5,16 @@
 static void b_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
   emxArray_int32_T *A_col_ind, const emxArray_real_T *A_val, int A_nrows, int
   A_ncols, const emxArray_real_T *x, emxArray_real_T *b);
+static void b_crs_prodAtx_kernel(const emxArray_int32_T *row_ptr, const
+  emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
+  *x, int x_m, emxArray_real_T *b, int b_m, int nrows, int ncols, int nrhs);
 static void c_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
   emxArray_int32_T *A_col_ind, const emxArray_real_T *A_val, int A_nrows, int
   A_ncols, const emxArray_real_T *x, emxArray_real_T *b);
 static void crs_prodAtx_kernel(const emxArray_int32_T *row_ptr, const
   emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
   *x, int x_m, emxArray_real_T *b, int b_m, int nrows, int ncols, int nrhs,
-  boolean_T ismt);
+  boolean_T varargin_1);
 static void m2c_error(void);
 static void m2c_warn(void);
 static void b_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
@@ -24,8 +27,40 @@ static void b_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
   b->size[1] = x->size[1];
   emxEnsureCapacity_real_T(b, i0);
   i0 = b->size[0];
-  crs_prodAtx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i0, A_nrows,
-                     A_ncols, x->size[1], false);
+  b_crs_prodAtx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i0,
+                       A_nrows, A_ncols, x->size[1]);
+}
+
+static void b_crs_prodAtx_kernel(const emxArray_int32_T *row_ptr, const
+  emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
+  *x, int x_m, emxArray_real_T *b, int b_m, int nrows, int ncols, int nrhs)
+{
+  int boffset;
+  int xoffset;
+  int k;
+  int i;
+  int j;
+  int r;
+  boffset = 0;
+  if (1 <= nrows) {
+    xoffset = -1;
+    for (k = 1; k <= nrhs; k++) {
+      i = boffset + ncols;
+      for (j = boffset; j + 1 <= i; j++) {
+        b->data[j] = 0.0;
+      }
+
+      for (i = 1; i <= nrows; i++) {
+        for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
+          r = (boffset + col_ind->data[j - 1]) - 1;
+          b->data[r] += x->data[i + xoffset] * val->data[j - 1];
+        }
+      }
+
+      xoffset += x_m;
+      boffset += b_m;
+    }
+  }
 }
 
 static void c_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
@@ -38,14 +73,14 @@ static void c_crs_prodAtx(const emxArray_int32_T *A_row_ptr, const
   }
 
   i2 = b->size[0];
-  crs_prodAtx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i2, A_nrows,
-                     A_ncols, x->size[1], false);
+  b_crs_prodAtx_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], b, i2,
+                       A_nrows, A_ncols, x->size[1]);
 }
 
 static void crs_prodAtx_kernel(const emxArray_int32_T *row_ptr, const
   emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
   *x, int x_m, emxArray_real_T *b, int b_m, int nrows, int ncols, int nrhs,
-  boolean_T ismt)
+  boolean_T varargin_1)
 {
   int nthreads;
   int boffset;
@@ -57,7 +92,7 @@ static void crs_prodAtx_kernel(const emxArray_int32_T *row_ptr, const
   int threadID;
   int j;
   int i;
-  if (ismt) {
+  if (varargin_1) {
     b_nthreads = omp_get_num_threads();
     nthreads = (int)floor((double)b_m / (double)ncols);
     if (b_nthreads < nthreads) {
@@ -171,23 +206,23 @@ void crs_prodAtx(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T
                  *b, const emxArray_int32_T *nthreads)
 {
   int n;
-  boolean_T ismt;
   int i1;
   if ((b->size[0] < A->ncols) || (b->size[1] < x->size[1])) {
     m2c_error();
   }
 
-  n = omp_get_num_threads();
-  ismt = (n > 1);
   if (!(nthreads->size[0] == 0)) {
     n = omp_get_nested();
-    if ((!(n != 0)) && ismt && (nthreads->data[0] > 1)) {
+    if (!(n != 0)) {
+      n = omp_get_num_threads();
+      if ((n > 1) && (nthreads->data[0] > 1)) {
 
 #pragma omp master
-      {
-        m2c_warn();
-      }
+        {
+          m2c_warn();
+        }
 
+      }
     }
 
 #pragma omp parallel default(shared) num_threads(nthreads->data[0])
@@ -199,9 +234,16 @@ void crs_prodAtx(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T
     }
 
   } else {
-    i1 = b->size[0];
-    crs_prodAtx_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], b, i1,
-                       A->nrows, A->ncols, x->size[1], ismt);
+    n = omp_get_num_threads();
+    if (n == 1) {
+      i1 = b->size[0];
+      b_crs_prodAtx_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], b, i1,
+                           A->nrows, A->ncols, x->size[1]);
+    } else {
+      i1 = b->size[0];
+      crs_prodAtx_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], b, i1,
+                         A->nrows, A->ncols, x->size[1], true);
+    }
   }
 }
 

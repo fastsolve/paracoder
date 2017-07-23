@@ -2,31 +2,46 @@
 #include "omp.h"
 #include "m2c.h"
 
-static void b_crs_Axpy(const emxArray_int32_T *A_row_ptr, const emxArray_int32_T
-  *A_col_ind, const emxArray_real_T *A_val, int A_nrows, const emxArray_real_T
-  *x, emxArray_real_T *y);
+static void b_crs_Axpy_kernel(const emxArray_int32_T *row_ptr, const
+  emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
+  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs);
 static void crs_Axpy_kernel(const emxArray_int32_T *row_ptr, const
   emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
-  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs, boolean_T ismt);
+  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs, boolean_T
+  varargin_1);
 static void m2c_error(void);
 static void m2c_warn(void);
-static void b_crs_Axpy(const emxArray_int32_T *A_row_ptr, const emxArray_int32_T
-  *A_col_ind, const emxArray_real_T *A_val, int A_nrows, const emxArray_real_T
-  *x, emxArray_real_T *y)
+static void b_crs_Axpy_kernel(const emxArray_int32_T *row_ptr, const
+  emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
+  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs)
 {
-  int i0;
-  if ((y->size[0] < A_nrows) || (y->size[1] < x->size[1])) {
-    m2c_error();
-  }
+  int xoffset;
+  int boffset;
+  int k;
+  int i;
+  double t;
+  int j;
+  xoffset = -1;
+  boffset = -1;
+  for (k = 1; k <= nrhs; k++) {
+    for (i = 1; i <= nrows; i++) {
+      t = y->data[boffset + i];
+      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
+        t += val->data[j - 1] * x->data[xoffset + col_ind->data[j - 1]];
+      }
 
-  i0 = y->size[0];
-  crs_Axpy_kernel(A_row_ptr, A_col_ind, A_val, x, x->size[0], y, i0, A_nrows,
-                  x->size[1], false);
+      y->data[boffset + i] = t;
+    }
+
+    xoffset += x_m;
+    boffset += b_m;
+  }
 }
 
 static void crs_Axpy_kernel(const emxArray_int32_T *row_ptr, const
   emxArray_int32_T *col_ind, const emxArray_real_T *val, const emxArray_real_T
-  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs, boolean_T ismt)
+  *x, int x_m, emxArray_real_T *y, int b_m, int nrows, int nrhs, boolean_T
+  varargin_1)
 {
   int istart;
   int iend;
@@ -36,7 +51,7 @@ static void crs_Axpy_kernel(const emxArray_int32_T *row_ptr, const
   int i;
   double t;
   int j;
-  if (ismt) {
+  if (varargin_1) {
     iend = omp_get_num_threads();
     if (iend == 1) {
       istart = 0;
@@ -91,28 +106,30 @@ void crs_Axpy(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T *y,
               int nthreads)
 {
   int n;
-  int b_n;
+  int i0;
   if ((y->size[0] < A->nrows) || (y->size[1] < x->size[1])) {
     m2c_error();
   }
 
-  n = omp_get_num_threads();
-  b_n = omp_get_nested();
-  if ((!(b_n != 0)) && (n > 1) && (nthreads > 1)) {
+  n = omp_get_nested();
+  if (!(n != 0)) {
+    n = omp_get_num_threads();
+    if ((n > 1) && (nthreads > 1)) {
 
 #pragma omp master
-    {
-      m2c_warn();
-    }
+      {
+        m2c_warn();
+      }
 
+    }
   }
 
 #pragma omp parallel default(shared) num_threads(nthreads)
   {
     n = omp_get_num_threads();
-    b_n = y->size[0];
-    crs_Axpy_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], y, b_n,
-                    A->nrows, x->size[1], n > 1);
+    i0 = y->size[0];
+    crs_Axpy_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], y, i0, A->nrows,
+                    x->size[1], n > 1);
   }
 
 }
@@ -124,7 +141,14 @@ void crs_Axpy_initialize(void)
 void crs_Axpy_ser1(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T
                    *b)
 {
-  b_crs_Axpy(A->row_ptr, A->col_ind, A->val, A->nrows, x, b);
+  int i1;
+  if ((b->size[0] < A->nrows) || (b->size[1] < x->size[1])) {
+    m2c_error();
+  }
+
+  i1 = b->size[0];
+  b_crs_Axpy_kernel(A->row_ptr, A->col_ind, A->val, x, x->size[0], b, i1,
+                    A->nrows, x->size[1]);
 }
 
 void crs_Axpy_terminate(void)

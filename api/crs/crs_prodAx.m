@@ -37,8 +37,6 @@ function b = crs_prodAx(A, x, b, nthreads)
 %#codegen crs_prodAx_ser -args {crs_matrix, coder.typeof(0, [inf,inf])}
 %#codegen crs_prodAx_ser1 -args {crs_matrix, coder.typeof(0, [inf,inf]), coder.typeof(0, [inf,inf])}
 
-coder.inline('never');
-
 if nargin == 2
     b = coder.nullcopy(zeros(A.nrows, size(x, 2)));
 else
@@ -46,11 +44,10 @@ else
         m2c_error('crs_prodAx:BufferTooSmal', 'Buffer space for output b is too small.');
     end
 end
-ismt = nargin >= 4 && ompGetNumThreads > 1;
 
 if nargin > 3 && ~isempty(nthreads)
     %% Declare parallel region
-    if ~ompGetNested && ismt && nthreads(1) > 1
+    if ~ompGetNested && ompGetNumThreads > 1 && nthreads(1) > 1
         OMP_begin_master
         m2c_warn('crs_prodAx:NestedParallel', ...
             'You are trying to use nested parallel regions. Solution may be incorrect.');
@@ -65,17 +62,21 @@ if nargin > 3 && ~isempty(nthreads)
 
     %% End parallel region
     OMP_end_parallel;
+elseif nargin < 4 || ompGetNumThreads == 1
+    %% Compute b=A*x
+    b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
+        b, int32(size(b, 1)), A.nrows, int32(size(x, 2)));
 else
     %% Compute b=A*x
     b = crs_prodAx_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
-        b, int32(size(b, 1)), A.nrows, int32(size(x, 2)), ismt);
+        b, int32(size(b, 1)), A.nrows, int32(size(x, 2)), true);
 end
 
 function b = crs_prodAx_kernel(row_ptr, col_ind, val, ...
-    x, x_m, b, b_m, nrows, nrhs, ismt)
+    x, x_m, b, b_m, nrows, nrhs, varargin)
 
 coder.inline('never');
-if ismt
+if ~isempty(varargin) && varargin{1}
     [istart, iend] = OMP_local_chunk(nrows);
 else
     istart = int32(1); iend = nrows;

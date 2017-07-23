@@ -6,6 +6,8 @@ function b = crs_solve_tril(A, b)
 
 %#codegen -args {crs_matrix, coder.typeof(0, [inf,1])}
 
+coder.inline('always');
+
 n = int32(length(A.row_ptr) - 1);
 
 for i = 1:n

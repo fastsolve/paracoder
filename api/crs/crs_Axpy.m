@@ -36,16 +36,14 @@ function y = crs_Axpy(A, x, y, nthreads)
 %#codegen -args {crs_matrix, coder.typeof(0, [inf,inf]), coder.typeof(0, [inf,inf]),int32(0)}
 %#codegen crs_Axpy_ser1 -args {crs_matrix, coder.typeof(0, [inf,inf]), coder.typeof(0, [inf,inf])}
 
-coder.inline('never');
-
 if size(y, 1) < A.nrows || size(y, 2) < size(x, 2)
     m2c_error('crs_Axpy:BufferTooSmal', 'Buffer space for output y is too small.');
 end
-ismt = nargin >= 4 && ompGetNumThreads > 1;
+
 
 if nargin > 3 && ~isempty(nthreads)
     %% Declare parallel region
-    if ~ompGetNested && ismt && nthreads(1) > 1
+    if ~ompGetNested && ompGetNumThreads > 1 && nthreads(1) > 1
         OMP_begin_master
         m2c_warn('crs_Axpy:NestedParallel', ...
             'You are trying to use nested parallel regions. Solution may be incorrect.');
@@ -60,17 +58,21 @@ if nargin > 3 && ~isempty(nthreads)
 
     %% End parallel region
     OMP_end_parallel;
+elseif nargin < 4 || ompGetNumThreads == 1
+    %% Compute y=A*x+y
+    y = crs_Axpy_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
+        y, int32(size(y, 1)), A.nrows, int32(size(x, 2)));
 else
     %% Compute y=A*x+y
     y = crs_Axpy_kernel(A.row_ptr, A.col_ind, A.val, x, int32(size(x, 1)), ...
-        y, int32(size(y, 1)), A.nrows, int32(size(x, 2)), ismt);
+        y, int32(size(y, 1)), A.nrows, int32(size(x, 2)), true);
 end
 
 function y = crs_Axpy_kernel(row_ptr, col_ind, val, ...
-    x, x_m, y, b_m, nrows, nrhs, ismt)
+    x, x_m, y, b_m, nrows, nrhs, varargin)
 
 coder.inline('never');
-if ismt
+if ~isempty(varargin) && varargin{1}
     [istart, iend] = OMP_local_chunk(nrows);
 else
     istart = int32(1); iend = nrows;

@@ -64,11 +64,9 @@ elseif size(Ax,1)<A.nrows || size(Ax,2)~=size(x,2)
     OMP_end_master
 end
 
-ismt = nargin>=5 && ompGetNumThreads>1;
-
 %% Declare parallel region
 if nargin>=5 && ~isempty(nthreads)
-    if ~ompGetNested && ismt && nthreads(1)>1
+    if ~ompGetNested && ompGetNumThreads>1 && nthreads(1)>1
         OMP_begin_master
         m2c_warn('crs_prodAtAx:NestedParallel', ...
             'You are trying to use nested parallel regions, but nested parallelism is not enabled.');
@@ -85,7 +83,7 @@ if nargin>=5 && ~isempty(nthreads)
     b = crs_prodAtx(A, Ax, b, [], varargin{:});
     
     OMP_end_parallel(Ax);
-elseif ismt
+elseif nargin>=5 && ompGetNumThreads>1
     if nargout<2
         OMP_begin_master
         m2c_warn('crs_prodAtAx:MissingBuffer', ...
