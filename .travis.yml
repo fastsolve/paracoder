@@ -10,10 +10,6 @@ matrix:
       dist: trusty
       sudo: required
       env: UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
-    - os: osx
-      env: BUILD_MATLAB=0
-    - os: osx
-      env: BUILD_MATLAB=1
 
 before_install:
   - git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil &&
