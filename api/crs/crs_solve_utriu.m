@@ -2,7 +2,7 @@ function b = crs_solve_utriu(U, b, varargin)
 % crs_solve_utriu Solves U\b, where U is unit upper triangular
 %     b = crs_solve_utriu(U, b) solves U\b, where U stores the strict 
 %     upper triangular part of U. The right-hand side vector will be 
-%     overwritten by U'\b at output.
+%     overwritten by U\b at output.
 %
 %     b = crs_solve_utriu(U, b, offset) uses b(offset+1:offset+n) 
 %     instead of b for the rhs and solution vector, where n=size(U,1).

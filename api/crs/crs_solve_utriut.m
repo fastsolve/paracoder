@@ -31,10 +31,8 @@ end
 function test %#ok<DEFNU>
 %!test
 %! for k=1:100
-%!     R = triu(rand(10,10), 1); b = rand(10, 1);
-%!     if condest(R) < 1.e5
-%!         U = crs_createFromSparse(sparse(R));
-%!         us = crs_solve_utriut(U, b);
-%!         assert(norm((R + spdiag(10))' * us - b) <= 1.e-10);
-%!     end
+%!     T = triu(rand(10,10), 1); b = rand(10, 1);
+%!     U = crs_createFromSparse(sparse(T));
+%!     us = crs_solve_utriut(U, b);
+%!     assert(norm((T + speye(10))' * us - b) <= 1.e-10);
 %! end

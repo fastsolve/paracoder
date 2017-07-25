@@ -8,6 +8,7 @@ cd(apiroot);
 
 try
     lines = [grep_pattern('crs/crs*.m', '\n%#codegen -args'), ...
+        grep_pattern('ccs/ccs*.m', '\n%#codegen -args'), ...
         grep_pattern('dense/solve/*.m', '\n%#codegen -args')];
     files = regexp(lines, '[\w\\\/]+\.m', 'match');
 

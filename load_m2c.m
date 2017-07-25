@@ -32,6 +32,7 @@ addpath([m2croot '/api/mtypes']);
 
 % Add path for matrix operations
 addpath([m2croot '/api/crs']);
+addpath([m2croot '/api/ccs']);
 addpath([m2croot '/api/dense/geom']);
 addpath([m2croot '/api/dense/vec']);
 addpath([m2croot '/api/dense/solve']);
