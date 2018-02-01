@@ -79,6 +79,6 @@ else
     addpath([m2croot '/util/getMD5']);
     [~, ~, GetMD5_ext] = fileparts(which('GetMD5'));
     if isequal(GetMD5_ext, '.m')
-        GetMD5
+        InstallMex('GetMD5.c');
     end
 end
