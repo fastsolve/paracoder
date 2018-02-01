@@ -77,4 +77,8 @@ if isoctave
     end
 else
     addpath([m2croot '/util/getMD5']);
+    [~, ~, GetMD5_ext] = fileparts(which('GetMD5'));
+    if isequal(GetMD5_ext, '.m')
+        GetMD5
+    end
 end

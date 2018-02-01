@@ -1,3 +1,4 @@
+
 function GetMD5
 % GetMD5 - 128 bit MD5 checksum: file, string, array, byte stream
 % This function calculates a 128 bit checksum for arrays or files.
