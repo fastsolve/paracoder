@@ -1,19 +1,16 @@
 language: C
-
+os: linux
+dist: trusty
+sudo: required
+      
 matrix:
   include:
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: UPDATE_REPOSITORY="true"
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
+    - env: UPDATE_REPOSITORY="true"
+    - env: UPDATE_REPOSITORY="add-apt-repository -y ppa:octave/stable"
 
 before_install:
   - git clone --depth 1 https://github.com/hpdata/gdutil $HOME/gdutil &&
-    pip install --ignore-installed -r $HOME/gdutil/requirements.txt &&
+    sudo pip install --ignore-installed -r $HOME/gdutil/requirements.txt &&
     echo "$CRED" > mycred.txt
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         $HOME/gdutil/bin/gd-get -i "$ACCESSKEY_LINUX" -o /tmp/mex.tgz;
