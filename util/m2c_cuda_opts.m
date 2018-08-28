@@ -9,8 +9,8 @@ if isempty(opts__) && ~iscell(opts__)
     if getenv('CUDA_PATH')
         opts__ = {'-cuda'};
     else
-        [~, result] = system('which nvcc');
-        if ~isempty(strtrim(result)) && ~strfind(result, 'not found')
+        [status, result] = system('which nvcc 2>&1');
+        if ~status
             cuda_dir = fileparts(fileparts(strtrim(result)));
             opts__ = {'-cuda', ['{''' cuda_dir '''}']};
         else
