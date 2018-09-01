@@ -9,6 +9,8 @@ function bs = qr_qtmulti(A, bs, ncols, V)
 
 %#codegen -args {coder.typeof(0,[inf,inf]), coder.typeof(0,[inf,inf]),
 %#codegen int32(0), coder.typeof(0,[inf,1])}
+%#codegen qr_qtmulti_2args -args {coder.typeof(0,[inf,inf]), coder.typeof(0,[inf,inf])}
+%#codegen qr_qtmulti_3args -args {coder.typeof(0,[inf,inf]), coder.typeof(0,[inf,inf]), int32(0)}
 
 nrows = int32(size(A, 1));
 if nargin < 3; ncols = int32(size(A, 2)); end

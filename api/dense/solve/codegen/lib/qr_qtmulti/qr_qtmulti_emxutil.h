@@ -1,5 +1,6 @@
 #ifndef QR_QTMULTI_EMXUTIL_H
 #define QR_QTMULTI_EMXUTIL_H
+#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
