@@ -11,12 +11,12 @@ if isempty(coder.target) && isa(A,'sym')
 else
     R = coder.nullcopy(zeros(2,2));
 end
-R(1,1) = sqrt(sqnorm2_vec(A(:,1)));
+R(1,1) = sqrt(vec_sqnorm2(A(:,1)));
 A(:,1) = A(:,1)/R(1,1);
 R(1,2) = A(:,1)'*A(:,2);
 
 A(:,2) = A(:,2) - R(1,2)*A(:,1);
-R(2,2) = sqrt(sqnorm2_vec(A(:,2)));
+R(2,2) = sqrt(vec_sqnorm2(A(:,2)));
 A(:,2) = A(:,2)/R(2,2);
 
 function test %#ok<DEFNU>

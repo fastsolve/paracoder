@@ -10,7 +10,7 @@ function [t1, t2, V, ls] = orth_dirs(v0, A) %#codegen
 %          eigenvalues of TAT, where T=I-v0*v0'.
 
 if nargin>1 && ~isempty(A) && any(A(:))
-    assert(abs(norm2_vec(v0)-1)<1.e-12);
+    assert(abs(vec_norm2(v0)-1)<1.e-12);
     
     A(2,1)=A(1,2); A(3,1)=A(1,3); A(3,2)=A(2,3);
     
@@ -30,7 +30,7 @@ end
 
 if ls(1)>0
     t1 = V(:,1);
-    assert(abs(norm2_vec(t1)-1)<1.e-12 && abs(v0'*t1)<1.e-12);
+    assert(abs(vec_norm2(t1)-1)<1.e-12 && abs(v0'*t1)<1.e-12);
 else
     absv0 = abs(v0);
     if (absv0(1)>absv0(2) && absv0(1)>absv0(3));
