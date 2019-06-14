@@ -1099,7 +1099,9 @@ while i<=last_index
                 end
             elseif length(opt)>=2 && (isequal(opt(1:2), '-D') || isequal(opt(1:2), '-I'))
                 m2c_opts.cppflags = [m2c_opts.cppflags, opt];
-            elseif length(opt)>=2 && (isequal(opt(1:2), '-L') || isequal(opt(1:2), '-l'))
+            elseif length(opt)>=2 && isequal(opt(1:2), '-L')
+                m2c_opts.libs = [m2c_opts.libs, dylibdir(opt(3:end))];
+            elseif length(opt)>=2 && isequal(opt(1:2), '-l')
                 m2c_opts.libs = [m2c_opts.libs, opt];
             else
                 error('m2c:wrong_argument', 'Unrecognized argument %s.\n', opt);
