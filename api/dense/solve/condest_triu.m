@@ -13,7 +13,10 @@ function [kappa,buf] = condest_triu(R, m, maxiter, buf)
 %
 % See also normest, qrcp_trucate
 
-%#codegen -args {coder.typeof(0,[inf,inf]), int32(0), int32(0)}
+%#codegen -args {coder.typeof(0,[inf,inf]), int32(0), int32(0), 
+%#    coder.typeof(struct('x', coder.typeof(0, [inf,1]), 'z', 
+%#    coder.typeof(0, [inf,1])))} condest_triu_3args -args 
+%#    {coder.typeof(0,[inf,inf]), int32(0), int32(0)}
 
 %   Reference:
 %   William W. Hager, Condition estimates, SIAM J. Sci. Stat. Comput.
@@ -22,7 +25,7 @@ function [kappa,buf] = condest_triu(R, m, maxiter, buf)
 
 if nargin<2 || m==0; m = min(int32(size(R,1)),int32(size(R,2))); end
 if nargin<3; maxiter = int32(2); end
-if nargin<4; 
+if nargin<4
     buf.x = zeros(m,1); buf.z = zeros(m,1);
 else
     assert(isfield(buf, 'x') && size(buf.x,1)>=m && size(buf.x,2)==1);
