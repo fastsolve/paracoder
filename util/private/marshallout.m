@@ -3,13 +3,13 @@ function [str, structDefs, maxDim, hasCuError] = marshallout(vars, pruned_vars, 
 % Marshall function output arguments.
 % In readonly, the variables are readonly and are not marshallled out.
 
-if nargin<6; 
-    cprefix = ''; 
+if nargin<6
+    cprefix = '';
     mx_index = [];
     readonly = false;
 end
 
-str=char(10);
+str=newline;
 
 maxDim = false;
 hasCuError = false;
@@ -19,11 +19,11 @@ for i=1:length(vars)
     if isempty(cprefix) && isempty(var.iindex) && isempty(var.oindex)
         continue;
     end
-    
+
     readonly_var = readonly || isempty(cprefix) && isempty(var.oindex);
     j = var.oindex;
     cvarname = [cprefix var.cname];
-    
+
     if isempty(cprefix)
         if ~readonly_var
             lhs = ['plhs[' num2str(j-1) '] = '];
@@ -35,7 +35,7 @@ for i=1:length(vars)
         else
             rhs = '';
         end
-        
+
         closeParen = '';
 
         if ~iscuda && (strncmp(var.type, 'emxArray_', 9) || prod(var.size)==1 && ...
@@ -57,7 +57,7 @@ for i=1:length(vars)
         else
             rhs = '';
         end
-        
+
         if isempty(var.modifier)
             cvarname_ptr = ['&' cvarname];
         else
@@ -73,7 +73,7 @@ for i=1:length(vars)
 
     str_gpu = '';
     str_mx = '';
-    
+
     if isequal(var.type, ['emxArray_', var.basetype]) || ...
             isequal(var.type, ['emxArray_', var.structname])
         % Case 1: A full emxArray
@@ -125,7 +125,7 @@ for i=1:length(vars)
     elseif var.isemx && (isempty(var.sizefield) || isempty(var.modifier))
         % Case 2. A reduced emxArray with only data and size fields
         assert(~isempty(cprefix));
-            
+
         if ~readonly_var && ~iscuda
             str = sprintf('%s%s\n', str, ...
                 ['    ' lhs 'copy_array_to_mxArray(' ...
@@ -154,7 +154,7 @@ for i=1:length(vars)
             if ~isempty(var.subfields)
                 if ~readonly_var
                     args = [cvarname_ptr ', ' num2str(length(var.size)) ', ' ...
-                        cprefix vars(var.sizefield).cname];                    
+                        cprefix vars(var.sizefield).cname];
                     str = sprintf('%s\n', str(1:end-1), ...
                         ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
                 elseif ~isempty(marshalloutFuncName)
@@ -216,7 +216,7 @@ for i=1:length(vars)
                             ['    _dims[' num2str(k-1) '] = ' num2str(var.size(k)) ';']);
                     end
 
-                    args = [cvarname_ptr ', ' num2str(length(var.size)) ', _dims'];                    
+                    args = [cvarname_ptr ', ' num2str(length(var.size)) ', _dims'];
                     str = sprintf('%s\n', str(1:end-1), ...
                         ['    ' lhs marshalloutFuncName '(' args ')' closeParen ';']);
                 elseif ~isempty(marshalloutFuncName)
@@ -227,7 +227,7 @@ for i=1:length(vars)
                 if isempty(cprefix) && prod(var.size)>1 || var.vardim
                     str = sprintf('%s%s\n', str, ...
                         ['    mxFree(' cvarname_ptr ');']);
-                end                
+                end
             elseif ~readonly_var
                 if ~isempty(rhs)
                     str = sprintf('%s%s\n', str, ...
@@ -248,13 +248,13 @@ for i=1:length(vars)
                     else
                         copyFunc = 'move_array_to_mxArray';
                     end
-                    
+
                     maxDim = max(maxDim, length(var.size));
                     for k = 1:length(var.size)
                         str = sprintf('%s\n', str(1:end-1), ...
                             ['    _dims[' num2str(k-1) '] = ' num2str(var.size(k)) ';']);
                     end
-                    
+
                     str = sprintf('%s\n', str, ...
                         ['    ' lhs copyFunc '(' cvarname_ptr ', ' ...
                         getMxClassID(var.basetype) ', ' num2str(length(var.size)) ', _dims' closeParen ');']);
@@ -280,7 +280,7 @@ for i=1:length(vars)
                     ['        _ierr = cudaFree(' cvarname_ptr '); CHKCUERR(_ierr, "cudaFree");']);
                 hasCuError = true;
             end
-        end        
+        end
     else
         if ~isempty(var.subfields)
             if ~isempty(marshalloutFuncName)
@@ -307,7 +307,7 @@ for i=1:length(vars)
                 ['    /* Nothing to be done for ' var.mname ' */']);
         end
     end
-    
+
     if ~isempty(str_gpu) && ~isempty(str_mx)
         assert(~isempty(rhs));
         str = sprintf('%s\n', str, ...
@@ -333,7 +333,7 @@ end
 
 % Process pruned variables
 for i=1:length(pruned_vars)
-    var = pruned_vars(i);    
+    var = pruned_vars(i);
     str = sprintf('%s\n', str, ...
         ['    /* Creating empty mxArray for pruned variable ' var.mname ' */']);
 
@@ -345,7 +345,7 @@ for i=1:length(pruned_vars)
 
     str = sprintf('%s\n', str, ...
         ['    plhs[' num2str(pruned_vars(i).oindex-1) '] = copy_array_to_mxArray(NULL, ' ...
-        'mx' upper(var.type) '_CLASS, ' num2str(length(var.size)) ', _dims);']);
+        getMxClassID(var.type) ', ' num2str(length(var.size)) ', _dims);']);
 end
 
 if isempty(cprefix) && ~isempty(str)
@@ -406,7 +406,7 @@ if strncmp(type, 'emxArray_', 9)
         decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', 'int', 'nElems = numElements(pEmx->numDimensions, pEmx->size)'));
     end
-    
+
     mx_index = 'i';
     decl_vars = sprintf('%s\n', decl_vars, ...
         sprintf('    %-20s %s;', 'int', 'i'));
@@ -420,10 +420,10 @@ elseif hasArray
             num2str(length(structDefs.(type).fields)) ', fields)']));
         decl_vars = sprintf('%s\n', decl_vars, ...
             sprintf('    %-20s %s;', 'int', 'nElems = numElements(nDims, dims)'));
-    else        
+    else
         args = [type ' *' varname ', int nElems'];
     end
-    
+
     mx_index = 'i';
     decl_vars = sprintf('%s\n', decl_vars, ...
         sprintf('    %-20s %s;', 'int', 'i'));
@@ -436,7 +436,7 @@ else
             sprintf('    %-20s %s;', 'mxArray', ['*mx = create_struct_mxArray(1, &one, ' ...
             num2str(length(structDefs.(type).fields)) ', fields)']));
     end
-    
+
     args = [type ' *' varname];
     mx_index = '0';
     cprefix = 'pStruct->';
@@ -525,7 +525,7 @@ if iscuda
             '    _ierr = cudaFree(pStruct); CHKCUERR(_ierr, "cudaFree");');
     end
 end
-    
+
 if hasCuError_local || hasCuError_struct
     decl_vars = sprintf('%s%s\n', decl_vars, ...
         sprintf('    %-20s %s;', 'cudaError_t', '_ierr'));

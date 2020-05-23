@@ -436,7 +436,7 @@ if regen_c
         co_cfg.FilePartitionMethod = 'SingleFile';
 
         co_cfg.GenCodeOnly = true;
-        co_cfg.GenerateReport = true;
+        co_cfg.GenerateReport = m2c_opts.debugInfo;
         co_cfg.InitFltsAndDblsToZero = true;
         co_cfg.SupportNonFinite = m2c_opts.enableInf;
 
@@ -775,7 +775,7 @@ while i<=last_index
             m2c_opts.optimLevel = 3;
             m2c_opts.enableInline = true;
             m2c_opts.presVars = 'None';
-            m2c_opts.dynMem = 'Threshold';
+            m2c_opts.dynMem = 'AllVariableSizeArrays';
         case '-inline'
             m2c_opts.enableInline = true;
         case '-no-inline'

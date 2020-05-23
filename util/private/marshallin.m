@@ -24,7 +24,7 @@ for i=1:length(vars)
     j = var.iindex;
     writeonly_var = writeonly || isempty(cprefix) && isempty(var.iindex) && ~isempty(var.oindex);
     rwmode_var = rw_mode || isempty(cprefix) && ~isempty(var.oindex) && ~isempty(var.iindex);
-    
+
     str = sprintf('%s\n', str);
     cvarname = [cprefix var.cname];
 
@@ -35,7 +35,7 @@ for i=1:length(vars)
         else
             rhs = '';
         end
-        
+
         if ~iscuda && (strncmp(var.type, 'emxArray_', 9) || prod(var.size)==1 && ...
                 ~var.vardim && (~isempty(var.subfields) || isempty(var.modifier)))
             cvarname_ptr = ['&' cvarname];
@@ -50,7 +50,7 @@ for i=1:length(vars)
         else
             rhs = '';
         end
-        
+
         if isempty(var.modifier)
             cvarname_ptr = ['&' cvarname];
         else
@@ -60,7 +60,7 @@ for i=1:length(vars)
 
     str_gpu = '';
     str_mx = '';
-    
+
     if ~writeonly_var
         % Check type
         errchk = sprintf('%s\n', ...
@@ -69,7 +69,7 @@ for i=1:length(vars)
             ['        mexErrMsgIdAndTxt("' funcname ':WrongInputType",'],...
             ['            "Input argument ' var.mname ' has incorrect data type; ' ...
             getMatlabClass(var.basetype) ' is expected.");']);
-        
+
         if ~iscuda || isempty(var.modifier)
             str = sprintf('%s\n', str, errchk);
         else
@@ -80,12 +80,12 @@ for i=1:length(vars)
                 ['            mexErrMsgIdAndTxt("' funcname ':WrongInputType",'],...
                 ['                "Input argument ' var.mname ' has incorrect data type; ' ...
                 getMatlabClass(var.basetype) ' is expected.");']);
-            
+
             str_mx = sprintf('%s    %s', str_mx, ....
                 strrep(errchk, [char(10) '    '], [char(10) '        ']));
         end
     end
-    
+
     if ~writeonly_var && prod(var.size) == 1 && ~any(var.vardim)
         % Check size of a scalar input
         str = sprintf('%s\n', str(1:end-1), ...
@@ -107,24 +107,24 @@ for i=1:length(vars)
                     ['        int  _nDims = mxGetNumberOfDimensions(' rhs ');']);
             end
         end
-        
+
         for k=1:max(length(var.size),2)
             % The higher dimensions are checked in lib2mex_helper.c
             getdim_mx = ['mxGetDimensions(' rhs ')[' num2str(k-1) ']'];
             getdim_gpu = ['_dims[' num2str(k-1) ']'];
-            
+
             if k>length(var.vardim) || var.size(k)==1 && ~var.vardim(k)
                 if k>2
                     dimerr_mx = ['_nDims>' num2str(k) ' && ' getdim_mx ' != 1'];
                 else
                     dimerr_mx = [getdim_mx ' != 1'];
                 end
-                
+
                 errchk = sprintf('%s\n', ...
                     ['    if (mxGetNumberOfElements(' rhs ') && ' dimerr_mx ') '], ...
                     ['        mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
                     ['            "Dimension ' num2str(k) ' of ' var.mname ...
-                    ' should equal 1.");']);
+                    ' should be equal to 1.");']);
                 if ~iscuda
                     str = sprintf('%s', str, errchk);
                 else
@@ -133,7 +133,7 @@ for i=1:length(vars)
                         ['        if (' dimerr_gpu ')'], ...
                         ['            mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
                         ['                "Dimension ' num2str(k) ' of ' var.mname ...
-                        ' should equal 1.");']);
+                        ' should be equal to 1.");']);
                     str_mx = sprintf('%s    %s', str_mx, ....
                         strrep(errchk, [char(10) '    '], [char(10) '        ']));
                 end
@@ -148,12 +148,12 @@ for i=1:length(vars)
                 else
                     dimerr_gpu = [getdim_gpu ' != ' num2str(var.size(k))];
                 end
-                
+
                 errchk = sprintf('%s\n', ...
                     ['    if (mxGetNumberOfElements(' rhs ') && ' dimerr_mx ') '], ...
                     ['        mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
                     ['            "Dimension ' num2str(k) ' of ' var.mname ...
-                    ' should equal ' num2str(var.size(k)) '.");']);
+                    ' should be equal to ' num2str(var.size(k)) '.");']);
                 if ~iscuda
                     str = sprintf('%s', str, errchk);
                 else
@@ -161,7 +161,7 @@ for i=1:length(vars)
                         ['        if (' dimerr_gpu ')'], ...
                         ['            mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
                         ['                "Dimension ' num2str(k) ' of ' var.mname ...
-                        ' should equal ' num2str(var.size(k)) '.");']);
+                        ' should be equal to ' num2str(var.size(k)) '.");']);
                     str_mx = sprintf('%s    %s', str_mx, ....
                         strrep(errchk, [char(10) '    '], [char(10) '        ']));
                 end
@@ -176,7 +176,7 @@ for i=1:length(vars)
                 else
                     dimerr_gpu = [getdim_gpu ' > ' num2str(var.size(k))];
                 end
-                
+
                 errchk = sprintf('%s\n', ...
                     ['    if (mxGetNumberOfElements(' rhs ') && ' dimerr_mx ')'], ...
                     ['        mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
@@ -190,20 +190,20 @@ for i=1:length(vars)
                         ['            mexErrMsgIdAndTxt("' funcname ':WrongSizeOfInputArg",'], ...
                         ['                "Dimension ' num2str(k) ' of ' var.mname ...
                         ' should be no greater than ' num2str(var.size(k)) '.");']);
-                    
+
                     str_mx = sprintf('%s    %s', str_mx, ....
                         strrep(errchk, [char(10) '    '], [char(10) '        ']));
                 end
             end
         end
     end
-    
+
     if ~isempty(var.subfields) && ~writeonly_var
         hasArray = ~strncmp(var.type, 'emxArray_', 9) && (prod(var.size)>1 || any(var.vardim));
         [marshallinFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
             hasArray, iscuda, rwmode_var, writeonly_var);
     end
-        
+
     if var.isemx || prod(var.size)>1 || any(var.vardim) || ...
             ~isempty(var.modifier) && ~isempty(var.oindex) && ...
             (isempty(var.subfields) || ~isequal(var.size, 1))
@@ -248,13 +248,13 @@ for i=1:length(vars)
             else
                 str_gpu = sprintf('%s\n', str_gpu, ...
                     ['        ' cvarname ' = wrap_mxArray_to_gpuEmxArray<' var.type ', true>(' rhs ');']);
-                
+
                 if ~isempty(var.subfields)
                     copyFunc = marshallinFunc;
                 else
                     copyFunc = ['copy_mxArray_to_gpuEmxArray<' var.type '>'];
                 end
-                
+
                 str_mx = sprintf('%s\n', str_mx, ...
                     ['        ' cvarname ' = ' copyFunc '(' ...
                     rhs ', "' var.mname '", ' num2str(length(var.size)) ');']);
@@ -279,7 +279,7 @@ for i=1:length(vars)
                 if ~writeonly_var
                     str_gpu = sprintf('%s\n', str_gpu, ...
                         ['        ' cvarname ' = wrap_mxArray_to_gpuEmxArray<' var.type ', false>(' rhs ');']);
-                    
+
                     if ~isempty(var.subfields)
                         copyFunc = marshallinFunc;
                     else
@@ -300,7 +300,7 @@ for i=1:length(vars)
             else
                 multiple = [' * mxGetNumberOfElements(' rhs ')'];
             end
-            
+
             if ~iscuda
                 if var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield);
                     % Case 3. emxArray split into _data and _size arguments
@@ -309,7 +309,7 @@ for i=1:length(vars)
                     % Case 4: emxArray simplified to _data without _size field
                     sizefield = 'NULL';
                 end
-                
+
                 if any(isinf(var.size))
                     maxlen = '0';
                 else
@@ -342,7 +342,7 @@ for i=1:length(vars)
                             end
                         end
                     end
-                    
+
                     if ~writeonly_var
                         if ~isempty(var.subfields)
                             str = sprintf('%s%s\n', str, ...
@@ -380,11 +380,11 @@ for i=1:length(vars)
                     % Case 4: emxArray simplified to _data without _size field
                     sizefield = 'NULL';
                 end
-                
+
                 str_gpu = sprintf('%s\n', str_gpu, ...
                     ['        wrap_mxArray_to_gpuDataSize(&' cvarname_ptr ', ' ...
                     sizefield, ', ' rhs ');']);
-                
+
                 if ~isempty(var.subfields)
                     copyFunc = marshallinFunc;
                 else
@@ -397,7 +397,7 @@ for i=1:length(vars)
                 if any(var.vardim)
                     error('All varilable-size output arrays must also be input for CUDA kernel functions.');
                 end
-                
+
                 str_mx = sprintf('%s\n', str_mx, ...
                     ['        _ierr = cudaMalloc(&' cvarname ...
                     ', sizeof(' var.type ')' multiple ');'], ...
@@ -416,7 +416,7 @@ for i=1:length(vars)
                 elseif ~isempty(var.subfields)
                     [preallocFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
                         false, iscuda, rwmode_var, writeonly_var);
-                    
+
                     if ~isempty(preallocFunc)
                         % Preallocate a structure
                         str = sprintf('%s%s\n', str, ...
@@ -434,7 +434,7 @@ for i=1:length(vars)
                 elseif ~isempty(var.subfields)
                     [preallocFunc, structDefs] = gen_marshallinFunc(structDefs, var.type, ...
                         false, iscuda, rwmode_var, writeonly_var);
-                    
+
                     if ~isempty(preallocFunc)
                         % Preallocate a structure
                         str_mx = sprintf('%s%s\n', str_mx, ...
@@ -455,7 +455,7 @@ for i=1:length(vars)
             end
         end
     end
-    
+
     if ~isempty(str_gpu) || ~isempty(str_mx)
         str = sprintf('%s\n', str, ...
             ['    if (mxIsClass(' rhs ', "m2c_gpuArray")) {'], ...
@@ -475,7 +475,7 @@ end
 
 function [funcname, structDefs] = gen_marshallinFunc(structDefs, type, ...
     hasArray, iscuda, rw_mode, writeonly)
-% Generate function for marshalling in a struct or an array of struct objects. 
+% Generate function for marshalling in a struct or an array of struct objects.
 % It may recursively generate additional marshallin functions for other structs .
 
 if ~writeonly
@@ -499,7 +499,7 @@ else
     else
         funcField = 'preallocFunc';
         funcname = ['prealloc_'  type];
-    end    
+    end
 end
 
 if isnumeric(structDefs.(type).(funcField))
@@ -525,7 +525,7 @@ if ~writeonly
         '    if (!mxIsStruct(mx))', ...
         ['        M2C_error("' funcname ':WrongType",'],...
         '            "Input argument %s has incorrect data type; struct is expected.", mname);');
-    
+
     fields = {structDefs.(type).fields.mname};
     for i=1:length(fields)
         str_chk = sprintf('%s\n', str_chk(1:end-1), ...
@@ -533,12 +533,12 @@ if ~writeonly
             ['        M2C_error("' funcname ':WrongType",'],...
             ['            "Input argument %s is missing the field ' fields{i} '.", mname);']);
     end
-    
+
     str_chk = sprintf('%s\n', str_chk(1:end-1), ...
         ['    if (mxGetNumberOfFields(mx) > ' num2str(length(fields)) ')'], ...
         ['        M2C_warn("' funcname ':ExtraFields",'], ...
         '            "Extra fields in %s and are ignored.", mname);');
-    
+
     decl_vars = sprintf('    %-20s*%s;', 'mxArray', 'sub_mx');
 else
     decl_vars = '';
@@ -549,7 +549,7 @@ if strncmp(type, 'emxArray_', 9)
     basetype = structDefs.(type).structname;
     assert(isequal(type, ['emxArray_', basetype]));
     varname = 'pEmx';
-    
+
     if ~iscuda
         return_type = 'void ';
         args = [type ' *pEmx, const mxArray *mx, const char *mname, const int dim'];
@@ -562,13 +562,13 @@ if strncmp(type, 'emxArray_', 9)
             sprintf('    %-20s*%s;', type, varname));
         return_str = ['    return ' varname ';'];
     end
-    
+
     mx_index = 'i';
     cprefix = 'pEmx->data[i].';
 elseif hasArray
     varname = 'pArr';
     return_type = 'void ';
-    
+
     if ~writeonly
         args = [type ' *pArr, const mxArray *mx, const char *mname'];
         return_str = '';
@@ -581,13 +581,13 @@ elseif hasArray
 else
     varname = 'pStruct';
     return_type = 'void ';
-    
+
     if ~writeonly
         args = [type ' *' varname ', const mxArray *mx, const char *mname'];
     else
         args = [type ' *' varname];
     end
-    
+
     return_str = '';
 
     mx_index = '0';
@@ -634,7 +634,7 @@ if strncmp(type, 'emxArray_', 9) || hasArray && ~isempty(strtrim(loopBody))
         decl_vars = sprintf('%s\n', decl_vars(1:end-1), ...
             sprintf('    %-20s %s;', 'int', 'nElems = mxGetNumberOfElements(mx);'));
     end
-    
+
     funcBody = sprintf('%s\n', ...
         ['    for (i=0; i<nElems; ++i) {', ...
         regexprep(loopBody(1:end-1), '\n    ', '\n        ')], ...

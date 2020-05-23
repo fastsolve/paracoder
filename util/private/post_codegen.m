@@ -8,7 +8,8 @@ emxC_filename = [cpath, func, '_emxutil.', m2c_opts.suf];
 if exist(emxC_filename, 'file')
     emxC_str = readFile(emxC_filename);
     has_emxutil = contains(emxC_str, 'emxCopyStruct_') || ...
-        contains(emxC_str, 'emxInitMatrix_');
+        contains(emxC_str, 'emxInitMatrix_') || ...
+        contains(emxC_str, 'emxInitStruct_');
 
     emxH_filename = [cpath, func, '_emxutil.h'];
     if exist(emxH_filename, 'file')

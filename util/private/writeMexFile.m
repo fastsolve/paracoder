@@ -7,7 +7,7 @@ if isequal(parmode, 'cuda-kernel')
     altapis = {[funcname '_cuda0'], [funcname '_cuda1'], [funcname '_cuda2']};
 else
     altapis = [funcname, strtrim(strrep(regexp(m2c_opts.codegenArgs, ...
-        '(\w+)\s+-args', 'match'), ' -args', ''))];    
+        '(\w+)\s+-args', 'match'), ' -args', ''))];
 end
 
 % Write out _mex file
@@ -64,12 +64,26 @@ apiStr = '';
 alt_nlhs = zeros(length(altapis),1);
 alt_nrhs = zeros(length(altapis),1);
 
+infofile = [cpath 'codeInfo.mat'];
+if ~exist(infofile, 'file')
+    error('m2c:writeMexFile', 'Cannot locate codeInfo file for function %s.', ...
+        funcname);
+end
+
+%% Read in codeInfo file for further processing
+load(infofile,'codeInfo');
+
+prototypes = [codeInfo.OutputFunctions.Prototype];
+inports = codeInfo.Inports;
+outports = codeInfo.Outports;
+args = strtrim(strrep(regexp(m2c_opts.codegenArgs, '-args\s+{[^}]*}', 'match'), '-args ', ''));
+
 if isequal(parmode, 'cuda-kernel')
     % Parse input arguments from C files.
     [vars, ret, nlhs, nrhs, structDefs, SDindex, pruned_vars] = ...
-        parse_cgfiles(funcname, funcname, mpath, cpath, structDefs);
+        parse_cgfiles(funcname, funcname, prototypes(1), inports, outports, cpath, structDefs);
     vars_options = cuda_control_variables(nrhs);
-    
+
     if ~isempty(ret)
         error('m2c:CudaKernelHasReturn', ...
             ['You have a scalar output ' ret.name ' for the CUDA kernel function. You must\n' ...
@@ -88,11 +102,51 @@ if isequal(parmode, 'cuda-kernel')
         alt_nlhs(i) = nlhs; alt_nrhs(i) = nrhs;
     end
 else
+    inport_start = 1;
+    outport_start = 1;
     for i=1:length(altapis)
-        % Parse input arguments from C files.
+        % Check existence of the files
+        mfile = [mpath altapis{i} '.m'];
+        if ~exist(mfile, 'file') && exist([mpath 'codegen/' altapis{i} '.m'], 'file')
+            mfile = [mpath 'codegen/' altapis{i} '.m'];
+        end
+        if isempty(mfile)
+            error('m2c:parse_cgfile', 'Cannot find MATLAB file %s', funcname);
+        end
+        m_args = extractMfileArgs(mfile);
+
+        % Parse input and output arguments from codenInfo.
+        inport_next = inport_start + length(eval(args{i}));
+        outport_next = outport_start + length(m_args.output);
+
+        if length(altapis)>1
+            for j=inport_start:inport_next-1
+                assert(isempty(inports(j).Implementation) || ...
+                    strcmp(inports(j).Implementation.Identifier, ...
+                    [inports(j).GraphicalName '_' altapis{i}]) || ...
+                    strcmp(inports(j).Implementation.Identifier(3:end), ...
+                    [inports(j).GraphicalName '_' altapis{i}]));
+            end
+            for j=outport_start:outport_next-1
+                assert(isempty(outports(j).Implementation) || ...
+                    strcmp(outports(j).Implementation.Identifier, ...
+                    [outports(j).GraphicalName '_' altapis{i}]) || ...
+                    strcmp(outports(j).Implementation.Identifier(3:end), ...
+                    [outports(j).GraphicalName '_' altapis{i}]));
+            end
+        end
+
         [vars, ret, nlhs, nrhs, structDefs, SDindex, pruned_vars] = ...
-            parse_cgfiles(funcname, altapis{i}, mpath, cpath, structDefs);
-        
+            parse_cgfiles(funcname, altapis{i}, prototypes(i), ...
+                inports(inport_start:inport_next-1), ...
+                outports(outport_start:outport_next-1), cpath, structDefs);
+        if inport_next <= length(inports)
+            inport_start = inport_next;
+        end
+        if outport_next <= length(outports)
+            outport_start = outport_next;
+        end
+
         if ~isempty(SDindex)
             fprintf(2, ['m2c Info: Codegen generated a StackData object "' ...
                 vars(SDindex).cname '" of type "' vars(SDindex).type '". ' ...
@@ -102,7 +156,7 @@ else
                 cpath funcname '_types.h" ' , ...
                 'for the definition and content of the object.\n']);
         end
-        
+
         [func, structDefs] = printApiFunction(funcname, altapis{i}, vars, ret, ...
             structDefs, SDindex, pruned_vars, m2c_opts.timing, parmode, m2c_opts.debugInfo);
         apiStr = sprintf('%s\n%s', apiStr, func);
@@ -163,7 +217,7 @@ if ~isempty(SDindex)
     var = vars(SDindex);
     sf = vars(SDindex).subfields;
     prealloc_substr = ['    /* Allocate Stack Data */' char(10)]; %#ok<*CHARTEN>
-    
+
     if ~iscuda
         prealloc_substr = sprintf('%s%s\n', prealloc_substr, ...
             ['    ' var.cname '.' sf.cname ' = (' sf.type '*)mxMalloc(sizeof(' sf.type '));']);
@@ -192,7 +246,7 @@ if ~isempty(timing)
 end
 
 isomp_kernel = isequal(parmode, 'omp-kernel');
-if isomp_kernel 
+if isomp_kernel
     str = sprintf('%s#pragma omp parallel\n    {\n', str);
     if debugMode
         str = sprintf('%s#pragma omp single\n        %s\n\n', str, ...
@@ -218,7 +272,7 @@ if ~isempty(SDindex)
     var = vars(SDindex);
     sf = vars(SDindex).subfields;
     destroy_substr = ['    /* Deallocate stack data */' char(10)];
-    
+
     if ~iscuda
         destroy_substr = sprintf('%s%s\n', destroy_substr, ...
             ['    mxFree(' var.cname '.' sf.cname ');']);
@@ -280,7 +334,7 @@ for i=1:length(altapis)
             '        /* Call the API function. */', ...
             ['        __' funcname '_api(outputs, prhs);'], '    }');
     end
-    
+
     haselse = 'else ';
 end
 
@@ -316,7 +370,7 @@ decl_tmps = '';
 
 for i=1:length(vars)
     var = vars(i);
-    
+
     if strncmp(var.type, 'emxArray_', 9) || ~isempty(var.subfields) && ...
             isequal(var.size, 1) && ~var.vardim
         if ~iscuda
@@ -425,5 +479,5 @@ threadsPB = struct('cname', '_threadsPB', 'mname', 'threadsPB', ...
     'iindex', nrhs+2, 'oindex', []);
 
 opts = [nthreads, threadsPB];
-    
+
 end

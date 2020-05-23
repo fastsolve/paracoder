@@ -1,7 +1,7 @@
 function m2mex(varargin)
 % Wrapper function for compiling M-files into a MEX function.
 % Usage:
-%       m2mex [-c|-g|-O|-acc|-force] matlabfunc <args>
+%       m2mex [-c|-g|-O|-omp|-force] matlabfunc <args>
 %    where <args> are sepcifications for codegen in the format of -args...
 %
 %    The options can be any of the following:
@@ -11,30 +11,33 @@ function m2mex(varargin)
 %     -O
 %           Enable optimization (including inlining) and disable
 %           memory integrity checking.
+%     -inline
+%           Enable inlining
+%     -no-inline
+%           Disable inliniing
 %     -g
-%           Preserve MATLAB code info in C code and compile MEX functions 
-%           in debug mode.
+%           Enable debugging.
 %     -v
 %           Verbose mode.
 %     -omp
 %           Enable support for OpenMP. It requires MOMP.
-%     -acc
-%           Enable support for OpenACC. It requires MACC.
 %     -force
 %           Force to rebuild the mex function.
 %     -args {...}
 %           Argument specification for function. If present, it must
 %           appear right after the M file. If not present, it will be
 %           extracted from the MA file.
+%     -mat, -noinf, -no-inf
+%           For compatibiity with m2c and will be ignored
 %
 %     Note: Any unrecognized option will be passed to codegen.
-%     
-%     Example usage: 
-%       To generate code with memory integrity checking, without MATLAB 
+%
+%     Example usage:
+%       To generate code with memory integrity checking, without MATLAB
 %       function inlining, and with default C compiler optimization:
 %            m2mex matlabfunc
 %
-%       To generate code without memory integrity checking and with default 
+%       To generate code without memory integrity checking and with default
 %       C compiler optimization:
 %            m2mex -O matlabfunc
 %
@@ -80,7 +83,7 @@ if nargin<1 || match_option(args, '-h')
     return;
 end
 
-if isempty(func); 
+if isempty(func)
     error('m2mex:NoFileName', 'No function name was specified.');
 end
 
@@ -112,6 +115,14 @@ if enableopt
 else
     opts_opt = '-O disable:inline';
 end
+[enableopt, args] = match_option(args, '-inline');
+if enableopt
+    opts_opt = '-O enable:inline';
+end
+[disableopt, args] = match_option(args, '-no-inline');
+if disableopt
+    opts_opt = '-O disable:inline';
+end
 
 [debuginfo, args] = match_option(args, '-g');
 if debuginfo
@@ -121,8 +132,14 @@ else
 end
 [verbose, args] = match_option(args, '-v');
 
+% Options for compatability with m2c
+[~, args] = match_option(args, '-mex');
+[~, args] = match_option(args, '-noinf');
+[~, args] = match_option(args, '-no-inf');
+
+
 % Determine whether to enable OpenMP
-[enableomp, args] = match_option(args, '-acc');
+[enableomp, args] = match_option(args, '-omp');
 if enableomp
     if ~verLessThan('matlab', '8.0.0') && hascodegen
         opts_opt = [opts_opt ' -O enable:OpenMP'];
@@ -175,6 +192,8 @@ co_cfg.DynamicMemoryAllocation = 'AllVariableSizeArrays';
 
 co_cfg.IntegrityChecks = ~enableopt;
 co_cfg.ResponsivenessChecks = ~enableopt;
+try co_cfg.EnableDebugging = debuginfo;
+catch; end %#ok<*CTCH>
 try co_cfg.GenerateComments = debuginfo;
 catch; end %#ok<*CTCH>
 try co_cfg.MATLABFcnDesc = debuginfo;
@@ -217,7 +236,7 @@ function [matched, args] = match_option(args, opt)
 opt = strrep(opt, '+', '\+');
 matched = ~isempty(regexp(args, ['(\s|^)' opt '(\s|$)'], 'once'));
 
-if matched;
+if matched
     args = regexprep(args, ['(\s|^)' opt '(\s|$)'], '$2');
 end
 end

@@ -5,8 +5,8 @@ function [cfile_str, hfile_str, parmode] = ...
 
 parmode = '';
 if m2c_opts.withNvcc
-    if ~isempty(strfind(cfile_str, 'threadIdx.x'))
-        if ~isempty(strfind(cfile_str, '#pragma cuda'))
+    if contains(cfile_str, 'threadIdx.x')
+        if contains(cfile_str, '#pragma cuda')
             parmode = 'cuda';
         else
             parmode = 'cuda-kernel';
@@ -147,7 +147,6 @@ cfile_str = regexprep(cfile_str, '\n+#\{(parallel|section|sections|master|single
 if m2c_opts.enableInline
     parregion = ['(\n+)#\{(parallel|section|sections|master|single|critical)\(\s*\)[^\n]*' ...
         '(\n|\n#[^\n]+)+([ \t]+)' re_parregion '#\}(\2)\(\s*\)[^\n]*'];
-    newline = sprintf('\n');
     while ~isempty(regexp(cfile_str, parregion, 'once'))
         [matchedstr,toks] = regexp(cfile_str, parregion, 'match', 'tokens');
         for i=1:length(toks)
@@ -215,7 +214,7 @@ else
     cfile_str = regexprep(cfile_str, '\n\s*#pragma momp [^\n]+\n', '');
 end
 
-if m2c_opts.withOMP && (~isempty(strfind(cfile_str, 'omp_get_thread_num')) || ...
+if m2c_opts.withOMP && (contains(cfile_str, 'omp_get_thread_num') || ...
         ~isempty(regexp(cfile_str, '#pragma\s+omp', 'once')))
     if ~isempty(regexp(cfile_str, '#pragma\s+omp\s+parallel', 'once'))
         parmode = 'omp';
