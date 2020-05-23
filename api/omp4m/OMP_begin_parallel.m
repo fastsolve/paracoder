@@ -20,8 +20,9 @@ if ~strcmp(coder.target,'rtw'); return; end
 coder.inline('always');
 coder.allowpcode('plain')
 
-coder.ceval('#pragma momp parallel default(shared)');
-coder.ceval('#{parallel');
-if nargin>0;
-    coder.ceval('#++ num_threads', nthreads);
+if nargin>0
+    coder.ceval('#pragma momp parallel default(shared) num_threads', nthreads);
+else
+    coder.ceval('#pragma momp parallel default(shared)');
 end
+coder.ceval('#{parallel');
