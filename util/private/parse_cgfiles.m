@@ -200,23 +200,21 @@ for i=1:ncarg
             totallen = str2double(toks{1}{1});
         end
 
-        [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
-            determine_type_size(size_info, mprefix, vars(i).cname, totallen);
         vars(i).modifier = '*';
+        if i > 1 && isprop(size_info, 'GraphicalName') && ...
+                strcmp(vars(i-1).mname, size_info.GraphicalName)
+            assert(contains(vars(i).cname, [size_info.GraphicalName, '_size']) && ...
+                contains(vars(i-1).cname, [size_info.GraphicalName, '_data']));
 
-        if isempty(vars(i).size)
-            if strcmp(vars(i).cname(1:end-4), vars(i-1).cname(1:end-4)) && ...
-                    strcmp(vars(i).cname(end-4:end), '_size') && ...
-                    strcmp(vars(i-1).cname(end-4:end), '_data')
-                % This is a size field of the previous argument
-                vars(i-1).sizefield = i;
-                vars(i-1).isemx = 1;
-                vars(i).size = totallen;
-                vars(i).vardim = false;
-                vars(i).mname = vars(i-1).mname;
-            else
-                error('Could not determine the size of C argument %s\n', vars(i).cname);
-            end
+            % This is a size field of the previous argument
+            vars(i-1).sizefield = i;
+            vars(i-1).isemx = 1;
+            vars(i).size = totallen;
+            vars(i).vardim = false;
+            vars(i).mname = vars(i-1).mname;
+        else
+            [vars(i).size, vars(i).vardim, vars(i).mname, vars(i).iscomplex] = ...
+                determine_type_size(size_info, mprefix, vars(i).cname, totallen);
         end
     elseif ~isequal(vars(i).modifier,'*') && isempty(mprefix) && ...
             contains(basetypes, [' ' vars(i).type ' '])

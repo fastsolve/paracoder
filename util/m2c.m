@@ -775,7 +775,7 @@ while i<=last_index
             m2c_opts.optimLevel = 3;
             m2c_opts.enableInline = true;
             m2c_opts.presVars = 'None';
-            m2c_opts.dynMem = 'AllVariableSizeArrays';
+            m2c_opts.dynMem = 'Threshold';
         case '-inline'
             m2c_opts.enableInline = true;
         case '-no-inline'
