@@ -21,11 +21,11 @@ elseif m2c_opts.withMPI
 elseif isempty(m2c_opts.cc)
     CC = 'gcc';
     CXX = 'g++';
-    
+
     if ismac && m2c_opts.withOMP
         % Try to locate gcc-mp, with support of OpenMP
         [CC, CXX, found] = locate_gcc_mp;
-        
+
         if ~found
             if m2c_opts.ompLibs
                 warning('m2c:buildEXE', 'OpenMP is disabled.');
@@ -92,8 +92,8 @@ if m2c_opts.withMPI
 end
 
 if m2c_opts.verbose
-    CFLAGS = ['-v ' CFLAGS]; 
-    CXXFLAGS = ['-v ' CXXFLAGS]; 
+    CFLAGS = ['-v ' CFLAGS];
+    CXXFLAGS = ['-v ' CXXFLAGS];
 else
     CFLAGS = [CFLAGS ' -Wno-unused-function'];
     CXXFLAGS = [CXXFLAGS ' -Wno-unused-function'];
@@ -171,16 +171,16 @@ end
 
 if m2c_opts.withNvcc
     NVCC = [m2c_opts.cudaDir{1} '/bin/nvcc'];
-    
+
     NVCC_CXXFLAGS = [regexprep(CXXFLAGS, '(-[^\s]+)', '-Xcompiler $1'), ' -m64 -arch=sm_20 '];
     cuda_out = [funcname '_cuda.o'];
     nvccCmd1 = [NVCC ' ' CPPFLAGS ' '  NVCC_CXXFLAGS ' -dc ' funcname '.cu -o ' funcname '.o'];
     nvccCmd2 = [NVCC ' ' NVCC_CXXFLAGS ' -dlink ' funcname '.o  -o ' cuda_out];
-    
+
     filestr = sprintf('%s\n', filestr, ...
         ['    nvccCmd1 = [''' nvccCmd1 '''];'], ...
         ['    nvccCmd2 = ''' nvccCmd2 ''';']);
-    
+
     if ~m2c_opts.quiet
         filestr = sprintf('%s\n', filestr, ...
             '    disp(nvccCmd1); [status,cmdout] = system(nvccCmd1);', ...
@@ -205,10 +205,10 @@ filestr = sprintf('%s\n', filestr, ...
     '    incdir = [MATLABROOT ''/extern/include''];', ...
     '    if isequal(computer, ''MACI64'') || contains(computer, ''darwin'')', ...
     '        bindir = [MATLABROOT ''/bin/maci64''];', ...
-    '        matlibs = [''-L'' bindir '' -Wl,-rpath,'' bindir '' -lmat -lmx -lm''];', ...
+    '        matlibs = [''-L'' bindir '' -Wl,-rpath,'' bindir '' -lmex -lmat -lmx -lm''];', ...
     '    elseif isequal(computer, ''GLNXA64'') || contains(computer, ''linux'')', ...
     '        bindir = [MATLABROOT ''/bin/glnxa64''];', ...
-    '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmat -lmx -lm''];', ...
+    '        matlibs = [''-L'' bindir '' -Wl,-rpath='' bindir '' -lmex -lmat -lmx -lm''];', ...
     '    else', ...
     '        error(''Building executable is not supported on %s\n'', computer);', ...
     '    end');
@@ -291,14 +291,14 @@ if ~isempty(m2c_opts.ddd)
     if isempty(ddd)
         % Find ddd
         ddd = locate_ddd();
-        
+
         % Find gdb
         gdb = locate_gdb();
-        
+
         if ~isempty(gdb) && ~isempty(ddd)
             % Add breakpoints
             breakponts = sprintf(' -ex "break __%s_api" ', altapis{:});
-            
+
             cmdpre = [ddd ' --debugger ''''' gdb breakponts ' -ex run -ex where'''' --args '];
         end
         echo = '';
@@ -308,7 +308,7 @@ elseif ~isempty(m2c_opts.gdb)
     if isempty(gdb)
         % Find gdb
         gdb = locate_gdb();
-        
+
         if ~isempty(gdb)
             % Add breakpoints
             breakponts = sprintf(' -ex "break __%s_api" ', altapis{:});
@@ -321,7 +321,7 @@ elseif ~isempty(m2c_opts.gdb)
     end
 elseif ~isempty(m2c_opts.valgrind)
     valgrind = strtrim(sprintf(' %s ', m2c_opts.valgrind{:}));
-    
+
     if isempty(valgrind)
         valgrind = locate_valgrind();
     end
@@ -376,7 +376,7 @@ if ~isempty(m2c_opts.gprof)
         % Find command for gprof
         gprof = locate_gprof();
     end
-    
+
     filestr = sprintf('%s\n', filestr, ...
         '% Process gprof results', ...
         'if exist(''gmon.out'', ''file'')', ...
@@ -395,7 +395,7 @@ end
 
 if ~isempty(m2c_opts.gcov)
     gcov = strtrim(sprintf(' %s ', m2c_opts.gcov{:}));
-    
+
     if isempty(gcov)
         % Try to use gcov matching the version of gcc
         [pathstr,name,ext] = fileparts(CC);
@@ -412,7 +412,7 @@ if ~isempty(m2c_opts.gcov)
                 gcov = [pathstr '/' strrep(name, 'gcc', 'gcov')  ext];
             end
         end
-        
+
         if ~exist(gcov, 'file')
             gcov = locate_gcov();
         end
@@ -449,7 +449,7 @@ if status
         [status, result] = system(['ls ' paths{i} '/valgrid-*']);
         i = i + 1;
     end
-    
+
     if status
         warning('m2c:buildEXE', ['Could not locate valgrind in system directories.\n' ...
             'Please install valgrind and add it to your path.']);
@@ -484,7 +484,7 @@ if status
         [status, result] = system(['ls ' paths{i} '/ddd']);
         i = i + 1;
     end
-    
+
     if status
         warning('m2c:buildEXE', ['Could not locate ddd in system directories.\n' ...
             'Please install ddd and add it to your path.']);
@@ -510,7 +510,7 @@ if status
         [status, result] = system(['ls ' files{i}]);
         i = i + 1;
     end
-    
+
     if status
         warning('m2c:buildEXE', ['Could not locate gdb in system directories.\n' ...
             'Please install gdb and add it to your path.']);
@@ -540,7 +540,7 @@ if status
         [status, result] = system(['ls ' paths{i} '/gprof*']);
         i = i + 1;
     end
-    
+
     if status
         warning('m2c:profiling', ['Could not locate gprof in system directories.\n' ...
             'To process profiling data, please install gprof and add it to your path.']);
@@ -565,7 +565,7 @@ if status
         [status, result] = system(['ls ' paths{i} '/gcov*']);
         i = i + 1;
     end
-    
+
     if status
         warning('m2c:profiling', ['Could not locate gcov in system directories.\n' ...
             'To process profiling data, please install gcov and add it to your path.']);
