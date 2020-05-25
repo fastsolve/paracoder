@@ -2,7 +2,6 @@
 #define MPI_IBSEND_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Ibsend_types.h"
 

@@ -2,7 +2,6 @@
 #define MPI_COMM_GROUP_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Comm_group_types.h"
 

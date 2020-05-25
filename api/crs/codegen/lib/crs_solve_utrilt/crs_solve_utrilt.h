@@ -2,7 +2,6 @@
 #define CRS_SOLVE_UTRILT_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "crs_solve_utrilt_types.h"
 

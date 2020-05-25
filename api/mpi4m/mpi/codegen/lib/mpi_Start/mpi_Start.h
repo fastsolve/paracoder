@@ -2,7 +2,6 @@
 #define MPI_START_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Start_types.h"
 

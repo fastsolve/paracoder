@@ -4,11 +4,17 @@ void ccs_solve_utril(const struct0_T *L, emxArray_real_T *b)
 {
   int n;
   int j;
+  int i;
+  int i1;
   int k;
-  n = L->col_ptr->size[0] - 1;
-  for (j = 1; j <= n; j++) {
-    for (k = L->col_ptr->data[j - 1] - 1; k + 1 < L->col_ptr->data[j]; k++) {
-      b->data[L->row_ind->data[k] - 1] -= L->val->data[k] * b->data[j - 1];
+  int i2;
+  n = L->col_ptr->size[0];
+  for (j = 0; j <= n - 2; j++) {
+    i = L->col_ptr->data[j];
+    i1 = L->col_ptr->data[j + 1] - 1;
+    for (k = i; k <= i1; k++) {
+      i2 = L->row_ind->data[k - 1] - 1;
+      b->data[i2] -= L->val->data[k - 1] * b->data[j];
     }
   }
 }
@@ -17,12 +23,17 @@ void ccs_solve_utril_3args(const struct0_T *L, emxArray_real_T *b, int offset)
 {
   int n;
   int j;
+  int i;
+  int i1;
   int k;
-  n = L->col_ptr->size[0] - 1;
-  for (j = 1; j <= n; j++) {
-    for (k = L->col_ptr->data[j - 1] - 1; k + 1 < L->col_ptr->data[j]; k++) {
-      b->data[(L->row_ind->data[k] + offset) - 1] -= L->val->data[k] * b->data
-        [(j + offset) - 1];
+  int i2;
+  n = L->col_ptr->size[0];
+  for (j = 0; j <= n - 2; j++) {
+    i = L->col_ptr->data[j];
+    i1 = L->col_ptr->data[j + 1] - 1;
+    for (k = i; k <= i1; k++) {
+      i2 = (L->row_ind->data[k - 1] + offset) - 1;
+      b->data[i2] -= L->val->data[k - 1] * b->data[j + offset];
     }
   }
 }

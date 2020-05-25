@@ -2,7 +2,6 @@
 #define MPI_GROUP_TRANSLATE_RANKS_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Group_translate_ranks_types.h"
 

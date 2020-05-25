@@ -2,7 +2,6 @@
 #define MPI_GRAPH_NEIGHBORS_COUNT_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Graph_neighbors_count_types.h"
 

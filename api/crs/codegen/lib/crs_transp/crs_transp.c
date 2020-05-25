@@ -1,235 +1,255 @@
 #include "crs_transp.h"
 #include "m2c.h"
 
-static void crs_createFromAIJ(const emxArray_int32_T *rows, const
-  emxArray_int32_T *cols, const emxArray_real_T *vs, emxArray_int32_T *A_row_ptr,
-  emxArray_int32_T *A_col_ind, emxArray_real_T *A_val, int *A_nrows, int
-  *A_ncols);
-static void crs_createFromAIJ(const emxArray_int32_T *rows, const
-  emxArray_int32_T *cols, const emxArray_real_T *vs, emxArray_int32_T *A_row_ptr,
-  emxArray_int32_T *A_col_ind, emxArray_real_T *A_val, int *A_nrows, int
-  *A_ncols)
+void crs_transp(const struct0_T *A, struct0_T *At)
 {
-  int mtmp;
-  int j;
-  int b_mtmp;
-  int n;
-  int i0;
+  emxArray_int32_T *js;
   int i;
+  int nrows;
+  int b_i;
+  int n;
+  int ncols;
+  int j;
+  int k;
   boolean_T ascend;
   boolean_T exitg1;
-  emxArray_int32_T *col_ind;
-  int b_i;
-  emxArray_real_T *val;
+  int i1;
+  emxArray_real_T *r;
   emxArray_real_T *buf_val;
   emxArray_int32_T *buf_indx;
-  unsigned int ind;
-  int l;
   int exitg2;
+  unsigned int ind;
   boolean_T guard1 = false;
-  int r0;
   double t0;
   int exitg3;
   boolean_T guard2 = false;
-  mtmp = rows->data[0];
-  if (rows->size[0] > 1) {
-    for (j = 1; j + 1 <= rows->size[0]; j++) {
-      if (rows->data[j] > mtmp) {
-        mtmp = rows->data[j];
+  emxInit_int32_T(&js, 1);
+  i = js->size[0];
+  js->size[0] = A->col_ind->size[0];
+  emxEnsureCapacity_int32_T(js, i);
+  nrows = A->row_ptr->size[0];
+  for (b_i = 0; b_i <= nrows - 2; b_i++) {
+    i = A->row_ptr->data[b_i];
+    ncols = A->row_ptr->data[b_i + 1] - 1;
+    for (j = i; j <= ncols; j++) {
+      js->data[j - 1] = b_i + 1;
+    }
+  }
+
+  n = A->col_ind->size[0];
+  nrows = 0;
+  if (A->col_ind->size[0] >= 1) {
+    nrows = A->col_ind->data[0];
+    for (k = 2; k <= n; k++) {
+      i = A->col_ind->data[k - 1];
+      if (nrows < i) {
+        nrows = i;
       }
     }
   }
 
-  b_mtmp = cols->data[0];
-  if (cols->size[0] > 1) {
-    for (j = 1; j + 1 <= cols->size[0]; j++) {
-      if (cols->data[j] > b_mtmp) {
-        b_mtmp = cols->data[j];
+  n = js->size[0];
+  ncols = 0;
+  if (js->size[0] >= 1) {
+    ncols = js->data[0];
+    for (k = 2; k <= n; k++) {
+      i = js->data[k - 1];
+      if (ncols < i) {
+        ncols = i;
       }
     }
   }
 
-  j = cols->size[0];
-  n = cols->size[0];
-  i0 = A_row_ptr->size[0];
-  A_row_ptr->size[0] = mtmp + 1;
-  emxEnsureCapacity_int32_T(A_row_ptr, i0);
-  for (i0 = 0; i0 <= mtmp; i0++) {
-    A_row_ptr->data[i0] = 0;
+  i = At->row_ptr->size[0];
+  At->row_ptr->size[0] = nrows + 1;
+  emxEnsureCapacity_int32_T(At->row_ptr, i);
+  for (i = 0; i <= nrows; i++) {
+    At->row_ptr->data[i] = 0;
   }
 
-  i0 = A_col_ind->size[0];
-  A_col_ind->size[0] = j;
-  emxEnsureCapacity_int32_T(A_col_ind, i0);
-  for (i0 = 0; i0 < j; i0++) {
-    A_col_ind->data[i0] = 0;
+  i = At->col_ind->size[0];
+  At->col_ind->size[0] = js->size[0];
+  emxEnsureCapacity_int32_T(At->col_ind, i);
+  n = js->size[0];
+  for (i = 0; i < n; i++) {
+    At->col_ind->data[i] = 0;
   }
 
-  i0 = A_val->size[0];
-  A_val->size[0] = n;
-  emxEnsureCapacity_real_T(A_val, i0);
-  for (i0 = 0; i0 < n; i0++) {
-    A_val->data[i0] = 0.0;
+  i = At->val->size[0];
+  At->val->size[0] = js->size[0];
+  emxEnsureCapacity_real_T(At->val, i);
+  n = js->size[0];
+  for (i = 0; i < n; i++) {
+    At->val->data[i] = 0.0;
   }
 
-  i0 = rows->size[0];
-  for (i = 0; i + 1 <= i0; i++) {
-    A_row_ptr->data[rows->data[i]]++;
+  At->nrows = nrows;
+  At->ncols = ncols;
+  i = A->col_ind->size[0];
+  for (b_i = 0; b_i < i; b_i++) {
+    At->row_ptr->data[A->col_ind->data[b_i]]++;
   }
 
-  A_row_ptr->data[0] = 1;
-  for (i = 1; i <= mtmp; i++) {
-    A_row_ptr->data[i] += A_row_ptr->data[i - 1];
+  At->row_ptr->data[0] = 1;
+  for (b_i = 0; b_i < nrows; b_i++) {
+    At->row_ptr->data[b_i + 1] += At->row_ptr->data[b_i];
   }
 
   ascend = true;
-  i = 0;
+  b_i = 0;
   exitg1 = false;
-  while ((!exitg1) && (i <= rows->size[0] - 2)) {
-    if (rows->data[1 + i] < rows->data[i]) {
+  while ((!exitg1) && (b_i <= A->col_ind->size[0] - 2)) {
+    if (A->col_ind->data[b_i + 1] < A->col_ind->data[b_i]) {
       ascend = false;
       exitg1 = true;
     } else {
-      i++;
+      b_i++;
     }
   }
 
   if (ascend) {
-    i0 = A_col_ind->size[0];
-    A_col_ind->size[0] = cols->size[0];
-    emxEnsureCapacity_int32_T(A_col_ind, i0);
-    j = cols->size[0];
-    for (i0 = 0; i0 < j; i0++) {
-      A_col_ind->data[i0] = cols->data[i0];
+    i = At->col_ind->size[0];
+    At->col_ind->size[0] = js->size[0];
+    emxEnsureCapacity_int32_T(At->col_ind, i);
+    n = js->size[0];
+    for (i = 0; i < n; i++) {
+      At->col_ind->data[i] = js->data[i];
     }
 
-    i0 = A_val->size[0];
-    A_val->size[0] = vs->size[0];
-    emxEnsureCapacity_real_T(A_val, i0);
-    j = vs->size[0];
-    for (i0 = 0; i0 < j; i0++) {
-      A_val->data[i0] = vs->data[i0];
+    i = At->val->size[0];
+    At->val->size[0] = A->val->size[0];
+    emxEnsureCapacity_real_T(At->val, i);
+    n = A->val->size[0];
+    for (i = 0; i < n; i++) {
+      At->val->data[i] = A->val->data[i];
     }
   } else {
-    i0 = A_col_ind->size[0];
-    A_col_ind->size[0] = cols->size[0];
-    emxEnsureCapacity_int32_T(A_col_ind, i0);
-    i0 = A_val->size[0];
-    A_val->size[0] = cols->size[0];
-    emxEnsureCapacity_real_T(A_val, i0);
-    for (i = 0; i < rows->size[0]; i++) {
-      j = A_row_ptr->data[rows->data[i] - 1];
-      A_val->data[A_row_ptr->data[rows->data[i] - 1] - 1] = vs->data[i];
-      A_col_ind->data[j - 1] = cols->data[i];
-      A_row_ptr->data[rows->data[i] - 1]++;
+    i = At->col_ind->size[0];
+    At->col_ind->size[0] = js->size[0];
+    emxEnsureCapacity_int32_T(At->col_ind, i);
+    i = At->val->size[0];
+    At->val->size[0] = js->size[0];
+    emxEnsureCapacity_real_T(At->val, i);
+    i = A->col_ind->size[0];
+    for (b_i = 0; b_i < i; b_i++) {
+      ncols = At->row_ptr->data[A->col_ind->data[b_i] - 1];
+      i1 = ncols - 1;
+      At->val->data[i1] = A->val->data[b_i];
+      At->col_ind->data[i1] = js->data[b_i];
+      At->row_ptr->data[A->col_ind->data[b_i] - 1] = ncols + 1;
     }
 
-    j = A_row_ptr->size[0] - 2;
-    i0 = (int)((2.0 + (-1.0 - (double)A_row_ptr->size[0])) / -1.0);
-    for (i = 0; i < i0; i++) {
-      b_i = j - i;
-      A_row_ptr->data[b_i + 1] = A_row_ptr->data[b_i];
+    n = At->row_ptr->size[0] - 2;
+    i = (int)(((-1.0 - (double)At->row_ptr->size[0]) + 2.0) / -1.0);
+    for (b_i = 0; b_i < i; b_i++) {
+      k = n - b_i;
+      At->row_ptr->data[k + 1] = At->row_ptr->data[k];
     }
 
-    A_row_ptr->data[0] = 1;
+    At->row_ptr->data[0] = 1;
   }
 
-  emxInit_int32_T(&col_ind, 1);
-  i0 = col_ind->size[0];
-  col_ind->size[0] = A_col_ind->size[0];
-  emxEnsureCapacity_int32_T(col_ind, i0);
-  j = A_col_ind->size[0];
-  for (i0 = 0; i0 < j; i0++) {
-    col_ind->data[i0] = A_col_ind->data[i0];
+  i = js->size[0];
+  js->size[0] = At->col_ind->size[0];
+  emxEnsureCapacity_int32_T(js, i);
+  n = At->col_ind->size[0];
+  for (i = 0; i < n; i++) {
+    js->data[i] = At->col_ind->data[i];
   }
 
-  emxInit_real_T(&val, 1);
-  i0 = val->size[0];
-  val->size[0] = A_val->size[0];
-  emxEnsureCapacity_real_T(val, i0);
-  j = A_val->size[0];
-  for (i0 = 0; i0 < j; i0++) {
-    val->data[i0] = A_val->data[i0];
+  emxInit_real_T(&r, 1);
+  i = r->size[0];
+  r->size[0] = At->val->size[0];
+  emxEnsureCapacity_real_T(r, i);
+  n = At->val->size[0];
+  for (i = 0; i < n; i++) {
+    r->data[i] = At->val->data[i];
   }
 
-  i0 = A_row_ptr->size[0] - 1;
-  i = 1;
+  i = At->row_ptr->size[0];
   emxInit_real_T(&buf_val, 1);
   emxInit_int32_T(&buf_indx, 1);
-  while (i <= i0) {
+  for (b_i = 0; b_i <= i - 2; b_i++) {
     ascend = true;
-    j = A_row_ptr->data[i - 1];
-    exitg1 = false;
-    while ((!exitg1) && (j + 1 <= A_row_ptr->data[i] - 1)) {
-      if (col_ind->data[j] < col_ind->data[j - 1]) {
-        ascend = false;
-        exitg1 = true;
+    j = At->row_ptr->data[b_i];
+    do {
+      exitg2 = 0;
+      ncols = At->row_ptr->data[b_i + 1];
+      i1 = ncols - 1;
+      if (j + 1 <= i1) {
+        if (js->data[j] < js->data[j - 1]) {
+          ascend = false;
+          exitg2 = 1;
+        } else {
+          j++;
+        }
       } else {
-        j++;
+        exitg2 = 1;
       }
-    }
+    } while (exitg2 == 0);
 
     if (!ascend) {
-      n = buf_indx->size[0];
-      buf_indx->size[0] = A_row_ptr->data[i] - A_row_ptr->data[i - 1];
-      emxEnsureCapacity_int32_T(buf_indx, n);
-      j = A_row_ptr->data[i] - A_row_ptr->data[i - 1];
-      for (n = 0; n < j; n++) {
-        buf_indx->data[n] = 0;
+      n = ncols - At->row_ptr->data[b_i];
+      ncols = buf_indx->size[0];
+      buf_indx->size[0] = n;
+      emxEnsureCapacity_int32_T(buf_indx, ncols);
+      for (ncols = 0; ncols < n; ncols++) {
+        buf_indx->data[ncols] = 0;
       }
 
-      n = buf_val->size[0];
-      buf_val->size[0] = A_row_ptr->data[i] - A_row_ptr->data[i - 1];
-      emxEnsureCapacity_real_T(buf_val, n);
-      j = A_row_ptr->data[i] - A_row_ptr->data[i - 1];
-      for (n = 0; n < j; n++) {
-        buf_val->data[n] = 0.0;
+      ncols = buf_val->size[0];
+      buf_val->size[0] = n;
+      emxEnsureCapacity_real_T(buf_val, ncols);
+      for (ncols = 0; ncols < n; ncols++) {
+        buf_val->data[ncols] = 0.0;
       }
 
       ind = 1U;
-      for (j = A_row_ptr->data[i - 1]; j < A_row_ptr->data[i]; j++) {
-        buf_indx->data[(int)ind - 1] = col_ind->data[j - 1];
-        buf_val->data[(int)ind - 1] = val->data[j - 1];
+      ncols = At->row_ptr->data[b_i];
+      for (j = ncols; j <= i1; j++) {
+        n = (int)ind - 1;
+        buf_indx->data[n] = js->data[j - 1];
+        buf_val->data[n] = r->data[j - 1];
         ind++;
       }
 
-      n = buf_indx->size[0];
-      if (!(n <= 1)) {
-        l = (int)((unsigned int)n >> 1U);
+      if (buf_indx->size[0] > 1) {
+        n = (int)((unsigned int)buf_indx->size[0] >> 1U);
+        ncols = buf_indx->size[0];
         do {
           exitg2 = 0;
           guard1 = false;
-          if (l + 1 <= 1) {
-            r0 = buf_indx->data[n - 1];
-            t0 = buf_val->data[n - 1];
-            buf_indx->data[n - 1] = buf_indx->data[0];
-            buf_val->data[n - 1] = buf_val->data[0];
-            n--;
-            if (n == 1) {
+          if (n + 1 <= 1) {
+            nrows = buf_indx->data[ncols - 1];
+            t0 = buf_val->data[ncols - 1];
+            buf_indx->data[ncols - 1] = buf_indx->data[0];
+            buf_val->data[ncols - 1] = buf_val->data[0];
+            ncols--;
+            if (ncols == 1) {
               exitg2 = 1;
             } else {
               guard1 = true;
             }
           } else {
-            l--;
-            r0 = buf_indx->data[l];
-            t0 = buf_val->data[l];
+            n--;
+            nrows = buf_indx->data[n];
+            t0 = buf_val->data[n];
             guard1 = true;
           }
 
           if (guard1) {
-            j = l;
+            j = n;
             do {
               exitg3 = 0;
-              b_i = j;
+              k = j;
               j = ((j + 1) << 1) - 1;
               ascend = false;
               guard2 = false;
-              if (j + 1 >= n) {
-                if (j + 1 == n) {
+              if (j + 1 >= ncols) {
+                if (j + 1 == ncols) {
                   ascend = true;
                   guard2 = true;
-                } else if (j + 1 > n) {
+                } else if (j + 1 > ncols) {
                   exitg3 = 1;
                 } else {
                   guard2 = true;
@@ -243,81 +263,55 @@ static void crs_createFromAIJ(const emxArray_int32_T *rows, const
                   j++;
                 }
 
-                if (r0 >= buf_indx->data[j]) {
+                if (nrows >= buf_indx->data[j]) {
                   exitg3 = 1;
                 } else {
-                  buf_indx->data[b_i] = buf_indx->data[j];
-                  buf_val->data[b_i] = buf_val->data[j];
+                  buf_indx->data[k] = buf_indx->data[j];
+                  buf_val->data[k] = buf_val->data[j];
                 }
               }
             } while (exitg3 == 0);
 
-            buf_indx->data[b_i] = r0;
-            buf_val->data[b_i] = t0;
+            buf_indx->data[k] = nrows;
+            buf_val->data[k] = t0;
           }
         } while (exitg2 == 0);
 
-        buf_indx->data[0] = r0;
+        buf_indx->data[0] = nrows;
         buf_val->data[0] = t0;
       }
 
       ind = 1U;
-      for (j = A_row_ptr->data[i - 1]; j < A_row_ptr->data[i]; j++) {
-        col_ind->data[j - 1] = buf_indx->data[(int)ind - 1];
-        val->data[j - 1] = buf_val->data[(int)ind - 1];
+      ncols = At->row_ptr->data[b_i];
+      for (j = ncols; j <= i1; j++) {
+        n = (int)ind - 1;
+        js->data[j - 1] = buf_indx->data[n];
+        r->data[j - 1] = buf_val->data[n];
         ind++;
       }
     }
-
-    i++;
   }
 
   emxFree_int32_T(&buf_indx);
   emxFree_real_T(&buf_val);
-  i0 = A_col_ind->size[0];
-  A_col_ind->size[0] = col_ind->size[0];
-  emxEnsureCapacity_int32_T(A_col_ind, i0);
-  j = col_ind->size[0];
-  for (i0 = 0; i0 < j; i0++) {
-    A_col_ind->data[i0] = col_ind->data[i0];
+  i = At->col_ind->size[0];
+  At->col_ind->size[0] = js->size[0];
+  emxEnsureCapacity_int32_T(At->col_ind, i);
+  n = js->size[0];
+  for (i = 0; i < n; i++) {
+    At->col_ind->data[i] = js->data[i];
   }
 
-  emxFree_int32_T(&col_ind);
-  i0 = A_val->size[0];
-  A_val->size[0] = val->size[0];
-  emxEnsureCapacity_real_T(A_val, i0);
-  j = val->size[0];
-  for (i0 = 0; i0 < j; i0++) {
-    A_val->data[i0] = val->data[i0];
-  }
-
-  emxFree_real_T(&val);
-  *A_nrows = mtmp;
-  *A_ncols = b_mtmp;
-}
-
-void crs_transp(const struct0_T *A, struct0_T *At)
-{
-  emxArray_int32_T *js;
-  unsigned int unnamed_idx_0;
-  int nrows;
-  int i;
-  int j;
-  emxInit_int32_T(&js, 1);
-  unnamed_idx_0 = (unsigned int)A->col_ind->size[0];
-  nrows = js->size[0];
-  js->size[0] = (int)unnamed_idx_0;
-  emxEnsureCapacity_int32_T(js, nrows);
-  nrows = A->row_ptr->size[0] - 1;
-  for (i = 1; i <= nrows; i++) {
-    for (j = A->row_ptr->data[i - 1]; j < A->row_ptr->data[i]; j++) {
-      js->data[j - 1] = i;
-    }
-  }
-
-  crs_createFromAIJ(A->col_ind, js, A->val, At->row_ptr, At->col_ind, At->val,
-                    &At->nrows, &At->ncols);
   emxFree_int32_T(&js);
+  i = At->val->size[0];
+  At->val->size[0] = r->size[0];
+  emxEnsureCapacity_real_T(At->val, i);
+  n = r->size[0];
+  for (i = 0; i < n; i++) {
+    At->val->data[i] = r->data[i];
+  }
+
+  emxFree_real_T(&r);
 }
 
 void crs_transp_initialize(void)

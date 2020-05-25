@@ -1,153 +1,129 @@
 #include "qr_qtmulti.h"
 #include "m2c.h"
-#include "qr_qtmulti_emxutil.h"
+#include <math.h>
 
 void qr_qtmulti(const emxArray_real_T *A, emxArray_real_T *bs, int ncols, const
                 emxArray_real_T *V)
 {
   int nrows;
   emxArray_real_T *b_bs;
-  int A_idx_1;
-  int A_idx_0;
-  int b_A_idx_1;
-  boolean_T empty_non_axis_sizes;
+  int u0;
   double v1;
-  int i0;
-  int result;
+  boolean_T empty_non_axis_sizes;
+  int i;
+  int input_sizes_idx_0;
   double t2;
-  cell_wrap_0 reshapes[2];
   int i1;
+  int sizes_idx_0;
   nrows = A->size[0];
   emxInit_real_T(&b_bs, 2);
   if (bs->size[0] < A->size[0]) {
-    if (!((bs->size[0] == 0) || (bs->size[1] == 0))) {
-      b_A_idx_1 = bs->size[1];
+    if ((bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
+    } else if ((A->size[0] - bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        b_A_idx_1 = bs->size[1];
-      } else {
-        b_A_idx_1 = bs->size[1];
-        if (!(b_A_idx_1 > 0)) {
-          b_A_idx_1 = 0;
-        }
+      u0 = bs->size[1];
+      if (u0 <= 0) {
+        u0 = 0;
+      }
 
-        A_idx_1 = bs->size[1];
-        if (A_idx_1 > b_A_idx_1) {
-          b_A_idx_1 = bs->size[1];
-        }
+      if (bs->size[1] > u0) {
+        u0 = bs->size[1];
       }
     }
 
-    empty_non_axis_sizes = (b_A_idx_1 == 0);
-    if (empty_non_axis_sizes || (!((bs->size[0] == 0) || (bs->size[1] == 0)))) {
-      result = bs->size[0];
+    empty_non_axis_sizes = (u0 == 0);
+    if (empty_non_axis_sizes || ((bs->size[0] != 0) && (bs->size[1] != 0))) {
+      input_sizes_idx_0 = bs->size[0];
     } else {
-      result = 0;
+      input_sizes_idx_0 = 0;
     }
 
-    if (empty_non_axis_sizes) {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
+    if (empty_non_axis_sizes || ((A->size[0] - bs->size[0] != 0) && (bs->size[1]
+          != 0))) {
+      sizes_idx_0 = A->size[0] - bs->size[0];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      } else {
-        A_idx_0 = 0;
+      sizes_idx_0 = 0;
+    }
+
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = input_sizes_idx_0 + sizes_idx_0;
+    b_bs->size[1] = u0;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + input_sizes_idx_0 * i];
       }
     }
 
-    emxInitMatrix_cell_wrap_0(reshapes);
-    i0 = reshapes[1].f1->size[0] * reshapes[1].f1->size[1];
-    reshapes[1].f1->size[0] = A_idx_0;
-    reshapes[1].f1->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(reshapes[1].f1, i0);
-    A_idx_0 *= b_A_idx_1;
-    for (i0 = 0; i0 < A_idx_0; i0++) {
-      reshapes[1].f1->data[i0] = 0.0;
-    }
-
-    i0 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = result + reshapes[1].f1->size[0];
-    b_bs->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i0);
-    for (i0 = 0; i0 < b_A_idx_1; i0++) {
-      for (i1 = 0; i1 < result; i1++) {
-        b_bs->data[i1 + b_bs->size[0] * i0] = bs->data[i1 + result * i0];
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < sizes_idx_0; i1++) {
+        b_bs->data[(i1 + input_sizes_idx_0) + b_bs->size[0] * i] = 0.0;
       }
     }
 
-    A_idx_0 = reshapes[1].f1->size[1];
-    for (i0 = 0; i0 < A_idx_0; i0++) {
-      A_idx_1 = reshapes[1].f1->size[0];
-      for (i1 = 0; i1 < A_idx_1; i1++) {
-        b_bs->data[(i1 + result) + b_bs->size[0] * i0] = reshapes[1].f1->data[i1
-          + reshapes[1].f1->size[0] * i0];
-      }
-    }
-
-    emxFreeMatrix_cell_wrap_0(reshapes);
-    i0 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i0);
-    A_idx_0 = b_bs->size[1];
-    for (i0 = 0; i0 < A_idx_0; i0++) {
-      A_idx_1 = b_bs->size[0];
-      for (i1 = 0; i1 < A_idx_1; i1++) {
-        bs->data[i1 + bs->size[0] * i0] = b_bs->data[i1 + b_bs->size[0] * i0];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }
 
-  for (A_idx_1 = 0; A_idx_1 + 1 <= ncols; A_idx_1++) {
-    v1 = V->data[A_idx_1];
-    i0 = bs->size[1];
-    for (A_idx_0 = 0; A_idx_0 + 1 <= i0; A_idx_0++) {
-      t2 = v1 * bs->data[A_idx_1 + bs->size[0] * A_idx_0];
-      for (b_A_idx_1 = A_idx_1 + 1; b_A_idx_1 + 1 <= nrows; b_A_idx_1++) {
-        t2 += A->data[b_A_idx_1 + A->size[0] * A_idx_1] * bs->data[b_A_idx_1 +
-          bs->size[0] * A_idx_0];
+  for (u0 = 0; u0 < ncols; u0++) {
+    v1 = V->data[u0];
+    i = bs->size[1];
+    for (input_sizes_idx_0 = 0; input_sizes_idx_0 < i; input_sizes_idx_0++) {
+      t2 = v1 * bs->data[u0 + bs->size[0] * input_sizes_idx_0];
+      i1 = u0 + 2;
+      for (sizes_idx_0 = i1; sizes_idx_0 <= nrows; sizes_idx_0++) {
+        t2 += A->data[(sizes_idx_0 + A->size[0] * u0) - 1] * bs->data
+          [(sizes_idx_0 + bs->size[0] * input_sizes_idx_0) - 1];
       }
 
       t2 += t2;
-      bs->data[A_idx_1 + bs->size[0] * A_idx_0] -= t2 * v1;
-      for (b_A_idx_1 = A_idx_1 + 1; b_A_idx_1 + 1 <= nrows; b_A_idx_1++) {
-        bs->data[b_A_idx_1 + bs->size[0] * A_idx_0] -= t2 * A->data[b_A_idx_1 +
-          A->size[0] * A_idx_1];
+      bs->data[u0 + bs->size[0] * input_sizes_idx_0] -= t2 * v1;
+      i1 = u0 + 2;
+      for (sizes_idx_0 = i1; sizes_idx_0 <= nrows; sizes_idx_0++) {
+        bs->data[(sizes_idx_0 + bs->size[0] * input_sizes_idx_0) - 1] -= t2 *
+          A->data[(sizes_idx_0 + A->size[0] * u0) - 1];
       }
     }
   }
 
   if (bs->size[0] > A->size[0]) {
     if (1 > A->size[0]) {
-      A_idx_0 = 0;
+      u0 = 0;
     } else {
-      A_idx_0 = A->size[0];
+      u0 = A->size[0];
     }
 
-    A_idx_1 = bs->size[1];
-    i0 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = A_idx_0;
-    b_bs->size[1] = A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i0);
-    for (i0 = 0; i0 < A_idx_1; i0++) {
-      for (i1 = 0; i1 < A_idx_0; i1++) {
-        b_bs->data[i1 + b_bs->size[0] * i0] = bs->data[i1 + bs->size[0] * i0];
+    input_sizes_idx_0 = bs->size[1] - 1;
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = u0;
+    b_bs->size[1] = input_sizes_idx_0 + 1;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i <= input_sizes_idx_0; i++) {
+      for (i1 = 0; i1 < u0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + bs->size[0] * i];
       }
     }
 
-    i0 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i0);
-    A_idx_0 = b_bs->size[1];
-    for (i0 = 0; i0 < A_idx_0; i0++) {
-      A_idx_1 = b_bs->size[0];
-      for (i1 = 0; i1 < A_idx_1; i1++) {
-        bs->data[i1 + bs->size[0] * i0] = b_bs->data[i1 + b_bs->size[0] * i0];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }
@@ -158,107 +134,85 @@ void qr_qtmulti(const emxArray_real_T *A, emxArray_real_T *bs, int ncols, const
 void qr_qtmulti_2args(const emxArray_real_T *A, emxArray_real_T *bs)
 {
   int nrows;
+  int ncols;
   emxArray_real_T *b_bs;
-  int A_idx_1;
-  int A_idx_0;
-  int b_A_idx_1;
-  boolean_T empty_non_axis_sizes;
+  int u0;
   double v1;
-  int result;
-  int i2;
-  cell_wrap_0 reshapes[2];
-  int i3;
+  boolean_T empty_non_axis_sizes;
+  int i;
+  int input_sizes_idx_0;
   double t2;
+  int sizes_idx_0;
+  int i1;
   nrows = A->size[0];
+  ncols = A->size[1];
   emxInit_real_T(&b_bs, 2);
   if (bs->size[0] < A->size[0]) {
-    if (!((bs->size[0] == 0) || (bs->size[1] == 0))) {
-      b_A_idx_1 = bs->size[1];
+    if ((bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
+    } else if ((A->size[0] - bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        b_A_idx_1 = bs->size[1];
-      } else {
-        b_A_idx_1 = bs->size[1];
-        if (!(b_A_idx_1 > 0)) {
-          b_A_idx_1 = 0;
-        }
+      u0 = bs->size[1];
+      if (u0 <= 0) {
+        u0 = 0;
+      }
 
-        A_idx_1 = bs->size[1];
-        if (A_idx_1 > b_A_idx_1) {
-          b_A_idx_1 = bs->size[1];
-        }
+      if (bs->size[1] > u0) {
+        u0 = bs->size[1];
       }
     }
 
-    empty_non_axis_sizes = (b_A_idx_1 == 0);
-    if (empty_non_axis_sizes || (!((bs->size[0] == 0) || (bs->size[1] == 0)))) {
-      result = bs->size[0];
+    empty_non_axis_sizes = (u0 == 0);
+    if (empty_non_axis_sizes || ((bs->size[0] != 0) && (bs->size[1] != 0))) {
+      input_sizes_idx_0 = bs->size[0];
     } else {
-      result = 0;
+      input_sizes_idx_0 = 0;
     }
 
-    if (empty_non_axis_sizes) {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
+    if (empty_non_axis_sizes || ((A->size[0] - bs->size[0] != 0) && (bs->size[1]
+          != 0))) {
+      sizes_idx_0 = A->size[0] - bs->size[0];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      } else {
-        A_idx_0 = 0;
+      sizes_idx_0 = 0;
+    }
+
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = input_sizes_idx_0 + sizes_idx_0;
+    b_bs->size[1] = u0;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + input_sizes_idx_0 * i];
       }
     }
 
-    emxInitMatrix_cell_wrap_0(reshapes);
-    i2 = reshapes[1].f1->size[0] * reshapes[1].f1->size[1];
-    reshapes[1].f1->size[0] = A_idx_0;
-    reshapes[1].f1->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(reshapes[1].f1, i2);
-    A_idx_0 *= b_A_idx_1;
-    for (i2 = 0; i2 < A_idx_0; i2++) {
-      reshapes[1].f1->data[i2] = 0.0;
-    }
-
-    i2 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = result + reshapes[1].f1->size[0];
-    b_bs->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i2);
-    for (i2 = 0; i2 < b_A_idx_1; i2++) {
-      for (i3 = 0; i3 < result; i3++) {
-        b_bs->data[i3 + b_bs->size[0] * i2] = bs->data[i3 + result * i2];
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < sizes_idx_0; i1++) {
+        b_bs->data[(i1 + input_sizes_idx_0) + b_bs->size[0] * i] = 0.0;
       }
     }
 
-    A_idx_0 = reshapes[1].f1->size[1];
-    for (i2 = 0; i2 < A_idx_0; i2++) {
-      A_idx_1 = reshapes[1].f1->size[0];
-      for (i3 = 0; i3 < A_idx_1; i3++) {
-        b_bs->data[(i3 + result) + b_bs->size[0] * i2] = reshapes[1].f1->data[i3
-          + reshapes[1].f1->size[0] * i2];
-      }
-    }
-
-    emxFreeMatrix_cell_wrap_0(reshapes);
-    i2 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i2);
-    A_idx_0 = b_bs->size[1];
-    for (i2 = 0; i2 < A_idx_0; i2++) {
-      A_idx_1 = b_bs->size[0];
-      for (i3 = 0; i3 < A_idx_1; i3++) {
-        bs->data[i3 + bs->size[0] * i2] = b_bs->data[i3 + b_bs->size[0] * i2];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }
 
-  for (A_idx_1 = 0; A_idx_1 + 1 <= A->size[1]; A_idx_1++) {
+  for (u0 = 0; u0 < ncols; u0++) {
     v1 = 1.0;
-    for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-      v1 -= A->data[A_idx_0 + A->size[0] * A_idx_1] * A->data[A_idx_0 + A->size
-        [0] * A_idx_1];
+    i = u0 + 2;
+    for (input_sizes_idx_0 = i; input_sizes_idx_0 <= nrows; input_sizes_idx_0++)
+    {
+      t2 = A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1];
+      v1 -= t2 * t2;
     }
 
     if (v1 < 0.0) {
@@ -267,50 +221,54 @@ void qr_qtmulti_2args(const emxArray_real_T *A, emxArray_real_T *bs)
       v1 = sqrt(v1);
     }
 
-    i2 = bs->size[1];
-    for (b_A_idx_1 = 0; b_A_idx_1 + 1 <= i2; b_A_idx_1++) {
-      t2 = v1 * bs->data[A_idx_1 + bs->size[0] * b_A_idx_1];
-      for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-        t2 += A->data[A_idx_0 + A->size[0] * A_idx_1] * bs->data[A_idx_0 +
-          bs->size[0] * b_A_idx_1];
+    i = bs->size[1];
+    for (sizes_idx_0 = 0; sizes_idx_0 < i; sizes_idx_0++) {
+      t2 = v1 * bs->data[u0 + bs->size[0] * sizes_idx_0];
+      i1 = u0 + 2;
+      for (input_sizes_idx_0 = i1; input_sizes_idx_0 <= nrows; input_sizes_idx_0
+           ++) {
+        t2 += A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1] * bs->data
+          [(input_sizes_idx_0 + bs->size[0] * sizes_idx_0) - 1];
       }
 
       t2 += t2;
-      bs->data[A_idx_1 + bs->size[0] * b_A_idx_1] -= t2 * v1;
-      for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-        bs->data[A_idx_0 + bs->size[0] * b_A_idx_1] -= t2 * A->data[A_idx_0 +
-          A->size[0] * A_idx_1];
+      bs->data[u0 + bs->size[0] * sizes_idx_0] -= t2 * v1;
+      i1 = u0 + 2;
+      for (input_sizes_idx_0 = i1; input_sizes_idx_0 <= nrows; input_sizes_idx_0
+           ++) {
+        bs->data[(input_sizes_idx_0 + bs->size[0] * sizes_idx_0) - 1] -= t2 *
+          A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1];
       }
     }
   }
 
   if (bs->size[0] > A->size[0]) {
     if (1 > A->size[0]) {
-      A_idx_0 = 0;
+      u0 = 0;
     } else {
-      A_idx_0 = A->size[0];
+      u0 = A->size[0];
     }
 
-    A_idx_1 = bs->size[1];
-    i2 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = A_idx_0;
-    b_bs->size[1] = A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i2);
-    for (i2 = 0; i2 < A_idx_1; i2++) {
-      for (i3 = 0; i3 < A_idx_0; i3++) {
-        b_bs->data[i3 + b_bs->size[0] * i2] = bs->data[i3 + bs->size[0] * i2];
+    input_sizes_idx_0 = bs->size[1] - 1;
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = u0;
+    b_bs->size[1] = input_sizes_idx_0 + 1;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i <= input_sizes_idx_0; i++) {
+      for (i1 = 0; i1 < u0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + bs->size[0] * i];
       }
     }
 
-    i2 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i2);
-    A_idx_0 = b_bs->size[1];
-    for (i2 = 0; i2 < A_idx_0; i2++) {
-      A_idx_1 = b_bs->size[0];
-      for (i3 = 0; i3 < A_idx_1; i3++) {
-        bs->data[i3 + bs->size[0] * i2] = b_bs->data[i3 + b_bs->size[0] * i2];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }
@@ -322,106 +280,82 @@ void qr_qtmulti_3args(const emxArray_real_T *A, emxArray_real_T *bs, int ncols)
 {
   int nrows;
   emxArray_real_T *b_bs;
-  int A_idx_1;
-  int A_idx_0;
-  int b_A_idx_1;
-  boolean_T empty_non_axis_sizes;
+  int u0;
   double v1;
-  int result;
-  int i4;
-  cell_wrap_0 reshapes[2];
-  int i5;
+  boolean_T empty_non_axis_sizes;
+  int i;
+  int input_sizes_idx_0;
   double t2;
+  int sizes_idx_0;
+  int i1;
   nrows = A->size[0];
   emxInit_real_T(&b_bs, 2);
   if (bs->size[0] < A->size[0]) {
-    if (!((bs->size[0] == 0) || (bs->size[1] == 0))) {
-      b_A_idx_1 = bs->size[1];
+    if ((bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
+    } else if ((A->size[0] - bs->size[0] != 0) && (bs->size[1] != 0)) {
+      u0 = bs->size[1];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        b_A_idx_1 = bs->size[1];
-      } else {
-        b_A_idx_1 = bs->size[1];
-        if (!(b_A_idx_1 > 0)) {
-          b_A_idx_1 = 0;
-        }
+      u0 = bs->size[1];
+      if (u0 <= 0) {
+        u0 = 0;
+      }
 
-        A_idx_1 = bs->size[1];
-        if (A_idx_1 > b_A_idx_1) {
-          b_A_idx_1 = bs->size[1];
-        }
+      if (bs->size[1] > u0) {
+        u0 = bs->size[1];
       }
     }
 
-    empty_non_axis_sizes = (b_A_idx_1 == 0);
-    if (empty_non_axis_sizes || (!((bs->size[0] == 0) || (bs->size[1] == 0)))) {
-      result = bs->size[0];
+    empty_non_axis_sizes = (u0 == 0);
+    if (empty_non_axis_sizes || ((bs->size[0] != 0) && (bs->size[1] != 0))) {
+      input_sizes_idx_0 = bs->size[0];
     } else {
-      result = 0;
+      input_sizes_idx_0 = 0;
     }
 
-    if (empty_non_axis_sizes) {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
+    if (empty_non_axis_sizes || ((A->size[0] - bs->size[0] != 0) && (bs->size[1]
+          != 0))) {
+      sizes_idx_0 = A->size[0] - bs->size[0];
     } else {
-      A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      A_idx_1 = bs->size[1];
-      if (!((A_idx_0 == 0) || (A_idx_1 == 0))) {
-        A_idx_0 = (int)((double)A->size[0] - (double)bs->size[0]);
-      } else {
-        A_idx_0 = 0;
+      sizes_idx_0 = 0;
+    }
+
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = input_sizes_idx_0 + sizes_idx_0;
+    b_bs->size[1] = u0;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + input_sizes_idx_0 * i];
       }
     }
 
-    emxInitMatrix_cell_wrap_0(reshapes);
-    i4 = reshapes[1].f1->size[0] * reshapes[1].f1->size[1];
-    reshapes[1].f1->size[0] = A_idx_0;
-    reshapes[1].f1->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(reshapes[1].f1, i4);
-    A_idx_0 *= b_A_idx_1;
-    for (i4 = 0; i4 < A_idx_0; i4++) {
-      reshapes[1].f1->data[i4] = 0.0;
-    }
-
-    i4 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = result + reshapes[1].f1->size[0];
-    b_bs->size[1] = b_A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i4);
-    for (i4 = 0; i4 < b_A_idx_1; i4++) {
-      for (i5 = 0; i5 < result; i5++) {
-        b_bs->data[i5 + b_bs->size[0] * i4] = bs->data[i5 + result * i4];
+    for (i = 0; i < u0; i++) {
+      for (i1 = 0; i1 < sizes_idx_0; i1++) {
+        b_bs->data[(i1 + input_sizes_idx_0) + b_bs->size[0] * i] = 0.0;
       }
     }
 
-    A_idx_0 = reshapes[1].f1->size[1];
-    for (i4 = 0; i4 < A_idx_0; i4++) {
-      A_idx_1 = reshapes[1].f1->size[0];
-      for (i5 = 0; i5 < A_idx_1; i5++) {
-        b_bs->data[(i5 + result) + b_bs->size[0] * i4] = reshapes[1].f1->data[i5
-          + reshapes[1].f1->size[0] * i4];
-      }
-    }
-
-    emxFreeMatrix_cell_wrap_0(reshapes);
-    i4 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i4);
-    A_idx_0 = b_bs->size[1];
-    for (i4 = 0; i4 < A_idx_0; i4++) {
-      A_idx_1 = b_bs->size[0];
-      for (i5 = 0; i5 < A_idx_1; i5++) {
-        bs->data[i5 + bs->size[0] * i4] = b_bs->data[i5 + b_bs->size[0] * i4];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }
 
-  for (A_idx_1 = 0; A_idx_1 + 1 <= ncols; A_idx_1++) {
+  for (u0 = 0; u0 < ncols; u0++) {
     v1 = 1.0;
-    for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-      v1 -= A->data[A_idx_0 + A->size[0] * A_idx_1] * A->data[A_idx_0 + A->size
-        [0] * A_idx_1];
+    i = u0 + 2;
+    for (input_sizes_idx_0 = i; input_sizes_idx_0 <= nrows; input_sizes_idx_0++)
+    {
+      t2 = A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1];
+      v1 -= t2 * t2;
     }
 
     if (v1 < 0.0) {
@@ -430,50 +364,54 @@ void qr_qtmulti_3args(const emxArray_real_T *A, emxArray_real_T *bs, int ncols)
       v1 = sqrt(v1);
     }
 
-    i4 = bs->size[1];
-    for (b_A_idx_1 = 0; b_A_idx_1 + 1 <= i4; b_A_idx_1++) {
-      t2 = v1 * bs->data[A_idx_1 + bs->size[0] * b_A_idx_1];
-      for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-        t2 += A->data[A_idx_0 + A->size[0] * A_idx_1] * bs->data[A_idx_0 +
-          bs->size[0] * b_A_idx_1];
+    i = bs->size[1];
+    for (sizes_idx_0 = 0; sizes_idx_0 < i; sizes_idx_0++) {
+      t2 = v1 * bs->data[u0 + bs->size[0] * sizes_idx_0];
+      i1 = u0 + 2;
+      for (input_sizes_idx_0 = i1; input_sizes_idx_0 <= nrows; input_sizes_idx_0
+           ++) {
+        t2 += A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1] * bs->data
+          [(input_sizes_idx_0 + bs->size[0] * sizes_idx_0) - 1];
       }
 
       t2 += t2;
-      bs->data[A_idx_1 + bs->size[0] * b_A_idx_1] -= t2 * v1;
-      for (A_idx_0 = A_idx_1 + 1; A_idx_0 + 1 <= nrows; A_idx_0++) {
-        bs->data[A_idx_0 + bs->size[0] * b_A_idx_1] -= t2 * A->data[A_idx_0 +
-          A->size[0] * A_idx_1];
+      bs->data[u0 + bs->size[0] * sizes_idx_0] -= t2 * v1;
+      i1 = u0 + 2;
+      for (input_sizes_idx_0 = i1; input_sizes_idx_0 <= nrows; input_sizes_idx_0
+           ++) {
+        bs->data[(input_sizes_idx_0 + bs->size[0] * sizes_idx_0) - 1] -= t2 *
+          A->data[(input_sizes_idx_0 + A->size[0] * u0) - 1];
       }
     }
   }
 
   if (bs->size[0] > A->size[0]) {
     if (1 > A->size[0]) {
-      A_idx_0 = 0;
+      u0 = 0;
     } else {
-      A_idx_0 = A->size[0];
+      u0 = A->size[0];
     }
 
-    A_idx_1 = bs->size[1];
-    i4 = b_bs->size[0] * b_bs->size[1];
-    b_bs->size[0] = A_idx_0;
-    b_bs->size[1] = A_idx_1;
-    emxEnsureCapacity_real_T(b_bs, i4);
-    for (i4 = 0; i4 < A_idx_1; i4++) {
-      for (i5 = 0; i5 < A_idx_0; i5++) {
-        b_bs->data[i5 + b_bs->size[0] * i4] = bs->data[i5 + bs->size[0] * i4];
+    input_sizes_idx_0 = bs->size[1] - 1;
+    i = b_bs->size[0] * b_bs->size[1];
+    b_bs->size[0] = u0;
+    b_bs->size[1] = input_sizes_idx_0 + 1;
+    emxEnsureCapacity_real_T(b_bs, i);
+    for (i = 0; i <= input_sizes_idx_0; i++) {
+      for (i1 = 0; i1 < u0; i1++) {
+        b_bs->data[i1 + b_bs->size[0] * i] = bs->data[i1 + bs->size[0] * i];
       }
     }
 
-    i4 = bs->size[0] * bs->size[1];
+    i = bs->size[0] * bs->size[1];
     bs->size[0] = b_bs->size[0];
     bs->size[1] = b_bs->size[1];
-    emxEnsureCapacity_real_T(bs, i4);
-    A_idx_0 = b_bs->size[1];
-    for (i4 = 0; i4 < A_idx_0; i4++) {
-      A_idx_1 = b_bs->size[0];
-      for (i5 = 0; i5 < A_idx_1; i5++) {
-        bs->data[i5 + bs->size[0] * i4] = b_bs->data[i5 + b_bs->size[0] * i4];
+    emxEnsureCapacity_real_T(bs, i);
+    u0 = b_bs->size[1];
+    for (i = 0; i < u0; i++) {
+      input_sizes_idx_0 = b_bs->size[0];
+      for (i1 = 0; i1 < input_sizes_idx_0; i1++) {
+        bs->data[i1 + bs->size[0] * i] = b_bs->data[i1 + b_bs->size[0] * i];
       }
     }
   }

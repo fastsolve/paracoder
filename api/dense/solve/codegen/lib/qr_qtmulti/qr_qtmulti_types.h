@@ -21,13 +21,4 @@ struct emxArray_real_T
 typedef struct emxArray_real_T emxArray_real_T;
 
 #endif
-
-#ifndef typedef_cell_wrap_0
-#define typedef_cell_wrap_0
-
-typedef struct {
-  emxArray_real_T *f1;
-} cell_wrap_0;
-
-#endif
 #endif

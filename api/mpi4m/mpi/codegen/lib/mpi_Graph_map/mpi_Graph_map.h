@@ -2,7 +2,6 @@
 #define MPI_GRAPH_MAP_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Graph_map_types.h"
 

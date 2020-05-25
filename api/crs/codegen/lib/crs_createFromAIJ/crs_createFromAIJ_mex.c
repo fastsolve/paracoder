@@ -68,7 +68,7 @@ static void __crs_createFromAIJ_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument rows has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[1] != 1) 
         mexErrMsgIdAndTxt("crs_createFromAIJ:WrongSizeOfInputArg",
-            "Dimension 2 of rows should equal 1.");
+            "Dimension 2 of rows should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&rows), "rows", 1);
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
@@ -76,7 +76,7 @@ static void __crs_createFromAIJ_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument cols has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("crs_createFromAIJ:WrongSizeOfInputArg",
-            "Dimension 2 of cols should equal 1.");
+            "Dimension 2 of cols should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&cols), "cols", 1);
 
     if (mxGetNumberOfElements(prhs[2]) && mxGetClassID(prhs[2]) != mxDOUBLE_CLASS)
@@ -84,7 +84,7 @@ static void __crs_createFromAIJ_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument vs has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[2]) && mxGetDimensions(prhs[2])[1] != 1) 
         mexErrMsgIdAndTxt("crs_createFromAIJ:WrongSizeOfInputArg",
-            "Dimension 2 of vs should equal 1.");
+            "Dimension 2 of vs should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[2], (emxArray__common *)(&vs), "vs", 1);
     prealloc_struct0_T(&A);
 
@@ -113,7 +113,7 @@ static void __crs_create1_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument is has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[1] != 1) 
         mexErrMsgIdAndTxt("crs_create1:WrongSizeOfInputArg",
-            "Dimension 2 of is should equal 1.");
+            "Dimension 2 of is should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&is), "is", 1);
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
@@ -121,7 +121,7 @@ static void __crs_create1_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument js has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("crs_create1:WrongSizeOfInputArg",
-            "Dimension 2 of js should equal 1.");
+            "Dimension 2 of js should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&js), "js", 1);
 
     if (mxGetNumberOfElements(prhs[2]) && mxGetClassID(prhs[2]) != mxDOUBLE_CLASS)
@@ -129,7 +129,7 @@ static void __crs_create1_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument vs has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[2]) && mxGetDimensions(prhs[2])[1] != 1) 
         mexErrMsgIdAndTxt("crs_create1:WrongSizeOfInputArg",
-            "Dimension 2 of vs should equal 1.");
+            "Dimension 2 of vs should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[2], (emxArray__common *)(&vs), "vs", 1);
 
     if (mxGetNumberOfElements(prhs[3]) && mxGetClassID(prhs[3]) != mxINT32_CLASS)

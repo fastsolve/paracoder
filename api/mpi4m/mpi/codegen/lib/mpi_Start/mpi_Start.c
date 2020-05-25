@@ -3,25 +3,31 @@
 #include "mpi.h"
 
 static void b_m2c_error(int varargin_3);
+static MPI_Request m2c_castdata(const emxArray_uint8_T *data);
 static void m2c_error(const emxArray_char_T *varargin_3);
 static void b_m2c_error(int varargin_3)
 {
   M2C_error("MPI:RuntimeError", "MPI_Start error code %d\n", varargin_3);
 }
 
+static MPI_Request m2c_castdata(const emxArray_uint8_T *data)
+{
+  return *(MPI_Request*)(&data->data[0]);
+}
+
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
-  int i0;
+  int i;
   int loop_ub;
   emxInit_char_T(&b_varargin_3, 2);
-  i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  i = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity_char_T(b_varargin_3, i0);
+  emxEnsureCapacity_char_T(b_varargin_3, i);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i0 = 0; i0 < loop_ub; i0++) {
-    b_varargin_3->data[i0] = varargin_3->data[i0];
+  for (i = 0; i < loop_ub; i++) {
+    b_varargin_3->data[i] = varargin_3->data[i];
   }
 
   M2C_error("m2c_opaque_obj:WrongInput",
@@ -33,28 +39,22 @@ static void m2c_error(const emxArray_char_T *varargin_3)
 void mpi_Start(const struct0_T *req, int *info, boolean_T *toplevel)
 {
   boolean_T p;
-  boolean_T b_p;
   int k;
+  boolean_T b_p;
   boolean_T exitg1;
   emxArray_char_T *b_req;
-  static const char cv0[11] = { 'M', 'P', 'I', '_', 'R', 'e', 'q', 'u', 'e', 's',
+  MPI_Request t_req;
+  int i;
+  static const char cv[11] = { 'M', 'P', 'I', '_', 'R', 'e', 'q', 'u', 'e', 's',
     't' };
 
-  emxArray_uint8_T *data;
-  int loop_ub;
-  MPI_Request t_req;
-  p = false;
-  b_p = false;
-  if (req->type->size[1] == 11) {
-    b_p = true;
-  }
-
-  if (b_p && (!(req->type->size[1] == 0))) {
+  p = (req->type->size[1] == 11);
+  if (p && (req->type->size[1] != 0)) {
     k = 0;
     exitg1 = false;
     while ((!exitg1) && (k < 11)) {
-      if (!(req->type->data[k] == cv0[k])) {
-        b_p = false;
+      if (!(req->type->data[k] == cv[k])) {
+        p = false;
         exitg1 = true;
       } else {
         k++;
@@ -62,39 +62,26 @@ void mpi_Start(const struct0_T *req, int *info, boolean_T *toplevel)
     }
   }
 
-  if (b_p) {
-    p = true;
-  }
-
-  if (!p) {
+  b_p = (int)p;
+  if (!b_p) {
     emxInit_char_T(&b_req, 2);
-    k = b_req->size[0] * b_req->size[1];
+    i = b_req->size[0] * b_req->size[1];
     b_req->size[0] = 1;
     b_req->size[1] = req->type->size[1] + 1;
-    emxEnsureCapacity_char_T(b_req, k);
-    loop_ub = req->type->size[1];
-    for (k = 0; k < loop_ub; k++) {
-      b_req->data[b_req->size[0] * k] = req->type->data[req->type->size[0] * k];
+    emxEnsureCapacity_char_T(b_req, i);
+    k = req->type->size[1];
+    for (i = 0; i < k; i++) {
+      b_req->data[i] = req->type->data[i];
     }
 
-    b_req->data[b_req->size[0] * req->type->size[1]] = '\x00';
+    b_req->data[req->type->size[1]] = '\x00';
     m2c_error(b_req);
     emxFree_char_T(&b_req);
   }
 
-  emxInit_uint8_T(&data, 1);
-  k = data->size[0];
-  data->size[0] = req->data->size[0];
-  emxEnsureCapacity_uint8_T(data, k);
-  loop_ub = req->data->size[0];
-  for (k = 0; k < loop_ub; k++) {
-    data->data[k] = req->data->data[k];
-  }
-
-  t_req = *(MPI_Request*)(&data->data[0]);
+  t_req = m2c_castdata(req->data);
   *info = MPI_Start(&t_req);
   *toplevel = true;
-  emxFree_uint8_T(&data);
   if (*info != 0) {
     b_m2c_error(*info);
   }

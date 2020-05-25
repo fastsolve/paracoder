@@ -2,7 +2,6 @@
 #define MPI_REQUEST_GET_STATUS_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Request_get_status_types.h"
 

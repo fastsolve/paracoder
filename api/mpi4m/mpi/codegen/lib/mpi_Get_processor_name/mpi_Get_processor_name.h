@@ -2,7 +2,6 @@
 #define MPI_GET_PROCESSOR_NAME_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Get_processor_name_types.h"
 

@@ -2,7 +2,6 @@
 #define MPI_TYPE_INDEXED_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Type_indexed_types.h"
 

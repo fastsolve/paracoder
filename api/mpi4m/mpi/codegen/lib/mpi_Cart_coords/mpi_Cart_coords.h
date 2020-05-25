@@ -2,7 +2,6 @@
 #define MPI_CART_COORDS_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Cart_coords_types.h"
 

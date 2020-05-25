@@ -2,7 +2,6 @@
 #define MPI_CARTDIM_GET_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Cartdim_get_types.h"
 

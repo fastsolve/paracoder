@@ -31,7 +31,7 @@ static void __crs_sort_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument row_ptr has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[1] != 1) 
         mexErrMsgIdAndTxt("crs_sort:WrongSizeOfInputArg",
-            "Dimension 2 of row_ptr should equal 1.");
+            "Dimension 2 of row_ptr should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&row_ptr), "row_ptr", 1);
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
@@ -39,7 +39,7 @@ static void __crs_sort_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument col_ind has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("crs_sort:WrongSizeOfInputArg",
-            "Dimension 2 of col_ind should equal 1.");
+            "Dimension 2 of col_ind should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&col_ind), "col_ind", 1);
 
     if (mxGetNumberOfElements(prhs[2]) && mxGetClassID(prhs[2]) != mxDOUBLE_CLASS)
@@ -47,7 +47,7 @@ static void __crs_sort_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument val has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[2]) && mxGetDimensions(prhs[2])[1] != 1) 
         mexErrMsgIdAndTxt("crs_sort:WrongSizeOfInputArg",
-            "Dimension 2 of val should equal 1.");
+            "Dimension 2 of val should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[2], (emxArray__common *)(&val), "val", 1);
 
     /* Invoke the target function */
@@ -72,7 +72,7 @@ static void __crs_sort0_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument row_ptr has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[1] != 1) 
         mexErrMsgIdAndTxt("crs_sort0:WrongSizeOfInputArg",
-            "Dimension 2 of row_ptr should equal 1.");
+            "Dimension 2 of row_ptr should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&row_ptr), "row_ptr", 1);
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
@@ -80,7 +80,7 @@ static void __crs_sort0_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument col_ind has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("crs_sort0:WrongSizeOfInputArg",
-            "Dimension 2 of col_ind should equal 1.");
+            "Dimension 2 of col_ind should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&col_ind), "col_ind", 1);
 
     /* Invoke the target function */

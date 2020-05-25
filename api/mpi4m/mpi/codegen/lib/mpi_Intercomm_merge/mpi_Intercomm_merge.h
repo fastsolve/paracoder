@@ -2,7 +2,6 @@
 #define MPI_INTERCOMM_MERGE_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Intercomm_merge_types.h"
 

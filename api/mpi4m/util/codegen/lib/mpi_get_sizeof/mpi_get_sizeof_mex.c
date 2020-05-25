@@ -30,7 +30,7 @@ static void __mpi_get_sizeof_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument typename has incorrect data type; char is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[0] != 1) 
         mexErrMsgIdAndTxt("mpi_get_sizeof:WrongSizeOfInputArg",
-            "Dimension 1 of typename should equal 1.");
+            "Dimension 1 of typename should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&typename), "typename", 2);
 
     /* Invoke the target function */

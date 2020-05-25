@@ -2,7 +2,6 @@
 #define MPI_TOPO_TEST_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Topo_test_types.h"
 

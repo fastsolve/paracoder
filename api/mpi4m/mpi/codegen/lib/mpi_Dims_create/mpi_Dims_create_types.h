@@ -42,25 +42,4 @@ struct emxArray_int32_T
 typedef struct emxArray_int32_T emxArray_int32_T;
 
 #endif
-
-#ifndef struct_emxArray_uint8_T
-#define struct_emxArray_uint8_T
-
-struct emxArray_uint8_T
-{
-  unsigned char *data;
-  int *size;
-  int allocatedSize;
-  int numDimensions;
-  boolean_T canFreeData;
-};
-
-#endif
-
-#ifndef typedef_emxArray_uint8_T
-#define typedef_emxArray_uint8_T
-
-typedef struct emxArray_uint8_T emxArray_uint8_T;
-
-#endif
 #endif

@@ -2,7 +2,6 @@
 #define MPI_GET_VERSION_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Get_version_types.h"
 

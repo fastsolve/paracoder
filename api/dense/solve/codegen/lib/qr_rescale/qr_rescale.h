@@ -1,9 +1,7 @@
 #ifndef QR_RESCALE_H
 #define QR_RESCALE_H
-#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "qr_rescale_types.h"
 

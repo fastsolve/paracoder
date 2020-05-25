@@ -1,26 +1,31 @@
 #include "rescale_matrix.h"
 #include "m2c.h"
+#include <math.h>
 
 static double vec_norm2(const emxArray_real_T *v);
 static double vec_norm2(const emxArray_real_T *v)
 {
   double s;
   double w;
+  int i;
   int ii;
   double t;
   w = 0.0;
-  for (ii = 1; ii <= v->size[0]; ii++) {
-    w = fmax(w, fabs(v->data[ii - 1]));
+  i = v->size[0];
+  for (ii = 0; ii < i; ii++) {
+    w = fmax(w, fabs(v->data[ii]));
   }
 
   s = 0.0;
   if (w == 0.0) {
-    for (ii = 1; ii <= v->size[0]; ii++) {
-      s += v->data[ii - 1];
+    i = v->size[0];
+    for (ii = 0; ii < i; ii++) {
+      s += v->data[ii];
     }
   } else {
-    for (ii = 1; ii <= v->size[0]; ii++) {
-      t = v->data[ii - 1] / w;
+    i = v->size[0];
+    for (ii = 0; ii < i; ii++) {
+      t = v->data[ii] / w;
       s += t * t;
     }
 
@@ -32,32 +37,29 @@ static double vec_norm2(const emxArray_real_T *v)
 
 void rescale_matrix(emxArray_real_T *V, int ncols, emxArray_real_T *ts)
 {
-  int ii;
   emxArray_real_T *b_V;
+  int ii;
   int loop_ub;
-  int i0;
-  ii = 0;
+  int i;
   emxInit_real_T(&b_V, 1);
-  while (ii + 1 <= ncols) {
+  for (ii = 0; ii < ncols; ii++) {
     loop_ub = V->size[0];
-    i0 = b_V->size[0];
+    i = b_V->size[0];
     b_V->size[0] = loop_ub;
-    emxEnsureCapacity_real_T(b_V, i0);
-    for (i0 = 0; i0 < loop_ub; i0++) {
-      b_V->data[i0] = V->data[i0 + V->size[0] * ii];
+    emxEnsureCapacity_real_T(b_V, i);
+    for (i = 0; i < loop_ub; i++) {
+      b_V->data[i] = V->data[i + V->size[0] * ii];
     }
 
     ts->data[ii] = vec_norm2(b_V);
     if (fabs(ts->data[ii]) == 0.0) {
       ts->data[ii] = 1.0;
     } else {
-      i0 = V->size[0];
-      for (loop_ub = 0; loop_ub + 1 <= i0; loop_ub++) {
+      i = V->size[0];
+      for (loop_ub = 0; loop_ub < i; loop_ub++) {
         V->data[loop_ub + V->size[0] * ii] /= ts->data[ii];
       }
     }
-
-    ii++;
   }
 
   emxFree_real_T(&b_V);

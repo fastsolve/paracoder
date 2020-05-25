@@ -2,7 +2,6 @@
 #define MPI_IPROBE_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Iprobe_types.h"
 

@@ -2,7 +2,6 @@
 #define COMPUTE_QTB_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "compute_qtb_types.h"
 

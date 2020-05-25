@@ -2,13 +2,20 @@
 
 void crs_solve_trilt(const struct0_T *A, emxArray_real_T *b)
 {
+  int n;
   int i;
+  int b_i;
+  int i1;
   int k;
-  for (i = A->row_ptr->size[0] - 2; i + 1 > 0; i--) {
-    b->data[i] /= A->val->data[A->row_ptr->data[i + 1] - 2];
-    for (k = A->row_ptr->data[i] - 1; k + 1 <= A->row_ptr->data[i + 1] - 2; k++)
-    {
-      b->data[A->col_ind->data[k] - 1] -= A->val->data[k] * b->data[i];
+  int i2;
+  n = A->row_ptr->size[0] - 1;
+  for (i = n; i >= 1; i--) {
+    b->data[i - 1] /= A->val->data[A->row_ptr->data[i] - 2];
+    b_i = A->row_ptr->data[i - 1];
+    i1 = A->row_ptr->data[i] - 2;
+    for (k = b_i; k <= i1; k++) {
+      i2 = A->col_ind->data[k - 1] - 1;
+      b->data[i2] -= A->val->data[k - 1] * b->data[i - 1];
     }
   }
 }

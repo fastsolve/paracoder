@@ -2,14 +2,20 @@
 
 void ccs_solve_tril(const struct0_T *L, emxArray_real_T *b)
 {
-  int i0;
+  int i;
   int j;
+  int i1;
+  int i2;
   int k;
-  i0 = L->col_ptr->size[0] - 1;
-  for (j = 0; j + 1 <= i0; j++) {
+  int i3;
+  i = L->col_ptr->size[0];
+  for (j = 0; j <= i - 2; j++) {
     b->data[j] /= L->val->data[L->col_ptr->data[j] - 1];
-    for (k = L->col_ptr->data[j]; k + 1 < L->col_ptr->data[j + 1]; k++) {
-      b->data[L->row_ind->data[k] - 1] -= L->val->data[k] * b->data[j];
+    i1 = L->col_ptr->data[j] + 1;
+    i2 = L->col_ptr->data[j + 1] - 1;
+    for (k = i1; k <= i2; k++) {
+      i3 = L->row_ind->data[k - 1] - 1;
+      b->data[i3] -= L->val->data[k - 1] * b->data[j];
     }
   }
 }

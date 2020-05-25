@@ -2,7 +2,6 @@
 #define MPI_FINALIZED_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Finalized_types.h"
 

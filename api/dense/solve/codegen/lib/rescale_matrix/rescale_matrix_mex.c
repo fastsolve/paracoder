@@ -44,7 +44,7 @@ static void __rescale_matrix_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument ts has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[2]) && mxGetDimensions(prhs[2])[1] != 1) 
         mexErrMsgIdAndTxt("rescale_matrix:WrongSizeOfInputArg",
-            "Dimension 2 of ts should equal 1.");
+            "Dimension 2 of ts should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[2], (emxArray__common *)(&ts), "ts", 1);
 
     /* Invoke the target function */

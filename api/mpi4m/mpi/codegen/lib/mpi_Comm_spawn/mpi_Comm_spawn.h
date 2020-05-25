@@ -2,7 +2,6 @@
 #define MPI_COMM_SPAWN_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Comm_spawn_types.h"
 

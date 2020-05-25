@@ -5,6 +5,7 @@ void crs_diag(const struct0_T *A, emxArray_real_T *D)
 {
   int i;
   int loop_ub;
+  int b_i;
   boolean_T exitg1;
   i = D->size[0];
   D->size[0] = A->nrows;
@@ -14,12 +15,13 @@ void crs_diag(const struct0_T *A, emxArray_real_T *D)
     D->data[i] = 0.0;
   }
 
-  for (i = 1; i <= A->nrows; i++) {
-    loop_ub = A->row_ptr->data[i - 1];
+  i = A->nrows;
+  for (b_i = 0; b_i < i; b_i++) {
+    loop_ub = A->row_ptr->data[b_i];
     exitg1 = false;
-    while ((!exitg1) && (loop_ub <= A->row_ptr->data[i] - 1)) {
-      if (A->col_ind->data[loop_ub - 1] == i) {
-        D->data[i - 1] = A->val->data[loop_ub - 1];
+    while ((!exitg1) && (loop_ub <= A->row_ptr->data[b_i + 1] - 1)) {
+      if (A->col_ind->data[loop_ub - 1] == b_i + 1) {
+        D->data[b_i] = A->val->data[loop_ub - 1];
         exitg1 = true;
       } else {
         loop_ub++;
@@ -31,45 +33,50 @@ void crs_diag(const struct0_T *A, emxArray_real_T *D)
 void crs_diag1(const struct0_T *A, int k, emxArray_real_T *D)
 {
   int y;
-  int j;
+  int i;
+  int b_i;
   boolean_T exitg1;
+  int i1;
   if (k < 0) {
     y = -k;
   } else {
     y = k;
   }
 
-  j = D->size[0];
+  i = D->size[0];
   D->size[0] = A->nrows - y;
-  emxEnsureCapacity_real_T(D, j);
+  emxEnsureCapacity_real_T(D, i);
   y = A->nrows - y;
-  for (j = 0; j < y; j++) {
-    D->data[j] = 0.0;
+  for (i = 0; i < y; i++) {
+    D->data[i] = 0.0;
   }
 
   if (k >= 0) {
-    for (y = 1; y <= A->nrows; y++) {
-      j = A->row_ptr->data[y - 1];
+    i = A->nrows;
+    for (b_i = 0; b_i < i; b_i++) {
+      y = A->row_ptr->data[b_i];
       exitg1 = false;
-      while ((!exitg1) && (j <= A->row_ptr->data[y] - 1)) {
-        if (A->col_ind->data[j - 1] == y + k) {
-          D->data[y - 1] = A->val->data[j - 1];
+      while ((!exitg1) && (y <= A->row_ptr->data[b_i + 1] - 1)) {
+        if (A->col_ind->data[y - 1] == (b_i + k) + 1) {
+          D->data[b_i] = A->val->data[y - 1];
           exitg1 = true;
         } else {
-          j++;
+          y++;
         }
       }
     }
   } else {
-    for (y = 1; y <= A->nrows; y++) {
-      j = A->row_ptr->data[y - 1];
+    i = A->nrows;
+    for (b_i = 0; b_i < i; b_i++) {
+      y = A->row_ptr->data[b_i];
       exitg1 = false;
-      while ((!exitg1) && (j <= A->row_ptr->data[y] - 1)) {
-        if (A->col_ind->data[j - 1] == y + k) {
-          D->data[(y + k) - 1] = A->val->data[j - 1];
+      while ((!exitg1) && (y <= A->row_ptr->data[b_i + 1] - 1)) {
+        i1 = b_i + k;
+        if (A->col_ind->data[y - 1] == i1 + 1) {
+          D->data[i1] = A->val->data[y - 1];
           exitg1 = true;
         } else {
-          j++;
+          y++;
         }
       }
     }

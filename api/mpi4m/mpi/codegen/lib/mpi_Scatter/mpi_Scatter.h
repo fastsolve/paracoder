@@ -2,7 +2,6 @@
 #define MPI_SCATTER_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Scatter_types.h"
 

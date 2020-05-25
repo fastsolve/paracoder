@@ -2,14 +2,20 @@
 
 void crs_solve_triut(const struct0_T *A, emxArray_real_T *b)
 {
-  int i0;
   int i;
+  int b_i;
+  int i1;
+  int i2;
   int k;
-  i0 = A->row_ptr->size[0] - 1;
-  for (i = 0; i + 1 <= i0; i++) {
-    b->data[i] /= A->val->data[A->row_ptr->data[i] - 1];
-    for (k = A->row_ptr->data[i]; k + 1 < A->row_ptr->data[i + 1]; k++) {
-      b->data[A->col_ind->data[k] - 1] -= A->val->data[k] * b->data[i];
+  int i3;
+  i = A->row_ptr->size[0];
+  for (b_i = 0; b_i <= i - 2; b_i++) {
+    b->data[b_i] /= A->val->data[A->row_ptr->data[b_i] - 1];
+    i1 = A->row_ptr->data[b_i] + 1;
+    i2 = A->row_ptr->data[b_i + 1] - 1;
+    for (k = i1; k <= i2; k++) {
+      i3 = A->col_ind->data[k - 1] - 1;
+      b->data[i3] -= A->val->data[k - 1] * b->data[b_i];
     }
   }
 }

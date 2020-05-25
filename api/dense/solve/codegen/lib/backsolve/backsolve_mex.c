@@ -50,7 +50,7 @@ static void __backsolve_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument ws has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[3]) && mxGetDimensions(prhs[3])[1] != 1) 
         mexErrMsgIdAndTxt("backsolve:WrongSizeOfInputArg",
-            "Dimension 2 of ws should equal 1.");
+            "Dimension 2 of ws should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[3], (emxArray__common *)(&ws), "ws", 1);
 
     /* Invoke the target function */

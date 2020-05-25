@@ -1,23 +1,31 @@
 #include "mpi_Type_create_hvector.h"
 #include "m2c.h"
 #include "mpi.h"
+#include <string.h>
 
+static MPI_Datatype b_m2c_castdata(const emxArray_uint8_T *data);
 static void b_m2c_error(const emxArray_char_T *varargin_3);
 static void c_m2c_error(const emxArray_char_T *varargin_3);
+static MPI_Aint m2c_castdata(const emxArray_uint8_T *data);
 static void m2c_error(const emxArray_char_T *varargin_3);
+static MPI_Datatype b_m2c_castdata(const emxArray_uint8_T *data)
+{
+  return *(MPI_Datatype*)(&data->data[0]);
+}
+
 static void b_m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
-  int i1;
+  int i;
   int loop_ub;
   emxInit_char_T(&b_varargin_3, 2);
-  i1 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  i = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity_char_T(b_varargin_3, i1);
+  emxEnsureCapacity_char_T(b_varargin_3, i);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i1 = 0; i1 < loop_ub; i1++) {
-    b_varargin_3->data[i1] = varargin_3->data[i1];
+  for (i = 0; i < loop_ub; i++) {
+    b_varargin_3->data[i] = varargin_3->data[i];
   }
 
   M2C_error("m2c_opaque_obj:WrongInput",
@@ -29,16 +37,16 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
 static void c_m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
-  int i2;
+  int i;
   int loop_ub;
   emxInit_char_T(&b_varargin_3, 2);
-  i2 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  i = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity_char_T(b_varargin_3, i2);
+  emxEnsureCapacity_char_T(b_varargin_3, i);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i2 = 0; i2 < loop_ub; i2++) {
-    b_varargin_3->data[i2] = varargin_3->data[i2];
+  for (i = 0; i < loop_ub; i++) {
+    b_varargin_3->data[i] = varargin_3->data[i];
   }
 
   M2C_error("MPI:RuntimeError",
@@ -47,19 +55,24 @@ static void c_m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
+static MPI_Aint m2c_castdata(const emxArray_uint8_T *data)
+{
+  return *(MPI_Aint*)(&data->data[0]);
+}
+
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
-  int i0;
+  int i;
   int loop_ub;
   emxInit_char_T(&b_varargin_3, 2);
-  i0 = b_varargin_3->size[0] * b_varargin_3->size[1];
+  i = b_varargin_3->size[0] * b_varargin_3->size[1];
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
-  emxEnsureCapacity_char_T(b_varargin_3, i0);
+  emxEnsureCapacity_char_T(b_varargin_3, i);
   loop_ub = varargin_3->size[0] * varargin_3->size[1];
-  for (i0 = 0; i0 < loop_ub; i0++) {
-    b_varargin_3->data[i0] = varargin_3->data[i0];
+  for (i = 0; i < loop_ub; i++) {
+    b_varargin_3->data[i] = varargin_3->data[i];
   }
 
   M2C_error("m2c_opaque_obj:WrongInput",
@@ -72,197 +85,136 @@ void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
   const struct0_T *oldtype, struct0_T *newtype, int *info, boolean_T *toplevel)
 {
   boolean_T p;
+  int sizepe;
   boolean_T b_p;
-  int resultlen;
   boolean_T exitg1;
   emxArray_char_T *b_stride;
-  static const char cv0[8] = { 'M', 'P', 'I', '_', 'A', 'i', 'n', 't' };
+  int i;
+  static const char cv[8] = { 'M', 'P', 'I', '_', 'A', 'i', 'n', 't' };
 
-  emxArray_uint8_T *data0;
-  int loop_ub;
   MPI_Aint output;
+  emxArray_uint8_T *data0;
   static const char cv1[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
     'p', 'e' };
 
   MPI_Datatype datatype;
-  MPI_Datatype newtype0;
-  int sizepe;
-  char t0_type[12];
+  MPI_Datatype arg;
   static const char x2[12] = { 'M', 'P', 'I', '_', 'D', 'a', 't', 'a', 't', 'y',
     'p', 'e' };
 
   char * ptr;
   unsigned char msg0[1024];
-  emxArray_uint8_T *b_msg0;
-  emxArray_char_T *c_msg0;
-  p = false;
-  b_p = false;
-  if (stride->type->size[1] == 8) {
-    b_p = true;
-  }
-
-  if (b_p && (!(stride->type->size[1] == 0))) {
-    resultlen = 0;
+  short unnamed_idx_1;
+  p = (stride->type->size[1] == 8);
+  if (p && (stride->type->size[1] != 0)) {
+    sizepe = 0;
     exitg1 = false;
-    while ((!exitg1) && (resultlen < 8)) {
-      if (!(stride->type->data[resultlen] == cv0[resultlen])) {
-        b_p = false;
+    while ((!exitg1) && (sizepe < 8)) {
+      if (!(stride->type->data[sizepe] == cv[sizepe])) {
+        p = false;
         exitg1 = true;
       } else {
-        resultlen++;
+        sizepe++;
       }
     }
   }
 
-  if (b_p) {
-    p = true;
-  }
-
+  b_p = (int)p;
   emxInit_char_T(&b_stride, 2);
-  if (!p) {
-    resultlen = b_stride->size[0] * b_stride->size[1];
+  if (!b_p) {
+    i = b_stride->size[0] * b_stride->size[1];
     b_stride->size[0] = 1;
     b_stride->size[1] = stride->type->size[1] + 1;
-    emxEnsureCapacity_char_T(b_stride, resultlen);
-    loop_ub = stride->type->size[1];
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_stride->data[b_stride->size[0] * resultlen] = stride->type->data
-        [stride->type->size[0] * resultlen];
+    emxEnsureCapacity_char_T(b_stride, i);
+    sizepe = stride->type->size[1];
+    for (i = 0; i < sizepe; i++) {
+      b_stride->data[i] = stride->type->data[i];
     }
 
-    b_stride->data[b_stride->size[0] * stride->type->size[1]] = '\x00';
+    b_stride->data[stride->type->size[1]] = '\x00';
     m2c_error(b_stride);
   }
 
-  emxInit_uint8_T(&data0, 1);
-  resultlen = data0->size[0];
-  data0->size[0] = stride->data->size[0];
-  emxEnsureCapacity_uint8_T(data0, resultlen);
-  loop_ub = stride->data->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    data0->data[resultlen] = stride->data->data[resultlen];
-  }
-
-  output = *(MPI_Aint*)(&data0->data[0]);
-  p = false;
-  b_p = false;
-  if (oldtype->type->size[1] == 12) {
-    b_p = true;
-  }
-
-  if (b_p && (!(oldtype->type->size[1] == 0))) {
-    resultlen = 0;
+  output = m2c_castdata(stride->data);
+  p = (oldtype->type->size[1] == 12);
+  if (p && (oldtype->type->size[1] != 0)) {
+    sizepe = 0;
     exitg1 = false;
-    while ((!exitg1) && (resultlen < 12)) {
-      if (!(oldtype->type->data[resultlen] == cv1[resultlen])) {
-        b_p = false;
+    while ((!exitg1) && (sizepe < 12)) {
+      if (!(oldtype->type->data[sizepe] == cv1[sizepe])) {
+        p = false;
         exitg1 = true;
       } else {
-        resultlen++;
+        sizepe++;
       }
     }
   }
 
-  if (b_p) {
-    p = true;
-  }
-
-  if (!p) {
-    resultlen = b_stride->size[0] * b_stride->size[1];
+  b_p = (int)p;
+  if (!b_p) {
+    i = b_stride->size[0] * b_stride->size[1];
     b_stride->size[0] = 1;
     b_stride->size[1] = oldtype->type->size[1] + 1;
-    emxEnsureCapacity_char_T(b_stride, resultlen);
-    loop_ub = oldtype->type->size[1];
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_stride->data[b_stride->size[0] * resultlen] = oldtype->type->
-        data[oldtype->type->size[0] * resultlen];
+    emxEnsureCapacity_char_T(b_stride, i);
+    sizepe = oldtype->type->size[1];
+    for (i = 0; i < sizepe; i++) {
+      b_stride->data[i] = oldtype->type->data[i];
     }
 
-    b_stride->data[b_stride->size[0] * oldtype->type->size[1]] = '\x00';
+    b_stride->data[oldtype->type->size[1]] = '\x00';
     b_m2c_error(b_stride);
   }
 
-  resultlen = data0->size[0];
-  data0->size[0] = oldtype->data->size[0];
-  emxEnsureCapacity_uint8_T(data0, resultlen);
-  loop_ub = oldtype->data->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    data0->data[resultlen] = oldtype->data->data[resultlen];
-  }
-
-  datatype = *(MPI_Datatype*)(&data0->data[0]);
-  *info = MPI_Type_create_hvector(count, blocklen, output, datatype, &newtype0);
+  emxInit_uint8_T(&data0, 1);
+  datatype = b_m2c_castdata(oldtype->data);
+  *info = MPI_Type_create_hvector(count, blocklen, output, datatype, &arg);
   sizepe = sizeof(MPI_Datatype);
-  resultlen = data0->size[0];
+  i = data0->size[0];
   data0->size[0] = sizepe;
-  emxEnsureCapacity_uint8_T(data0, resultlen);
-  for (resultlen = 0; resultlen < 12; resultlen++) {
-    t0_type[resultlen] = x2[resultlen];
-  }
-
-  resultlen = newtype->data->size[0];
-  newtype->data->size[0] = data0->size[0];
-  emxEnsureCapacity_uint8_T(newtype->data, resultlen);
-  loop_ub = data0->size[0];
-  for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-    newtype->data->data[resultlen] = data0->data[resultlen];
+  emxEnsureCapacity_uint8_T(data0, i);
+  i = newtype->data->size[0];
+  newtype->data->size[0] = sizepe;
+  emxEnsureCapacity_uint8_T(newtype->data, i);
+  for (i = 0; i < sizepe; i++) {
+    newtype->data->data[i] = data0->data[i];
   }
 
   emxFree_uint8_T(&data0);
-  resultlen = newtype->type->size[0] * newtype->type->size[1];
+  i = newtype->type->size[0] * newtype->type->size[1];
   newtype->type->size[0] = 1;
   newtype->type->size[1] = 12;
-  emxEnsureCapacity_char_T(newtype->type, resultlen);
-  for (resultlen = 0; resultlen < 12; resultlen++) {
-    newtype->type->data[resultlen] = t0_type[resultlen];
+  emxEnsureCapacity_char_T(newtype->type, i);
+  for (i = 0; i < 12; i++) {
+    newtype->type->data[i] = x2[i];
   }
 
   newtype->nitems = 1;
-  ptr = (char *)(&newtype0);
-  for (resultlen = 1; resultlen <= sizepe; resultlen++) {
-    newtype->data->data[resultlen - 1] = *(ptr);
+  ptr = (char *)(&arg);
+  for (i = 0; i < sizepe; i++) {
+    newtype->data->data[i] = *(ptr);
     ptr = ptr + 1;
   }
 
   if (*info != 0) {
-    memset(&msg0[0], 0, sizeof(unsigned char) << 10);
+    memset(&msg0[0], 0, 1024U * sizeof(unsigned char));
     ptr = (char *)(msg0);
-    resultlen = 0;
-    MPI_Error_string(*info, ptr, &resultlen);
-    if (1 > resultlen) {
-      loop_ub = 0;
+    sizepe = 0;
+    MPI_Error_string(*info, ptr, &sizepe);
+    if (1 > sizepe) {
+      unnamed_idx_1 = 0;
     } else {
-      loop_ub = resultlen;
+      unnamed_idx_1 = (short)sizepe;
     }
 
-    emxInit_uint8_T(&b_msg0, 2);
-    resultlen = b_msg0->size[0] * b_msg0->size[1];
-    b_msg0->size[0] = 1;
-    b_msg0->size[1] = loop_ub;
-    emxEnsureCapacity_uint8_T(b_msg0, resultlen);
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_msg0->data[b_msg0->size[0] * resultlen] = msg0[resultlen];
-    }
-
-    emxInit_char_T(&c_msg0, 1);
-    resultlen = c_msg0->size[0];
-    c_msg0->size[0] = loop_ub;
-    emxEnsureCapacity_char_T(c_msg0, resultlen);
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      c_msg0->data[resultlen] = (signed char)b_msg0->data[resultlen];
-    }
-
-    emxFree_uint8_T(&b_msg0);
-    resultlen = b_stride->size[0] * b_stride->size[1];
+    i = b_stride->size[0] * b_stride->size[1];
     b_stride->size[0] = 1;
-    b_stride->size[1] = (short)loop_ub;
-    emxEnsureCapacity_char_T(b_stride, resultlen);
-    loop_ub = (short)loop_ub;
-    for (resultlen = 0; resultlen < loop_ub; resultlen++) {
-      b_stride->data[b_stride->size[0] * resultlen] = c_msg0->data[resultlen];
+    b_stride->size[1] = unnamed_idx_1;
+    emxEnsureCapacity_char_T(b_stride, i);
+    sizepe = unnamed_idx_1;
+    for (i = 0; i < sizepe; i++) {
+      b_stride->data[i] = (signed char)msg0[i];
     }
 
-    emxFree_char_T(&c_msg0);
     c_m2c_error(b_stride);
   }
 

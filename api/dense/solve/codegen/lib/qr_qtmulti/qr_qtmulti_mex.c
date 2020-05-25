@@ -50,7 +50,7 @@ static void __qr_qtmulti_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument V has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[3]) && mxGetDimensions(prhs[3])[1] != 1) 
         mexErrMsgIdAndTxt("qr_qtmulti:WrongSizeOfInputArg",
-            "Dimension 2 of V should equal 1.");
+            "Dimension 2 of V should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[3], (emxArray__common *)(&V), "V", 1);
 
     /* Invoke the target function */

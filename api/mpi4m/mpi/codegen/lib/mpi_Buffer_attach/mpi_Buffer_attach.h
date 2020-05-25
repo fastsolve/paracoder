@@ -2,7 +2,6 @@
 #define MPI_BUFFER_ATTACH_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Buffer_attach_types.h"
 

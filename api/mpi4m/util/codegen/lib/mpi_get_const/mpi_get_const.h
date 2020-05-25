@@ -2,7 +2,6 @@
 #define MPI_GET_CONST_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_get_const_types.h"
 

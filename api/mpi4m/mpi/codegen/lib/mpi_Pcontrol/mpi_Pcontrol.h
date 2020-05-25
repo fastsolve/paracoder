@@ -2,7 +2,6 @@
 #define MPI_PCONTROL_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Pcontrol_types.h"
 

@@ -1,9 +1,7 @@
 #ifndef CRS_PRODATX_H
 #define CRS_PRODATX_H
-#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "crs_prodAtx_types.h"
 

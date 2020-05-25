@@ -1,9 +1,7 @@
 #ifndef QR_QTMULTI_H
 #define QR_QTMULTI_H
-#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "qr_qtmulti_types.h"
 

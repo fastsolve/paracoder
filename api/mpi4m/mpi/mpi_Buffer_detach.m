@@ -14,7 +14,7 @@ function [ptr, size, info, toplevel] = mpi_Buffer_detach
 %#codegen -args {}
 
 
-info = int32(0); %#ok<NASGU>
+info = int32(0); 
 size = int32(0);
 
 ptr0 = coder.opaque('void *');

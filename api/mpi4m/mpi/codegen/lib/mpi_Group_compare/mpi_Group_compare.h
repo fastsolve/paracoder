@@ -2,7 +2,6 @@
 #define MPI_GROUP_COMPARE_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Group_compare_types.h"
 

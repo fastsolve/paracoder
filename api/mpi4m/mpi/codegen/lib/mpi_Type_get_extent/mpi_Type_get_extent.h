@@ -2,7 +2,6 @@
 #define MPI_TYPE_GET_EXTENT_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Type_get_extent_types.h"
 

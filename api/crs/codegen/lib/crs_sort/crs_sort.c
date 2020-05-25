@@ -4,78 +4,84 @@
 void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
               emxArray_real_T *val)
 {
-  int i0;
   int i;
   emxArray_real_T *buf_val;
   emxArray_int32_T *buf_indx;
+  int b_i;
   boolean_T ascend;
   int j;
-  boolean_T exitg1;
-  int n;
-  unsigned int ind;
+  int exitg1;
+  int ir;
+  int i1;
   int l;
-  int exitg2;
+  unsigned int ind;
   boolean_T guard1 = false;
   int r0;
   double t0;
-  int exitg3;
-  int b_i;
+  int exitg2;
+  int c_i;
   boolean_T guard2 = false;
-  i0 = row_ptr->size[0] - 1;
-  i = 1;
+  i = row_ptr->size[0];
   emxInit_real_T(&buf_val, 1);
   emxInit_int32_T(&buf_indx, 1);
-  while (i <= i0) {
+  for (b_i = 0; b_i <= i - 2; b_i++) {
     ascend = true;
-    j = row_ptr->data[i - 1];
-    exitg1 = false;
-    while ((!exitg1) && (j + 1 <= row_ptr->data[i] - 1)) {
-      if (col_ind->data[j] < col_ind->data[j - 1]) {
-        ascend = false;
-        exitg1 = true;
+    j = row_ptr->data[b_i];
+    do {
+      exitg1 = 0;
+      ir = row_ptr->data[b_i + 1];
+      i1 = ir - 1;
+      if (j + 1 <= i1) {
+        if (col_ind->data[j] < col_ind->data[j - 1]) {
+          ascend = false;
+          exitg1 = 1;
+        } else {
+          j++;
+        }
       } else {
-        j++;
+        exitg1 = 1;
       }
-    }
+    } while (exitg1 == 0);
 
     if (!ascend) {
-      j = buf_indx->size[0];
-      buf_indx->size[0] = row_ptr->data[i] - row_ptr->data[i - 1];
-      emxEnsureCapacity_int32_T(buf_indx, j);
-      n = row_ptr->data[i] - row_ptr->data[i - 1];
-      for (j = 0; j < n; j++) {
-        buf_indx->data[j] = 0;
+      l = ir - row_ptr->data[b_i];
+      ir = buf_indx->size[0];
+      buf_indx->size[0] = l;
+      emxEnsureCapacity_int32_T(buf_indx, ir);
+      for (ir = 0; ir < l; ir++) {
+        buf_indx->data[ir] = 0;
       }
 
-      j = buf_val->size[0];
-      buf_val->size[0] = row_ptr->data[i] - row_ptr->data[i - 1];
-      emxEnsureCapacity_real_T(buf_val, j);
-      n = row_ptr->data[i] - row_ptr->data[i - 1];
-      for (j = 0; j < n; j++) {
-        buf_val->data[j] = 0.0;
+      ir = buf_val->size[0];
+      buf_val->size[0] = l;
+      emxEnsureCapacity_real_T(buf_val, ir);
+      for (ir = 0; ir < l; ir++) {
+        buf_val->data[ir] = 0.0;
       }
 
       ind = 1U;
-      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
-        buf_indx->data[(int)ind - 1] = col_ind->data[j - 1];
-        buf_val->data[(int)ind - 1] = val->data[j - 1];
+      ir = row_ptr->data[b_i];
+      for (j = ir; j <= i1; j++) {
+        l = (int)ind - 1;
+        buf_indx->data[l] = col_ind->data[j - 1];
+        buf_val->data[l] = val->data[j - 1];
         ind++;
       }
 
-      n = buf_indx->size[0];
-      if (!(n <= 1)) {
-        l = (int)((unsigned int)n >> 1U);
+      if (buf_indx->size[0] > 1) {
+        l = (int)((unsigned int)buf_indx->size[0] >> 1U);
+        ir = buf_indx->size[0];
         do {
-          exitg2 = 0;
+          exitg1 = 0;
           guard1 = false;
           if (l + 1 <= 1) {
-            r0 = buf_indx->data[n - 1];
-            t0 = buf_val->data[n - 1];
-            buf_indx->data[n - 1] = buf_indx->data[0];
-            buf_val->data[n - 1] = buf_val->data[0];
-            n--;
-            if (n == 1) {
-              exitg2 = 1;
+            r0 = buf_indx->data[ir - 1];
+            t0 = buf_val->data[ir - 1];
+            buf_indx->data[ir - 1] = buf_indx->data[0];
+            buf_val->data[ir - 1] = buf_val->data[0];
+            ir--;
+            if (ir == 1) {
+              exitg1 = 1;
             } else {
               guard1 = true;
             }
@@ -89,17 +95,17 @@ void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
           if (guard1) {
             j = l;
             do {
-              exitg3 = 0;
-              b_i = j;
+              exitg2 = 0;
+              c_i = j;
               j = ((j + 1) << 1) - 1;
               ascend = false;
               guard2 = false;
-              if (j + 1 >= n) {
-                if (j + 1 == n) {
+              if (j + 1 >= ir) {
+                if (j + 1 == ir) {
                   ascend = true;
                   guard2 = true;
-                } else if (j + 1 > n) {
-                  exitg3 = 1;
+                } else if (j + 1 > ir) {
+                  exitg2 = 1;
                 } else {
                   guard2 = true;
                 }
@@ -113,32 +119,32 @@ void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
                 }
 
                 if (r0 >= buf_indx->data[j]) {
-                  exitg3 = 1;
+                  exitg2 = 1;
                 } else {
-                  buf_indx->data[b_i] = buf_indx->data[j];
-                  buf_val->data[b_i] = buf_val->data[j];
+                  buf_indx->data[c_i] = buf_indx->data[j];
+                  buf_val->data[c_i] = buf_val->data[j];
                 }
               }
-            } while (exitg3 == 0);
+            } while (exitg2 == 0);
 
-            buf_indx->data[b_i] = r0;
-            buf_val->data[b_i] = t0;
+            buf_indx->data[c_i] = r0;
+            buf_val->data[c_i] = t0;
           }
-        } while (exitg2 == 0);
+        } while (exitg1 == 0);
 
         buf_indx->data[0] = r0;
         buf_val->data[0] = t0;
       }
 
       ind = 1U;
-      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
-        col_ind->data[j - 1] = buf_indx->data[(int)ind - 1];
-        val->data[j - 1] = buf_val->data[(int)ind - 1];
+      ir = row_ptr->data[b_i];
+      for (j = ir; j <= i1; j++) {
+        l = (int)ind - 1;
+        col_ind->data[j - 1] = buf_indx->data[l];
+        val->data[j - 1] = buf_val->data[l];
         ind++;
       }
     }
-
-    i++;
   }
 
   emxFree_int32_T(&buf_indx);
@@ -147,59 +153,66 @@ void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
 
 void crs_sort0(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind)
 {
-  int i1;
   int i;
   emxArray_int32_T *buf_indx;
+  int b_i;
   boolean_T ascend;
   int j;
-  boolean_T exitg1;
-  unsigned int ind;
-  int n;
+  int exitg1;
+  int i1;
+  int i2;
+  int ir;
   int l;
-  int exitg2;
+  unsigned int ind;
   boolean_T guard1 = false;
   int r0;
-  int exitg3;
-  int b_i;
+  int exitg2;
+  int c_i;
   boolean_T guard2 = false;
-  i1 = row_ptr->size[0] - 1;
-  i = 1;
+  i = row_ptr->size[0];
   emxInit_int32_T(&buf_indx, 1);
-  while (i <= i1) {
+  for (b_i = 0; b_i <= i - 2; b_i++) {
     ascend = true;
-    j = row_ptr->data[i - 1];
-    exitg1 = false;
-    while ((!exitg1) && (j + 1 <= row_ptr->data[i] - 1)) {
-      if (col_ind->data[j] < col_ind->data[j - 1]) {
-        ascend = false;
-        exitg1 = true;
+    j = row_ptr->data[b_i];
+    do {
+      exitg1 = 0;
+      i1 = row_ptr->data[b_i + 1];
+      i2 = i1 - 1;
+      if (j + 1 <= i2) {
+        if (col_ind->data[j] < col_ind->data[j - 1]) {
+          ascend = false;
+          exitg1 = 1;
+        } else {
+          j++;
+        }
       } else {
-        j++;
+        exitg1 = 1;
       }
-    }
+    } while (exitg1 == 0);
 
     if (!ascend) {
-      j = buf_indx->size[0];
-      buf_indx->size[0] = row_ptr->data[i] - row_ptr->data[i - 1];
-      emxEnsureCapacity_int32_T(buf_indx, j);
+      ir = row_ptr->data[b_i];
+      l = buf_indx->size[0];
+      buf_indx->size[0] = i1 - row_ptr->data[b_i];
+      emxEnsureCapacity_int32_T(buf_indx, l);
       ind = 1U;
-      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
+      for (j = ir; j <= i2; j++) {
         buf_indx->data[(int)ind - 1] = col_ind->data[j - 1];
         ind++;
       }
 
-      n = buf_indx->size[0];
-      if (!(n <= 1)) {
-        l = (int)((unsigned int)n >> 1U) + 1;
+      if (buf_indx->size[0] > 1) {
+        l = (int)((unsigned int)buf_indx->size[0] >> 1U) + 1;
+        ir = buf_indx->size[0];
         do {
-          exitg2 = 0;
+          exitg1 = 0;
           guard1 = false;
           if (l <= 1) {
-            r0 = buf_indx->data[n - 1];
-            buf_indx->data[n - 1] = buf_indx->data[0];
-            n--;
-            if (n == 1) {
-              exitg2 = 1;
+            r0 = buf_indx->data[ir - 1];
+            buf_indx->data[ir - 1] = buf_indx->data[0];
+            ir--;
+            if (ir == 1) {
+              exitg1 = 1;
             } else {
               guard1 = true;
             }
@@ -212,17 +225,17 @@ void crs_sort0(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind)
           if (guard1) {
             j = l;
             do {
-              exitg3 = 0;
-              b_i = j - 1;
+              exitg2 = 0;
+              c_i = j - 1;
               j <<= 1;
               ascend = false;
               guard2 = false;
-              if (j >= n) {
-                if (j == n) {
+              if (j >= ir) {
+                if (j == ir) {
                   ascend = true;
                   guard2 = true;
-                } else if (j > n) {
-                  exitg3 = 1;
+                } else if (j > ir) {
+                  exitg2 = 1;
                 } else {
                   guard2 = true;
                 }
@@ -235,29 +248,29 @@ void crs_sort0(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind)
                   j++;
                 }
 
-                if (r0 >= buf_indx->data[j - 1]) {
-                  exitg3 = 1;
+                i1 = buf_indx->data[j - 1];
+                if (r0 >= i1) {
+                  exitg2 = 1;
                 } else {
-                  buf_indx->data[b_i] = buf_indx->data[j - 1];
+                  buf_indx->data[c_i] = i1;
                 }
               }
-            } while (exitg3 == 0);
+            } while (exitg2 == 0);
 
-            buf_indx->data[b_i] = r0;
+            buf_indx->data[c_i] = r0;
           }
-        } while (exitg2 == 0);
+        } while (exitg1 == 0);
 
         buf_indx->data[0] = r0;
       }
 
       ind = 1U;
-      for (j = row_ptr->data[i - 1]; j < row_ptr->data[i]; j++) {
+      i1 = row_ptr->data[b_i];
+      for (j = i1; j <= i2; j++) {
         col_ind->data[j - 1] = buf_indx->data[(int)ind - 1];
         ind++;
       }
     }
-
-    i++;
   }
 
   emxFree_int32_T(&buf_indx);

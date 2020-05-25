@@ -2,7 +2,6 @@
 #define MPI_OP_FREE_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Op_free_types.h"
 

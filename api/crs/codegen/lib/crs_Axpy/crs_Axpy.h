@@ -2,7 +2,6 @@
 #define CRS_AXPY_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "crs_Axpy_types.h"
 

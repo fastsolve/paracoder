@@ -4,18 +4,20 @@
 void crs_rowind(const emxArray_int32_T *rowptr, const emxArray_int32_T *js,
                 emxArray_int32_T *is)
 {
-  unsigned int unnamed_idx_0;
-  int nrows;
   int i;
+  int nrows;
+  int b_i;
+  int i1;
   int j;
-  unnamed_idx_0 = (unsigned int)js->size[0];
-  nrows = is->size[0];
-  is->size[0] = (int)unnamed_idx_0;
-  emxEnsureCapacity_int32_T(is, nrows);
-  nrows = rowptr->size[0] - 1;
-  for (i = 1; i <= nrows; i++) {
-    for (j = rowptr->data[i - 1]; j < rowptr->data[i]; j++) {
-      is->data[j - 1] = i;
+  i = is->size[0];
+  is->size[0] = js->size[0];
+  emxEnsureCapacity_int32_T(is, i);
+  nrows = rowptr->size[0];
+  for (b_i = 0; b_i <= nrows - 2; b_i++) {
+    i = rowptr->data[b_i];
+    i1 = rowptr->data[b_i + 1] - 1;
+    for (j = i; j <= i1; j++) {
+      is->data[j - 1] = b_i + 1;
     }
   }
 }

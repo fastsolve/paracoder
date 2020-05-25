@@ -35,7 +35,7 @@ static void __solve_getrs_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument b has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("solve_getrs:WrongSizeOfInputArg",
-            "Dimension 2 of b should equal 1.");
+            "Dimension 2 of b should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&b), "b", 1);
 
     /* Invoke the target function */
@@ -64,7 +64,7 @@ static void __solve_getrs_3args_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument b has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("solve_getrs_3args:WrongSizeOfInputArg",
-            "Dimension 2 of b should equal 1.");
+            "Dimension 2 of b should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&b), "b", 1);
 
     if (mxGetNumberOfElements(prhs[2]) && mxGetClassID(prhs[2]) != mxINT32_CLASS)
@@ -103,7 +103,7 @@ static void __solve_getrs_4args_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument b has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("solve_getrs_4args:WrongSizeOfInputArg",
-            "Dimension 2 of b should equal 1.");
+            "Dimension 2 of b should be equal to 1.");
     copy_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&b), "b", 1);
 
     if (mxGetNumberOfElements(prhs[2]) && mxGetClassID(prhs[2]) != mxINT32_CLASS)

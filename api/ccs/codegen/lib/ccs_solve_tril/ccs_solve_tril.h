@@ -2,7 +2,6 @@
 #define CCS_SOLVE_TRIL_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "ccs_solve_tril_types.h"
 

@@ -2,7 +2,6 @@
 #define CCS_SOLVE_UTRILT_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "ccs_solve_utrilt_types.h"
 

@@ -31,7 +31,7 @@ static void __crs_rowind_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument rowptr has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[0]) && mxGetDimensions(prhs[0])[1] != 1) 
         mexErrMsgIdAndTxt("crs_rowind:WrongSizeOfInputArg",
-            "Dimension 2 of rowptr should equal 1.");
+            "Dimension 2 of rowptr should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[0], (emxArray__common *)(&rowptr), "rowptr", 1);
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
@@ -39,7 +39,7 @@ static void __crs_rowind_api(mxArray **plhs, const mxArray ** prhs) {
             "Input argument js has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(prhs[1]) && mxGetDimensions(prhs[1])[1] != 1) 
         mexErrMsgIdAndTxt("crs_rowind:WrongSizeOfInputArg",
-            "Dimension 2 of js should equal 1.");
+            "Dimension 2 of js should be equal to 1.");
     alias_mxArray_to_emxArray(prhs[1], (emxArray__common *)(&js), "js", 1);
     init_emxArray((emxArray__common*)(&is), 1);
 

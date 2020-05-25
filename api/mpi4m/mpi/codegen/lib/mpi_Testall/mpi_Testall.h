@@ -2,7 +2,6 @@
 #define MPI_TESTALL_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Testall_types.h"
 

@@ -1,6 +1,8 @@
+#include "crs_triu_emxutil.h"
 #include "crs_triu.h"
 #include "m2c.h"
-#include "crs_triu_emxutil.h"
+#include <stdlib.h>
+#include <string.h>
 
 static void emxCopy_int32_T(emxArray_int32_T **dst, emxArray_int32_T * const
   *src);

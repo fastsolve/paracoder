@@ -2,7 +2,6 @@
 #define MPI_TYPE_CREATE_HVECTOR_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Type_create_hvector_types.h"
 

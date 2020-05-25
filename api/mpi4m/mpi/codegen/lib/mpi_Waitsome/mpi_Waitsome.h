@@ -2,7 +2,6 @@
 #define MPI_WAITSOME_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Waitsome_types.h"
 

@@ -2,7 +2,6 @@
 #define MPI_ALLGATHERV_H
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include "rtwtypes.h"
 #include "mpi_Allgatherv_types.h"
 
