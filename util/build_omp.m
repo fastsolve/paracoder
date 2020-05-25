@@ -6,17 +6,19 @@ omproot = [m2croot '/api/omp4m'];
 curpath = pwd;
 cd(omproot);
 
-try
-    lines = grep_pattern('omp*.m', '\n%#codegen -args');
-    files = regexp(lines, '[\w\\\/]+\.m', 'match');
-    
-    for j=1:length(files)
-        file = files{j};
+lines = grep_pattern('omp*.m', '\n%#codegen -args');
+files = regexp(lines, '[\w\\\/]+\.m', 'match');
+
+for j=1:length(files)
+    file = files{j};
+    try
         m2c('-omp', '-mex', '-O', varargin{:}, file);
+    catch ME
+        if any(strcmp(varargin, '-force'))
+            cd(curpath);
+            rethrow(ME)
+        end
     end
-catch ME
-    cd(curpath);
-    rethrow(ME);
 end
 
 cd(curpath);
