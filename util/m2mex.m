@@ -160,7 +160,7 @@ end
 if hascodegen
     co_cfg = coder.config('mex');
     co_cfg.FilePartitionMethod = 'SingleFile';
-    co_cfg.GenerateReport = true;
+    co_cfg.GenerateReport = debuginfo;
     basecommand = 'codegen -config co_cfg ';
 
     co_cfg.CustomSourceCode = sprintf('%s\n', ...
@@ -203,7 +203,7 @@ catch; end
 
 %% Run command
 command = strtrim([basecommand ' ' mexopt ' ' opts_opt ...
-    ' -o ' func ' ' func ' ' args]);
+    ' -I ./codegen -o ' func ' ' func ' ' args]);
 if verbose
     disp('Running codegen with options:');
     disp(co_cfg);
@@ -211,17 +211,12 @@ end
 disp(command);
 olddir = pwd;
 if ~isempty(mpath); cd(mpath); end
-p = path;
 try
-    if exist('./codegen', 'dir'); addpath ./codegen; end %#ok<*MCAP>
     eval(command);
-    % Recover path
-    path(p); cd(olddir);  %#ok<*MCCD>
+    cd(olddir);
 catch err
-    path(p); cd(olddir);  %#ok<*MCCD>
-    fprintf(2, '%s', err.message);
-    fprintf(2, 'Skipping compilation for function %s\n', func);
-    return;
+    cd(olddir);
+    error('%s', err.message);
 end
 end
 
