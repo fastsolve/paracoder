@@ -226,7 +226,7 @@ for i=1:length(vars)
                         end
                         if ~isempty(cprefix)
                             str = sprintf('%s\n', str, ...
-                                ['    ' cvarname ' = mxMalloc(sizeof(' var.type '));'], ...
+                                ['    ' cvarname ' = (' var.type '*)mxMalloc(sizeof(' var.type '));'], ...
                                 ['    init_emxArray((emxArray__common*)(' cvarname_ptr ...
                                 '), ' num2str(length(var.size)) ');']);
                         end
@@ -237,7 +237,7 @@ for i=1:length(vars)
                 elseif ~iscuda
                     if ~isempty(cprefix)
                         str = sprintf('%s\n', str, ...
-                            ['    ' cvarname ' = mxMalloc(sizeof(' var.type '));']);
+                            ['    ' cvarname ' = (' var.type '*)mxMalloc(sizeof(' var.type '));']);
                     end
                     str = sprintf('%s\n', str(1:end-1), ...
                         ['    init_emxArray((emxArray__common*)(' cvarname_ptr ...
@@ -319,7 +319,7 @@ for i=1:length(vars)
                         ~isempty(var.subfields) || isequal(var.type, 'char_T')
                     if isempty(cprefix)
                         str = sprintf('%s\n', str, ...
-                            ['    ' cvarname ' = mxMalloc(sizeof(' var.type ')' multiple ');']);
+                            ['    ' cvarname ' = (' var.type '*)mxMalloc(sizeof(' var.type ')' multiple ');']);
                         if ~isequal(sizefield, 'NULL')
                             if ~writeonly_var
                                 % Copy in size information

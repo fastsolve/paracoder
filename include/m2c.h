@@ -41,10 +41,13 @@ EXTERN_C int  mexPrintf(const char * msg, ...);
 # error Function malloc was previously defined as a macro. This can cause MEX functions to fail.
 #endif
 
+#ifndef __cplusplus
+/* Do not redefine, since they may be used in std namespace */
 #define malloc  mxMalloc
 #define calloc  mxCalloc
 #define realloc mxRealloc
 #define free    mxFree
+#endif /* __cplusplus */
 
 #else
 

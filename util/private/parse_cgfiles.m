@@ -216,6 +216,10 @@ for i=1:ncarg
                 if ~isfield(structDefs, vars(i).type)
                     [def, sublist0] = regexp(typedecl, ['\stypedef\s+struct(\s+\w+)?(\s*\{([^}][^\n]+\n)+\})?\s+' ...
                         vars(i).type '\s*;'], 'match', 'tokens');
+                    if isempty(sublist0) % Try to use C++ definition
+                        [def, sublist0] = regexp(typedecl, ...
+                            ['\s+struct\s+(' vars(i).type ')(\s*\{([^}][^\n]+\n)+\})\s*;'], 'match', 'tokens');
+                    end
                     if ~isempty(sublist0) && isempty(sublist0{1}{2})
                         [~, sublist] = regexp(typedecl, ['\s+struct\s+' strtrim(sublist0{1}{1}) ...
                             '\s*\{([^}][^\n]+\n)+\}\s*;'], 'match', 'tokens');

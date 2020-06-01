@@ -464,7 +464,14 @@ if regen_c
             co_cfg.GenerateExampleMain = 'GenerateCodeOnly';
         end
         co_cfg.GenerateMakefile = false;
-        co_cfg.TargetLangStandard = 'C99 (ISO)';
+        if strcmp(co_cfg.TargetLang, 'C++')
+            co_cfg.TargetLangStandard = 'C++11 (ISO)';
+            if isprop(co_cfg, 'DynamicMemoryAllocationInterface')
+                co_cfg.DynamicMemoryAllocationInterface = 'C';
+            end
+        else
+            co_cfg.TargetLangStandard = 'C99 (ISO)';
+        end
         if m2c_opts.typeRep || m2c_opts.withCuda && ~isunix()
             % To support CUDA pointers, it is recommended to use the bulit-in
             % definition of uint_64 for compatability with M.S. Windows,
@@ -480,9 +487,6 @@ if regen_c
     end
 
     warning('off', 'CoderFoundation:builder:TMFIncompatibilityWarningMATLABCoder');
-    if isequal(co_cfg.TargetLang, 'C++')
-        warning('C++ code generation is not supported. Use at your own risk.');
-    end
 
     co_cfg.CustomSourceCode = sprintf('%s\n', co_cfg.CustomSourceCode);
 
@@ -1063,7 +1067,6 @@ while i<=last_index
             warning('Option -m is suppresed.');
         case '-c++'
             m2c_opts.useCpp = true;
-            warning('Option -c++ is deprecated and no longer supported.');
         case {'-h', '-?', '--help'}
             m2c_opts = [];
             return;

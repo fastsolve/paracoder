@@ -7,7 +7,8 @@ cfile_str = readFile(c_filename);
 emxC_filename = [cpath, func, '_emxutil.', m2c_opts.suf];
 if exist(emxC_filename, 'file')
     emxC_str = readFile(emxC_filename);
-    has_emxutil = contains(cfile_str, 'emxCopyStruct_') && contains(emxC_str, 'emxCopyStruct_') || ...
+    has_emxutil = strcmp(m2c_opts.suf, 'cpp') || ...
+        contains(cfile_str, 'emxCopyStruct_') && contains(emxC_str, 'emxCopyStruct_') || ...
         contains(cfile_str, 'emxInitMatrix_') && contains(emxC_str, 'emxInitMatrix_') || ...
         contains(cfile_str, 'emxInitStruct_') && contains(emxC_str, 'emxInitStruct_') || ...
         contains(cfile_str, 'emxFreeStruct_') && contains(emxC_str, 'emxFreeStruct_');
@@ -69,7 +70,7 @@ if ~isempty(type_def)
     end
 end
 
-if has_emxutil
+if has_emxutil && ~strcmp(m2c_opts.suf, 'cpp')
     [emxC_str, emxH_str] = remove_stdemx_funcs(emxC_str, emxH_str, ctypes_str);
 end
 [cfile_str, hfile_str] = remove_stdemx_funcs(cfile_str, hfile_str, ctypes_str);

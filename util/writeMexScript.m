@@ -32,6 +32,17 @@ CFLAGS = '-fPIC -std=c99';
 CXXFLAGS = '-fPIC';
 LDFLAGS = '';
 
+incdirs = strtrim(strrep(regexp(m2c_opts.codegenArgs, '-I\s+[^\s]+', 'match'), '-I ', ''));
+for i=1:length(incdirs)
+    if ~isempty(incdirs{i}) && incdirs{i}(1) == '/' || length(incdirs{i})>1 && incdirs{i}(2) == ':' 
+        CFLAGS = [CFLAGS ' -I' incdirs{i}];
+        CXXFLAGS = [CXXFLAGS ' -I' incdirs{i}]; %#ok<*AGROW>
+    else
+        CFLAGS = [CFLAGS ' -I../../../' incdirs{i}];
+        CXXFLAGS = [CXXFLAGS ' -I../../../' incdirs{i}];
+    end
+end
+
 if m2c_opts.withPetsc
     % If PETSC is used, enforce using the PCC or CXX commands used in
     % PETSc for CC and add the include path.
