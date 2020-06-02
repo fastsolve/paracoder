@@ -58,7 +58,7 @@ static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, co
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[0] != 1) 
         mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
             "Dimension 1 of type should be equal to 1.");
-    pStruct->type = mxMalloc(sizeof(emxArray_char_T));
+    pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
     alias_mxArray_to_emxArray(sub_mx, (emxArray__common *)(pStruct->type), "type", 2);
 
@@ -112,9 +112,9 @@ static void __mpi_Buffer_attach_api(mxArray **plhs, const mxArray ** prhs) {
             "Argument size should be a scalar.");
     size = *(int32_T*)mxGetData(prhs[1]);
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Buffer_attach(&ptr, size, info, toplevel);

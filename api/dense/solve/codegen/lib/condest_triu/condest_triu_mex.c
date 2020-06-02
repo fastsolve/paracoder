@@ -43,7 +43,7 @@ static void marshallin_struct0_T(struct0_T *pStruct, const mxArray *mx, const ch
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
         mexErrMsgIdAndTxt("marshallin_struct0_T:WrongSizeOfInputArg",
             "Dimension 2 of x should be equal to 1.");
-    pStruct->x = mxMalloc(sizeof(emxArray_real_T));
+    pStruct->x = (emxArray_real_T*)mxMalloc(sizeof(emxArray_real_T));
     init_emxArray((emxArray__common*)(pStruct->x), 1);
     copy_mxArray_to_emxArray(sub_mx, (emxArray__common *)(pStruct->x), "x", 1);
 
@@ -54,17 +54,17 @@ static void marshallin_struct0_T(struct0_T *pStruct, const mxArray *mx, const ch
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
         mexErrMsgIdAndTxt("marshallin_struct0_T:WrongSizeOfInputArg",
             "Dimension 2 of z should be equal to 1.");
-    pStruct->z = mxMalloc(sizeof(emxArray_real_T));
+    pStruct->z = (emxArray_real_T*)mxMalloc(sizeof(emxArray_real_T));
     init_emxArray((emxArray__common*)(pStruct->z), 1);
     copy_mxArray_to_emxArray(sub_mx, (emxArray__common *)(pStruct->z), "z", 1);
 }
 static void prealloc_struct0_T(struct0_T *pStruct) {
 
 
-    pStruct->x = mxMalloc(sizeof(emxArray_real_T));
+    pStruct->x = (emxArray_real_T*)mxMalloc(sizeof(emxArray_real_T));
     init_emxArray((emxArray__common*)(pStruct->x), 1);
 
-    pStruct->z = mxMalloc(sizeof(emxArray_real_T));
+    pStruct->z = (emxArray_real_T*)mxMalloc(sizeof(emxArray_real_T));
     init_emxArray((emxArray__common*)(pStruct->z), 1);
 }
 static mxArray *marshallout_struct0_T(struct0_T *pStruct) {
@@ -163,7 +163,7 @@ static void __condest_triu_3args_api(mxArray **plhs, const mxArray ** prhs) {
             "Argument maxiter should be a scalar.");
     maxiter = *(int32_T*)mxGetData(prhs[2]);
 
-    kappa = mxMalloc(sizeof(real64_T));
+    kappa = (real64_T*)mxMalloc(sizeof(real64_T));
     prealloc_struct0_T(&buf);
 
     /* Invoke the target function */

@@ -45,9 +45,9 @@ static void __mpi_Dims_create_api(mxArray **plhs, const mxArray ** prhs) {
     ndims = *(int32_T*)mxGetData(prhs[1]);
     init_emxArray((emxArray__common*)(&dims), 1);
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Dims_create(nnodes, ndims, &dims, info, toplevel);

@@ -22,10 +22,10 @@
 static void prealloc_struct0_T(struct0_T *pStruct) {
 
 
-    pStruct->data = mxMalloc(sizeof(emxArray_uint8_T));
+    pStruct->data = (emxArray_uint8_T*)mxMalloc(sizeof(emxArray_uint8_T));
     init_emxArray((emxArray__common*)(pStruct->data), 1);
 
-    pStruct->type = mxMalloc(sizeof(emxArray_char_T));
+    pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
 
 }
@@ -57,11 +57,11 @@ static void __mpi_Buffer_detach_api(mxArray **plhs, const mxArray ** prhs) {
     /* Marshall in inputs and preallocate outputs */
     prealloc_struct0_T(&ptr);
 
-    size = mxMalloc(sizeof(int32_T));
+    size = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Buffer_detach(&ptr, size, info, toplevel);

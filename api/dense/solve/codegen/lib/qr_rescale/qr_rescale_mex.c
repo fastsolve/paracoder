@@ -49,7 +49,7 @@ static void __qr_rescale_api(mxArray **plhs, const mxArray ** prhs) {
             "Argument tol should be a scalar.");
     tol = *(real64_T*)mxGetData(prhs[2]);
 
-    rnk = mxMalloc(sizeof(int32_T));
+    rnk = (int32_T*)mxMalloc(sizeof(int32_T));
     init_emxArray((emxArray__common*)(&V), 1);
 
     /* Invoke the target function */

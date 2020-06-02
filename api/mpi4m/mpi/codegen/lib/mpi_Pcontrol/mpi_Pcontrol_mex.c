@@ -34,9 +34,9 @@ static void __mpi_Pcontrol_api(mxArray **plhs, const mxArray ** prhs) {
             "Argument level should be a scalar.");
     level = *(int32_T*)mxGetData(prhs[0]);
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Pcontrol(level, info, toplevel);

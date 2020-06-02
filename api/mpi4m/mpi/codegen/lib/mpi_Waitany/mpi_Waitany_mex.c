@@ -46,7 +46,7 @@ static void marshallin_struct0_T(struct0_T *pStruct, const mxArray *mx, const ch
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
         mexErrMsgIdAndTxt("marshallin_struct0_T:WrongSizeOfInputArg",
             "Dimension 2 of data should be equal to 1.");
-    pStruct->data = mxMalloc(sizeof(emxArray_uint8_T));
+    pStruct->data = (emxArray_uint8_T*)mxMalloc(sizeof(emxArray_uint8_T));
     init_emxArray((emxArray__common*)(pStruct->data), 1);
     copy_mxArray_to_emxArray(sub_mx, (emxArray__common *)(pStruct->data), "data", 1);
 
@@ -57,7 +57,7 @@ static void marshallin_struct0_T(struct0_T *pStruct, const mxArray *mx, const ch
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[0] != 1) 
         mexErrMsgIdAndTxt("marshallin_struct0_T:WrongSizeOfInputArg",
             "Dimension 1 of type should be equal to 1.");
-    pStruct->type = mxMalloc(sizeof(emxArray_char_T));
+    pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
     copy_mxArray_to_emxArray(sub_mx, (emxArray__common *)(pStruct->type), "type", 2);
 
@@ -73,10 +73,10 @@ static void marshallin_struct0_T(struct0_T *pStruct, const mxArray *mx, const ch
 static void prealloc_struct0_T(struct0_T *pStruct) {
 
 
-    pStruct->data = mxMalloc(sizeof(emxArray_uint8_T));
+    pStruct->data = (emxArray_uint8_T*)mxMalloc(sizeof(emxArray_uint8_T));
     init_emxArray((emxArray__common*)(pStruct->data), 1);
 
-    pStruct->type = mxMalloc(sizeof(emxArray_char_T));
+    pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
 
 }
@@ -124,12 +124,12 @@ static void __mpi_Waitany_api(mxArray **plhs, const mxArray ** prhs) {
             "Argument reqs should be a scalar.");
     marshallin_struct0_T(&reqs, prhs[1], "reqs");
 
-    idx = mxMalloc(sizeof(int32_T));
+    idx = (int32_T*)mxMalloc(sizeof(int32_T));
     prealloc_struct0_T(&stat);
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Waitany(count, &reqs, idx, &stat, info, toplevel);

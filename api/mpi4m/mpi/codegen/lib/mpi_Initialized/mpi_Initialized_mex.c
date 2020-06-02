@@ -26,11 +26,11 @@ static void __mpi_Initialized_api(mxArray **plhs, const mxArray ** prhs) {
     boolean_T           *toplevel;
 
     /* Marshall in inputs and preallocate outputs */
-    flag = mxMalloc(sizeof(int32_T));
+    flag = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Initialized(flag, info, toplevel);

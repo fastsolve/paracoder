@@ -36,9 +36,9 @@ static void __mpi_Error_string_api(mxArray **plhs, const mxArray ** prhs) {
     errcode = *(int32_T*)mxGetData(prhs[0]);
     init_emxArray((emxArray__common*)(&msg), 2);
 
-    info = mxMalloc(sizeof(int32_T));
+    info = (int32_T*)mxMalloc(sizeof(int32_T));
 
-    toplevel = mxMalloc(sizeof(boolean_T));
+    toplevel = (boolean_T*)mxMalloc(sizeof(boolean_T));
 
     /* Invoke the target function */
     mpi_Error_string(errcode, &msg, info, toplevel);

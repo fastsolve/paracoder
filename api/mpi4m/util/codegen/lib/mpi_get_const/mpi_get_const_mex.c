@@ -22,10 +22,10 @@
 static void prealloc_struct0_T(struct0_T *pStruct) {
 
 
-    pStruct->data = mxMalloc(sizeof(emxArray_uint8_T));
+    pStruct->data = (emxArray_uint8_T*)mxMalloc(sizeof(emxArray_uint8_T));
     init_emxArray((emxArray__common*)(pStruct->data), 1);
 
-    pStruct->type = mxMalloc(sizeof(emxArray_char_T));
+    pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
 
 }
