@@ -1,24 +1,22 @@
 function m2c(varargin)
-% Wrapper for converting MATLAB code into a C library using MATLAB Coder
-% and for building the C code into a MEX file or a standalone executable.
+% Wrapper for converting MATLAB code into a C/C++ library using MATLAB Coder
+%    and optionally compiling the library into a MEX or EXE file.
 %
 % Usage:
 %   m2c <options> topLevelFunc [-args {...}]
-%   m2c <options> -lib topLevelFunc1 topLevelFunc2 ... topLevelFuncN
-%   m2c <options> -dll topLevelFunc1 topLevelFunc2 ... topLevelFuncN
 %
 %  topLevelFunc can be the function name or file name of the top-level
-%  function to be converted into C.
+%  function to be converted into C. m2c will build a C/C++ library under
+%  the codegen/lib/<topLevelFunc> directory.
 %
 %  -args {...}
 %      Specifies the data types of the MATLAB function using the same
-%      format as codegen. If given, it must appear right after matlabFunc.
+%      format as codegen. If given, it must appear right after <topLevelFunc>.
 %      If not present, the argument specification will be extracted from
 %      the M file from the first comment block started with %#codegen.
-%
-%  -lib and -dll allows you to build a static or dynamic library from a
-%  list of MATLAB functions specified by the -api option. (Not yet
-%  implemented.)
+%      You can specify multiple top-level functions along with their
+%      arguments. In addition, you can specify additional options in the
+%      %#codegen comment block, such as -lang:c++.
 %
 %  The options for m2c have several groups, defined as follows:
 %
@@ -51,28 +49,6 @@ function m2c(varargin)
 %           given, and it ends with '/', then the executable will be saved
 %           to the specified directory; if the parameter does not end with
 %           '/', it will be treated as the filename of the executable.
-%     -lib
-%     -lib {'libdir'} or
-%     -lib {'lib_path_and_filename'}
-%           Generate wrapper C files and a makefile for building a static
-%           library from a list fo M files. Additional API functions with
-%           the M files can be specified using the -api optoins.
-%           The default output directory is codegen/lib, and the generated
-%           C codes are in their own subdirectories. If an argument is
-%           specified, then all the generated C code will be copied to the
-%           <rootdir>/src subdirectory before post-processing, the main
-%           header file will be in <rootdir>/include, and the library
-%           will be in <rootdir>/lib. The library is named lib<basename>.a,
-%           where the basename is the last part of the rootdir. If rootdir
-%           is not specified, the base name is the current directory name.
-%     -dll
-%     -dll {'dlldir'} or
-%     -dll {'dll_path_and_filename'} or
-%           This is the same as -lib, except that it will generate a
-%           dynamic instead of a static library. The suffix is .so, .dylib,
-%           and .dll on Linux, Mac, and Windows, respectively. The options
-%           -lib and -dll can be used simultaneously. If rootdir is
-%           specified more than once, the last one is effective.
 %     -api
 %     -api {'expression1, 'expression2', ...}
 %           Specifies additional API functions in addition to the top-level
@@ -83,9 +59,6 @@ function m2c(varargin)
 %           top-level function is automatically an API function and need
 %           not be listed. This argument can be given after each top-level,
 %           to make the list specific for each M file.
-%     -globals {'g1', init1, 'g2', init2, ..., 'gN', initN}
-%           Specify names and initial values for global variables in MATLAB.
-%           Use coder.Constant(val) to specify a constant value.
 % COMPILATION DEPENDENCY
 %     -cktop
 %           By default, m2c does not regenerate C code if it already exists.
@@ -177,7 +150,8 @@ function m2c(varargin)
 %     -D<macro>
 %           Add a definition of a macro for C preprocessor.
 %     -I<dir>
-%           Add search path for C header files.
+%           Add search path for C header files. Note that ./include
+%           is added automatically if exists.
 %     -l<lib>
 %           Specify linking of a particular library.
 %     -L<dir>
@@ -353,8 +327,6 @@ function m2c(varargin)
 %
 % See also compile, m2mex, codegen.
 
-% TODO: Implement support for -lib, -dll, -global
-
 m2c_opts = proc_options(varargin{:});
 
 if isempty(m2c_opts)
@@ -393,10 +365,17 @@ end
 if isempty(m2c_opts.codegenArgs)
     % Extract arguments from source code.
     m2c_opts.codegenArgs = extract_codegen_args(mfile);
+    if contains(m2c_opts.codegenArgs, '-lang:c++')
+        m2c_opts.useCpp = true;
+        m2c_opts.suf = 'cpp';
+    end
 end
 
 if m2c_opts.withNvcc
     mainCFile = [cpath  func '.cu'];
+    mexCFile = [cpath  func '_mex.cpp'];
+elseif m2c_opts.useCpp
+    mainCFile = [cpath  func '.cpp'];
     mexCFile = [cpath  func '_mex.cpp'];
 else
     mainCFile = [cpath  func '.c'];
@@ -540,8 +519,8 @@ if regen_c
 
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
-    if ~has_emxutil && exist([cpath func '_emxutil.' m2c_opts.suf], 'file')
-        delete([cpath func '_emxutil.' m2c_opts.suf]);
+    if ~has_emxutil && exist([cpath func '_emxutil.h'], 'file')
+        delete([cpath func '_emxutil.c*']);
         delete([cpath func '_emxutil.h']);
     end
 end
@@ -810,16 +789,6 @@ while i<=last_index
             else
                 m2c_opts.api = {' '};
             end
-        case '-globals'
-            if i<last_index && varargin{i+1}(1) == '{'
-                m2c_opts.globals = eval(varargin{i+1});
-                i = i + 1;
-            else
-                error('m2c:wrong_argument', ...
-                    'Argument -globals requires a cell-array argument after it.\n');
-            end
-            % TODO
-            warning('Support for ''-globals'' is not yet implemented.');
         case {'-valgrind', '-ddd', '-gdb', '-gprof', '-gcov'}
             if i<last_index && varargin{i+1}(1) == '{'
                 m2c_opts.(opt(2:end)) = eval(varargin{i+1});
@@ -1120,6 +1089,11 @@ for i=1:length(names)
     end
 end
 
+mpath = fileparts(which(m2c_opts.funcName{1}));
+if exist([mpath '/include'], 'dir')
+    m2c_opts.cppflags = [m2c_opts.cppflags, ['-I' mpath '/include']];
+end
+
 if isoctave
     % When running in octave, always skip codegen
     m2c_opts.skipcg = true;
@@ -1149,7 +1123,7 @@ if m2c_opts.genExe && ~isunix()
 end
 
 if m2c_opts.withCuda
-    m2c_opts.cppflags = [m2c_opts.cppflags ' -DM2C_CUDA=1'];
+    m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_CUDA=1'];
     if m2c_opts.withNvcc
         m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/cuda']];
     end
