@@ -104,6 +104,10 @@ function m2c(varargin)
 %           -force, -ckdep, or -cktop is specified.
 %
 % CODE GENERATION OPTIONS
+%     -c++
+%     -cxx
+%     -lang:c++
+%           Generate C++ instead of C code.
 %     -no-inf
 %     -noinf
 %           Disable support of NonFinite (inf and nan). It produces faster codes.
@@ -442,10 +446,14 @@ if regen_c
 
         if m2c_opts.useCpp
             co_cfg.TargetLang = 'C++';
-            m2c_opts.suf = 'cpp';
+
+            co_cfg.TargetLangStandard = 'C++11 (ISO)';
+            if isprop(co_cfg, 'DynamicMemoryAllocationInterface')
+                co_cfg.DynamicMemoryAllocationInterface = 'C';
+            end
         else
             co_cfg.TargetLang = 'C';
-            m2c_opts.suf = 'c';
+            co_cfg.TargetLangStandard = 'C99 (ISO)';
         end
 
         co_cfg.MultiInstanceCode = true;
@@ -464,14 +472,7 @@ if regen_c
             co_cfg.GenerateExampleMain = 'GenerateCodeOnly';
         end
         co_cfg.GenerateMakefile = false;
-        if strcmp(co_cfg.TargetLang, 'C++')
-            co_cfg.TargetLangStandard = 'C++11 (ISO)';
-            if isprop(co_cfg, 'DynamicMemoryAllocationInterface')
-                co_cfg.DynamicMemoryAllocationInterface = 'C';
-            end
-        else
-            co_cfg.TargetLangStandard = 'C99 (ISO)';
-        end
+
         if m2c_opts.typeRep || m2c_opts.withCuda && ~isunix()
             % To support CUDA pointers, it is recommended to use the bulit-in
             % definition of uint_64 for compatability with M.S. Windows,
@@ -535,7 +536,7 @@ if regen_c
     writeMexFile(func, mpath, cpath, m2c_opts, parmode);
 
     % Write README file
-    writeREADME(func, cpath, m2c_opts.genExe, m2c_opts.withNvcc);
+    writeREADME(func, cpath, m2c_opts.useCpp, has_emxutil, m2c_opts.genExe, m2c_opts.withNvcc);
 
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
@@ -1062,8 +1063,9 @@ while i<=last_index
             m2c_opts.quiet = true;
         case '-m'
             warning('Option -m is suppresed.');
-        case '-c++'
+        case {'-c++','-cxx','-lang:c++'}
             m2c_opts.useCpp = true;
+            m2c_opts.suf = 'cpp';
         case {'-h', '-?', '--help'}
             m2c_opts = [];
             return;

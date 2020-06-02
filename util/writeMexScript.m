@@ -34,7 +34,7 @@ LDFLAGS = '';
 
 incdirs = strtrim(strrep(regexp(m2c_opts.codegenArgs, '-I\s+[^\s]+', 'match'), '-I ', ''));
 for i=1:length(incdirs)
-    if ~isempty(incdirs{i}) && incdirs{i}(1) == '/' || length(incdirs{i})>1 && incdirs{i}(2) == ':' 
+    if ~isempty(incdirs{i}) && incdirs{i}(1) == '/' || length(incdirs{i})>1 && incdirs{i}(2) == ':'
         CFLAGS = [CFLAGS ' -I' incdirs{i}];
         CXXFLAGS = [CXXFLAGS ' -I' incdirs{i}]; %#ok<*AGROW>
     else
@@ -88,6 +88,9 @@ end
 if ~isempty(CC)
     mexflags = [mexflags ' ' CC];
 end
+if m2c_opts.debugInfo
+    mexflags = [mexflags ' -g'];
+end
 
 if ~isempty(m2c_opts.cppflags)
     CPPFLAGS = sprintf(' %s ', m2c_opts.cppflags{:});
@@ -109,10 +112,12 @@ else
     COPTFLAGS = ['-O' num2str(m2c_opts.optimLevel)];
 end
 
-if m2c_opts.debugInfo && m2c_opts.verbose
-    COPTFLAGS = [COPTFLAGS ' -g -v'];
-elseif m2c_opts.debugInfo
-    COPTFLAGS = [COPTFLAGS ' -g'];
+if m2c_opts.debugInfo
+    if m2c_opts.verbose
+        COPTFLAGS = [COPTFLAGS ' -g -v'];
+    else
+        COPTFLAGS = [COPTFLAGS ' -g'];
+    end
 end
 mexflags = [mexflags ' COPTIMFLAGS=''''' COPTFLAGS ''''' CXXOPTIMFLAGS=''''' COPTFLAGS ''''''];
 

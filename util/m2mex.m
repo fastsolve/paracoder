@@ -110,6 +110,11 @@ if ~exist('codegen.p', 'file') && ~exist('emlmex.p', 'file')
 end
 
 [enableopt, args] = match_option(args, '-O');
+[enableopt1, args] = match_option(args, '-O1');
+[enableopt2, args] = match_option(args, '-O2');
+[enableopt3, args] = match_option(args, '-O3');
+enableopt = enableopt || enableopt1 || enableopt2 || enableopt3;
+
 if enableopt
     opts_opt = '-O enable:inline';
 else
@@ -137,6 +142,10 @@ end
 [~, args] = match_option(args, '-noinf');
 [~, args] = match_option(args, '-no-inf');
 
+[useCpp, args] = match_option(args, '-c++');
+[useCxx, args] = match_option(args, '-cxx');
+[useLangCpp, args] = match_option(args, '-lang:c++');
+useCpp = useCpp || useCxx || useLangCpp;
 
 % Determine whether to enable OpenMP
 [enableomp, args] = match_option(args, '-omp');
@@ -148,13 +157,21 @@ elseif ~verLessThan('matlab', '8.0.0') && hascodegen
     opts_opt = [opts_opt ' -O disable:OpenMP'];
 end
 
-% Extract arguments from M-code.
-if isempty(regexp(args,'(\s|^)-args(\s|$)','once'))
-    args = [extract_codegen_args([mfile(1:end-1), 'm']) ' ' args];
-end
 if length(func)>2 && func(end-1)=='.'
     func = func(1:end-2);
 end
+
+% Extract arguments from M-code.
+if isempty(regexp(args,'(\s|^)-args(\s|$)','once'))
+    args = [extract_codegen_args([mfile(1:end-1), 'm']) ' ' args];
+    altapis = [func, strtrim(strrep(regexp(args, ...
+        '(\w+)\s+-args', 'match'), ' -args', ''))];
+    if length(altapis)>1
+        warning('m2mex does not support multiple entry-point mex functions. Only the first entry point will be used.');
+        args = regexprep(args, '\s+\w+\s+-args\s*\{[^\}]*\}', '');
+    end
+end
+
 
 %% Set compiler option
 if hascodegen
@@ -200,6 +217,15 @@ try co_cfg.MATLABFcnDesc = debuginfo;
 catch; end
 try co_cfg.MATLABSourceComments = debuginfo;
 catch; end
+
+if useCpp
+    co_cfg.TargetLang = 'C++';   
+    if isprop(co_cfg, 'DynamicMemoryAllocationInterface')
+        co_cfg.DynamicMemoryAllocationInterface = 'C';
+    end
+else
+    co_cfg.TargetLang = 'C';
+end
 
 %% Run command
 command = strtrim([basecommand ' ' mexopt ' ' opts_opt ...

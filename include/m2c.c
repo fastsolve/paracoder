@@ -11,6 +11,25 @@
 
 #include "m2c.h"
 
+#if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(__NVCC__)
+
+/* Define macros to support building function into MATLAB executable. */
+#ifdef malloc
+# error Function malloc was previously defined as a macro. This can cause MEX functions to fail.
+#endif
+
+EXTERN_C void *mxMalloc(size_t n);
+EXTERN_C void *mxCalloc(size_t n, size_t size);
+EXTERN_C void *mxRealloc(void *ptr, size_t size);
+EXTERN_C void mxFree(void *ptr);
+
+#define malloc  mxMalloc
+#define calloc  mxCalloc
+#define realloc mxRealloc
+#define free    mxFree
+
+#endif /* MATLAB_MEX_FILE || BUILD_MAT */
+
 HOST_AND_DEVICE
 void m2cExpandCapacity(emxArray__common *emxArray, int oldNumel,
                        int newNumel, unsigned int elementSize)
@@ -97,6 +116,114 @@ void emxFree_##emxtype(emxArray_##emxtype **pEmxArray) \
     } \
 }
 
+
+#define define_emxCreate(emxInit, emxtype) \
+HOST_AND_DEVICE \
+emxArray_##emxtype *emxCreate_##emxtype(int rows, int cols) \
+{ \
+    emxArray_##emxtype *emx; \
+    int numEl; \
+    emxInit(&emx, 2); \
+    emx->size[0] = rows; \
+    emx->size[1] = cols; \
+    numEl = rows*cols; \
+    *(void **)&emx->data = calloc((uint32_T)numEl, sizeof(*emx->data)); \
+    emx->numDimensions = 2; \
+    emx->allocatedSize = numEl; \
+    return emx; \
+}
+
+#define define_emxFreeStruct(emxFree, emxtype) \
+HOST_AND_DEVICE \
+void emxFree(emxArray_##emxtype **pEmxArray) \
+{ \
+    int numEl; \
+    int i; \
+    if (*pEmxArray != (emxArray_##emxtype*)NULL) { \
+        numEl = 1; \
+        for (i = 0; i < (*pEmxArray)->numDimensions; i++) { \
+            numEl *= (*pEmxArray)->size[i]; \
+        } \
+        \
+        for (i = 0; i < numEl; i++) { \
+            emxFreeStruct_##emxtype(&(*pEmxArray)->data[i]); \
+        } \
+        \
+        if ((*pEmxArray)->canFreeData) { \
+            free((void *)(*pEmxArray)->data); \
+        } \
+        \
+        free((void *)(*pEmxArray)->size); \
+        free((void *)*pEmxArray); \
+        *pEmxArray = (emxArray_##emxtype *)NULL; \
+    } \
+}
+
+#define define_emxCreateND(emxInit, emxtype) \
+HOST_AND_DEVICE \
+emxArray_##emxtype *emxCreateND_##emxtype(int numDimensions, int *size)  \
+{ \
+    emxArray_##emxtype *emx; \
+    int numEl; \
+    int i; \
+    emxInit(&emx, numDimensions); \
+    numEl = 1; \
+    for (i = 0; i < numDimensions; i++) { \
+        numEl *= size[i]; \
+        emx->size[i] = size[i]; \
+    } \
+    \
+    *(void **)&emx->data = calloc((uint32_T)numEl, sizeof(*emx->data)); \
+    emx->numDimensions = numDimensions; \
+    emx->allocatedSize = numEl; \
+    return emx; \
+}
+
+
+#define define_emxCreateWrapper(emxInit, emxtype, type) \
+HOST_AND_DEVICE \
+emxArray_##emxtype *emxCreateWrapper_##emxtype(type *data, int rows, int cols) \
+{ \
+    emxArray_##emxtype *emx; \
+    emxInit(&emx, 2); \
+    emx->size[0] = rows; \
+    emx->size[1] = cols; \
+    \
+    emx->data = data; \
+    emx->numDimensions = 2; \
+    emx->allocatedSize = rows*cols; \
+    emx->canFreeData = FALSE; \
+    return emx; \
+}
+
+#define define_emxCreateWrapperND(emxInit, emxtype, type) \
+HOST_AND_DEVICE \
+emxArray_##emxtype *emxCreateWrapperND_##emxtype(type *data, int numDimensions, \
+        int *size) \
+{ \
+    emxArray_##emxtype *emx; \
+    int numEl; \
+    int i; \
+    emxInit(&emx, numDimensions); \
+    numEl = 1; \
+    for (i = 0; i < numDimensions; i++) { \
+        numEl *= size[i]; \
+        emx->size[i] = size[i]; \
+    } \
+    \
+    emx->data = data; \
+    emx->numDimensions = numDimensions; \
+    emx->allocatedSize = numEl; \
+    emx->canFreeData = FALSE; \
+    return emx; \
+}
+
+#define define_emxDestroyArray(emxFree, type) \
+HOST_AND_DEVICE \
+void emxDestroyArray_##type(emxArray_##type *emxArray) \
+{ \
+    emxFree(&emxArray); \
+}
 
 #ifdef struct_emxArray_boolean_T
         define_emxInit(boolean_T)
@@ -402,3 +529,13 @@ void M2C_error(const char * id, const char * msg, ...) {
 }
 
 #endif
+
+
+#if (defined(MATLAB_MEX_FILE) || defined(BUILD_MAT)) && !defined(__NVCC__)
+
+#undef malloc
+#undef calloc
+#undef realloc
+#undef free
+
+#endif /* MATLAB_MEX_FILE || BUILD_MAT */

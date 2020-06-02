@@ -7,8 +7,7 @@ cfile_str = readFile(c_filename);
 emxC_filename = [cpath, func, '_emxutil.', m2c_opts.suf];
 if exist(emxC_filename, 'file')
     emxC_str = readFile(emxC_filename);
-    has_emxutil = strcmp(m2c_opts.suf, 'cpp') || ...
-        contains(cfile_str, 'emxCopyStruct_') && contains(emxC_str, 'emxCopyStruct_') || ...
+    has_emxutil = contains(cfile_str, 'emxCopyStruct_') && contains(emxC_str, 'emxCopyStruct_') || ...
         contains(cfile_str, 'emxInitMatrix_') && contains(emxC_str, 'emxInitMatrix_') || ...
         contains(cfile_str, 'emxInitStruct_') && contains(emxC_str, 'emxInitStruct_') || ...
         contains(cfile_str, 'emxFreeStruct_') && contains(emxC_str, 'emxFreeStruct_');
@@ -70,18 +69,25 @@ if ~isempty(type_def)
     end
 end
 
-if has_emxutil && ~strcmp(m2c_opts.suf, 'cpp')
+if has_emxutil
     [emxC_str, emxH_str] = remove_stdemx_funcs(emxC_str, emxH_str, ctypes_str);
 end
 [cfile_str, hfile_str] = remove_stdemx_funcs(cfile_str, hfile_str, ctypes_str);
 
 cfile_str = fix_emxInit(cfile_str, ctypes_str);
 
+if m2c_opts.useCpp
+    ctypes_str = regexprep(ctypes_str, 'struct (emxArray_\w+_T)(\s)', ...
+        '#ifndef struct_$1\n#define struct_$1\n#endif\n\nstruct $1$2');
+end
+
+
 %% Try to remove emxArrays
 if m2c_opts.remEmx
     [cfile_str, hfile_str, ctypes_str] = remove_emxArrays...
         (cfile_str, hfile_str, ctypes_str, m2c_opts);
 end
+
 
 %% Process pragmas
 [cfile_str, hfile_str, parmode] = replace_pragmas(cfile_str, hfile_str, m2c_opts);
@@ -253,7 +259,7 @@ for i = 1:length(tokens)
     cfile_str = regexprep(cfile_str, ['(static\s+)?void\s+emxFree_', ...
         tokens{i}{1}, '\([^,\)]+\);\n'], '');
     cfile_str = regexprep(cfile_str, ['(static\s+)?void\s+emxFree_', ...
-        tokens{i}{1}, '\([^,\)]+\)\s*', re_funcbody], '');   
+        tokens{i}{1}, '\([^,\)]+\)\s*', re_funcbody], '');
 end
 
 % Remove declaration of emxCreate_basictype, emxCreateND_basictype,
