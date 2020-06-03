@@ -17,6 +17,8 @@ function m2mex(varargin)
 %           Disable inliniing
 %     -g
 %           Enable debugging.
+%     -profile
+%           Enable profiling of the mex function using MATLAB Profiler.
 %     -v
 %           Verbose mode.
 %     -omp
@@ -135,6 +137,11 @@ if debuginfo
 else
     mexopt = '';
 end
+[enableprofile, args] = match_option(args, '-profile');
+if enableprofile
+    opts_opt = [opts_opt ' -profile'];
+end
+
 [verbose, args] = match_option(args, '-v');
 
 % Options for compatability with m2c
