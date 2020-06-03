@@ -166,9 +166,8 @@ if isempty(regexp(args,'(\s|^)-args(\s|$)','once'))
     args = [extract_codegen_args([mfile(1:end-1), 'm']) ' ' args];
     altapis = [func, strtrim(strrep(regexp(args, ...
         '(\w+)\s+-args', 'match'), ' -args', ''))];
-    if length(altapis)>1
-        warning('m2mex does not support multiple entry-point mex functions. Only the first entry point will be used.');
-        args = regexprep(args, '\s+\w+\s+-args\s*\{[^\}]*\}', '');
+    if length(altapis)>1 % strip-out alternative names
+        args = regexprep(args, '\s+\w+(\s+-args\s*\{[^\}]*\})', '$1');
     end
 end
 
@@ -219,7 +218,7 @@ try co_cfg.MATLABSourceComments = debuginfo;
 catch; end
 
 if useCpp
-    co_cfg.TargetLang = 'C++';   
+    co_cfg.TargetLang = 'C++';
     if isprop(co_cfg, 'DynamicMemoryAllocationInterface')
         co_cfg.DynamicMemoryAllocationInterface = 'C';
     end
@@ -227,9 +226,15 @@ else
     co_cfg.TargetLang = 'C';
 end
 
+incpath = ' -I codegen';
+if exist([fileparts(which(func)) '/include'], 'dir')
+    incpath = [incpath ' -I include'];
+end
+
+
 %% Run command
 command = strtrim([basecommand ' ' mexopt ' ' opts_opt ...
-    ' -I ./codegen -o ' func ' ' func ' ' args]);
+    incpath ' -o ' func ' ' func ' ' args]);
 if verbose
     disp('Running codegen with options:');
     disp(co_cfg);
