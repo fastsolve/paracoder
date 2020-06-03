@@ -1089,9 +1089,11 @@ for i=1:length(names)
     end
 end
 
-mpath = fileparts(which(m2c_opts.funcName{1}));
-if exist([mpath '/include'], 'dir')
-    m2c_opts.cppflags = [m2c_opts.cppflags, ['-I' mpath '/include']];
+if ~isempty(m2c_opts.funcName)
+  mpath = fileparts(which(m2c_opts.funcName{1}));
+  if exist([mpath '/include'], 'dir')
+      m2c_opts.cppflags = [m2c_opts.cppflags, ['-I' mpath '/include']];
+  end
 end
 
 if isoctave
