@@ -14,6 +14,7 @@ end
 
 warning('off', 'MATLAB:pfileOlderThanMfile');
 warning('off', 'MATLAB:mex:GccVersion')
+warning('off', 'MATLAB:mex:GccVersion_link');
 
 % Set m2croot explicitly to bypass a bug in Octave 4.2.1
 m2croot = fileparts(which('load_m2c'));
