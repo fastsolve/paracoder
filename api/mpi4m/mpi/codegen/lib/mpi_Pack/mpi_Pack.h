@@ -5,10 +5,10 @@
 #include "rtwtypes.h"
 #include "mpi_Pack_types.h"
 
-extern void mpi_Pack(const struct0_T *inbuf, int incount, const struct1_T
-                     *datatype, const struct0_T *outbuf, int outcount, int
-                     *position, const struct1_T *comm, int *info, boolean_T
-                     *toplevel);
+extern void mpi_Pack(const M2C_OpaquePtrType *inbuf, int incount, const
+                     M2C_OpaqueType *datatype, const M2C_OpaquePtrType *outbuf,
+                     int outcount, int *position, const M2C_OpaqueType *comm,
+                     int *info, boolean_T *toplevel);
 extern void mpi_Pack_initialize(void);
 extern void mpi_Pack_terminate(void);
 

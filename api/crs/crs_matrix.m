@@ -21,9 +21,9 @@ function varargout = crs_matrix(varargin) %#codegen
 %   this function creates a type declaration to be used with codegen.
 
 if nargin==0
-    varargout{1} = coder.typeof(struct('row_ptr', coder.typeof(int32(0), [inf,1]), ...
+    varargout{1} = coder.cstructname(struct('row_ptr', coder.typeof(int32(0), [inf,1]), ...
         'col_ind', coder.typeof(int32(0), [inf,1]), ...
-        'val', coder.typeof(0, [inf,1]), 'nrows', int32(0), 'ncols', int32(0)));
+        'val', coder.typeof(0, [inf,1]), 'nrows', int32(0), 'ncols', int32(0)), 'CRS_Matrix');
     return;
 elseif issparse(varargin{1})
     A = crs_createFromSparse(varargin{1});

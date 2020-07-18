@@ -52,7 +52,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Wait(struct0_T *req, struct0_T *stat, int *info, boolean_T *toplevel)
+void mpi_Wait(M2C_OpaqueType *req, M2C_OpaqueType *stat, int *info, boolean_T
+              *toplevel)
 {
   boolean_T p;
   int sizepe;

@@ -52,8 +52,9 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Cart_sub(const struct0_T *comm, const emxArray_int32_T *remain_dims,
-                  struct0_T *newcomm, int *info, boolean_T *toplevel)
+void mpi_Cart_sub(const M2C_OpaqueType *comm, const emxArray_int32_T
+                  *remain_dims, M2C_OpaqueType *newcomm, int *info, boolean_T
+                  *toplevel)
 {
   boolean_T p;
   int sizepe;

@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Group_rank_types.h"
 
-extern void mpi_Group_rank(const struct0_T *group, int *rank, int *info,
+extern void mpi_Group_rank(const M2C_OpaqueType *group, int *rank, int *info,
   boolean_T *toplevel);
 extern void mpi_Group_rank_initialize(void);
 extern void mpi_Group_rank_terminate(void);

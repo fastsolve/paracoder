@@ -52,9 +52,9 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Cart_get(const struct0_T *comm, int maxdims, emxArray_int32_T *dims,
-                  emxArray_int32_T *periods, emxArray_int32_T *coords, int *info,
-                  boolean_T *toplevel)
+void mpi_Cart_get(const M2C_OpaqueType *comm, int maxdims, emxArray_int32_T
+                  *dims, emxArray_int32_T *periods, emxArray_int32_T *coords,
+                  int *info, boolean_T *toplevel)
 {
   int i;
   boolean_T p;

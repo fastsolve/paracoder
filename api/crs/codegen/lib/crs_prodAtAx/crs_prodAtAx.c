@@ -404,8 +404,8 @@ static void m2c_warn(void)
            "You are trying to use nested parallel regions, but nested parallelism is not enabled.");
 }
 
-void crs_prodAtAx(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T *
-                  b, emxArray_real_T *Ax, const emxArray_int32_T *nthreads)
+void crs_prodAtAx(const CRS_Matrix *A, const emxArray_real_T *x, emxArray_real_T
+                  *b, emxArray_real_T *Ax, const emxArray_int32_T *nthreads)
 {
   int n;
   if ((b->size[0] < A->ncols) || (b->size[1] != x->size[1])) {
@@ -495,13 +495,13 @@ void crs_prodAtAx_initialize(void)
 {
 }
 
-void crs_prodAtAx_ser(const struct0_T *A, const emxArray_real_T *x,
+void crs_prodAtAx_ser(const CRS_Matrix *A, const emxArray_real_T *x,
                       emxArray_real_T *b)
 {
   b_crs_prodAtAx(A->row_ptr, A->col_ind, A->val, A->nrows, A->ncols, x, b);
 }
 
-void crs_prodAtAx_ser1(const struct0_T *A, const emxArray_real_T *x,
+void crs_prodAtAx_ser1(const CRS_Matrix *A, const emxArray_real_T *x,
   emxArray_real_T *b)
 {
   c_crs_prodAtAx(A->row_ptr, A->col_ind, A->val, A->nrows, A->ncols, x, b);

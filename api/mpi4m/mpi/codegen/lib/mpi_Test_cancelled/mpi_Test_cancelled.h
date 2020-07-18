@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Test_cancelled_types.h"
 
-extern void mpi_Test_cancelled(const struct0_T *stat, int *flag, int *info,
+extern void mpi_Test_cancelled(const M2C_OpaqueType *stat, int *flag, int *info,
   boolean_T *toplevel);
 extern void mpi_Test_cancelled_initialize(void);
 extern void mpi_Test_cancelled_terminate(void);

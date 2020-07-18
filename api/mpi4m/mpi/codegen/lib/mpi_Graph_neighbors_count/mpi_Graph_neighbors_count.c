@@ -53,8 +53,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Graph_neighbors_count(const struct0_T *comm, int rank, int *nneighbors,
-  int *info, boolean_T *toplevel)
+void mpi_Graph_neighbors_count(const M2C_OpaqueType *comm, int rank, int
+  *nneighbors, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

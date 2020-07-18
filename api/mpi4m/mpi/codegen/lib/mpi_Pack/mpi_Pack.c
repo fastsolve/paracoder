@@ -99,9 +99,10 @@ static void m2c_warn(void)
            "Discarding the const modifier of an m2c_opaque_ptr.");
 }
 
-void mpi_Pack(const struct0_T *inbuf, int incount, const struct1_T *datatype,
-              const struct0_T *outbuf, int outcount, int *position, const
-              struct1_T *comm, int *info, boolean_T *toplevel)
+void mpi_Pack(const M2C_OpaquePtrType *inbuf, int incount, const M2C_OpaqueType *
+              datatype, const M2C_OpaquePtrType *outbuf, int outcount, int
+              *position, const M2C_OpaqueType *comm, int *info, boolean_T
+              *toplevel)
 {
   boolean_T p;
   int resultlen;

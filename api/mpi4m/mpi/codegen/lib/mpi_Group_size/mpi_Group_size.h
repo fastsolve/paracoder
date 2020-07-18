@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Group_size_types.h"
 
-extern void mpi_Group_size(const struct0_T *group, int *size, int *info,
+extern void mpi_Group_size(const M2C_OpaqueType *group, int *size, int *info,
   boolean_T *toplevel);
 extern void mpi_Group_size_initialize(void);
 extern void mpi_Group_size_terminate(void);

@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Cart_coords_types.h"
 
-extern void mpi_Cart_coords(const struct0_T *comm, int rank, int maxdims,
+extern void mpi_Cart_coords(const M2C_OpaqueType *comm, int rank, int maxdims,
   emxArray_int32_T *coords, int *info, boolean_T *toplevel);
 extern void mpi_Cart_coords_initialize(void);
 extern void mpi_Cart_coords_terminate(void);

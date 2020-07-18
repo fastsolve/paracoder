@@ -52,7 +52,7 @@ static void emxCopy_real_T(emxArray_real_T **dst, emxArray_real_T * const *src)
   }
 }
 
-void emxCopyStruct_struct0_T(struct0_T *dst, const struct0_T *src)
+void emxCopyStruct_CRS_Matrix(CRS_Matrix *dst, const CRS_Matrix *src)
 {
   emxCopy_int32_T(&dst->row_ptr, &src->row_ptr);
   emxCopy_int32_T(&dst->col_ind, &src->col_ind);
@@ -61,14 +61,14 @@ void emxCopyStruct_struct0_T(struct0_T *dst, const struct0_T *src)
   dst->ncols = src->ncols;
 }
 
-void emxFreeStruct_struct0_T(struct0_T *pStruct)
+void emxFreeStruct_CRS_Matrix(CRS_Matrix *pStruct)
 {
   emxFree_int32_T(&pStruct->row_ptr);
   emxFree_int32_T(&pStruct->col_ind);
   emxFree_real_T(&pStruct->val);
 }
 
-void emxInitStruct_struct0_T(struct0_T *pStruct)
+void emxInitStruct_CRS_Matrix(CRS_Matrix *pStruct)
 {
   emxInit_int32_T(&pStruct->row_ptr, 1);
   emxInit_int32_T(&pStruct->col_ind, 1);

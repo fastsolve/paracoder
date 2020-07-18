@@ -178,9 +178,10 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
   return size;
 }
 
-void mpi_Reduce(const struct0_T *sptr, const struct0_T *rptr, int count, const
-                struct1_T *datatype, const struct1_T *op, int root, const
-                struct1_T *comm, int *info, boolean_T *toplevel)
+void mpi_Reduce(const M2C_OpaquePtrType *sptr, const M2C_OpaquePtrType *rptr,
+                int count, const M2C_OpaqueType *datatype, const M2C_OpaqueType *
+                op, int root, const M2C_OpaqueType *comm, int *info, boolean_T
+                *toplevel)
 {
   boolean_T p;
   int resultlen;

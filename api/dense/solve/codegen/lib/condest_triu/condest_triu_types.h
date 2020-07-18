@@ -22,13 +22,13 @@ typedef struct emxArray_real_T emxArray_real_T;
 
 #endif
 
-#ifndef typedef_struct0_T
-#define typedef_struct0_T
+#ifndef typedef_CondestBuf
+#define typedef_CondestBuf
 
 typedef struct {
   emxArray_real_T *x;
   emxArray_real_T *z;
-} struct0_T;
+} CondestBuf;
 
 #endif
 #endif

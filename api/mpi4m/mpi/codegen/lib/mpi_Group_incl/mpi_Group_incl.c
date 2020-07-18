@@ -58,8 +58,9 @@ static void m2c_error(void)
   M2C_error("mpi_Group_incl:OutOfBound", "ranks array is too small.");
 }
 
-void mpi_Group_incl(const struct0_T *group, int n, const emxArray_int32_T *ranks,
-                    struct0_T *newgroup, int *info, boolean_T *toplevel)
+void mpi_Group_incl(const M2C_OpaqueType *group, int n, const emxArray_int32_T
+                    *ranks, M2C_OpaqueType *newgroup, int *info, boolean_T
+                    *toplevel)
 {
   boolean_T p;
   int sizepe;

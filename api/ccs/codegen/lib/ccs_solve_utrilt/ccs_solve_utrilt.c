@@ -1,6 +1,6 @@
 #include "ccs_solve_utrilt.h"
 
-void ccs_solve_utrilt(const struct0_T *L, emxArray_real_T *b)
+void ccs_solve_utrilt(const CCS_Matrix *L, emxArray_real_T *b)
 {
   int n;
   int j;
@@ -18,7 +18,7 @@ void ccs_solve_utrilt(const struct0_T *L, emxArray_real_T *b)
   }
 }
 
-void ccs_solve_utrilt_3args(const struct0_T *U, emxArray_real_T *b, int offset)
+void ccs_solve_utrilt_3args(const CCS_Matrix *U, emxArray_real_T *b, int offset)
 {
   int n;
   int j;

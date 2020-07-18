@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "mpi_Op_create_types.h"
 
-extern void mpi_Op_create(const struct0_T *func, int commute, struct0_T *op, int
-  *info, boolean_T *toplevel);
+extern void mpi_Op_create(const M2C_OpaqueType *func, int commute,
+  M2C_OpaqueType *op, int *info, boolean_T *toplevel);
 extern void mpi_Op_create_initialize(void);
 extern void mpi_Op_create_terminate(void);
 

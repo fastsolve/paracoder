@@ -1,6 +1,6 @@
 #include "ccs_solve_triu.h"
 
-void ccs_solve_triu(const struct0_T *U, emxArray_real_T *b)
+void ccs_solve_triu(const CCS_Matrix *U, emxArray_real_T *b)
 {
   int n;
   int j;

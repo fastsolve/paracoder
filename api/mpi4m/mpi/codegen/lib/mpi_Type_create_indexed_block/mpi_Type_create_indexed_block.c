@@ -54,8 +54,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
 }
 
 void mpi_Type_create_indexed_block(int count, int blocklen, const
-  emxArray_int32_T *indices, const struct0_T *oldtype, struct0_T *newtype, int
-  *info, boolean_T *toplevel)
+  emxArray_int32_T *indices, const M2C_OpaqueType *oldtype, M2C_OpaqueType
+  *newtype, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

@@ -87,9 +87,10 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Ssend_init(const struct0_T *ptr, int count, const struct1_T *datatype,
-                    int dest, int tag, const struct1_T *comm, struct1_T *req,
-                    int *info, boolean_T *toplevel)
+void mpi_Ssend_init(const M2C_OpaquePtrType *ptr, int count, const
+                    M2C_OpaqueType *datatype, int dest, int tag, const
+                    M2C_OpaqueType *comm, M2C_OpaqueType *req, int *info,
+                    boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

@@ -53,8 +53,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Type_get_extent(const struct0_T *datatype, struct0_T *lb, struct0_T
-  *extent, int *info, boolean_T *toplevel)
+void mpi_Type_get_extent(const M2C_OpaqueType *datatype, M2C_OpaqueType *lb,
+  M2C_OpaqueType *extent, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

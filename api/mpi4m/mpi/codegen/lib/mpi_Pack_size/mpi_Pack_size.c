@@ -80,8 +80,9 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Pack_size(int count, const struct0_T *datatype, const struct0_T *comm,
-                   int *size, int *info, boolean_T *toplevel)
+void mpi_Pack_size(int count, const M2C_OpaqueType *datatype, const
+                   M2C_OpaqueType *comm, int *size, int *info, boolean_T
+                   *toplevel)
 {
   boolean_T p;
   int resultlen;

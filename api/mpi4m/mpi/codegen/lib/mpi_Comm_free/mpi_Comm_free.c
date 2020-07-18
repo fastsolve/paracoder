@@ -52,7 +52,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Comm_free(struct0_T *comm, int *info, boolean_T *toplevel)
+void mpi_Comm_free(M2C_OpaqueType *comm, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

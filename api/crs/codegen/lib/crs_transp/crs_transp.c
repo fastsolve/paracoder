@@ -1,7 +1,7 @@
 #include "crs_transp.h"
 #include "m2c.h"
 
-void crs_transp(const struct0_T *A, struct0_T *At)
+void crs_transp(const CRS_Matrix *A, CRS_Matrix *At)
 {
   emxArray_int32_T *js;
   int i;

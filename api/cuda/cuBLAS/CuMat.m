@@ -24,15 +24,15 @@ coder.cinclude('cuda4m.h');
 narginchk(0, 5);
 
 if nargin==0
-    output = coder.typeof(struct('data', coder.typeof(uint64(0)), ...
-        'type', int32(0), 'dims', m2c_dims(2)));
+    output = coder.cstructname(struct('data', coder.typeof(uint64(0)), ...
+        'type', int32(0), 'dims', m2c_dims(2)), 'M2C_CuMat');
 elseif nargin==1 && isnumeric(varargin{1}) && ~isnumeric(varargin{1})
     output = struct('data', uint64(0), 'type', int32(0), 'dims', int32([0,0]));
 elseif nargin==5 && ischar(varargin{5})
     output = struct('data', uint64(0), ...
         'type', int32(varargin{2}), ...
         'dims', [int32(varargin{3}), int32(varargin{4})]);
-    
+
     obj = varargin{1};
     if ~isempty(obj)
         output.data = coder.ceval('*(uint64_T *)', coder.rref(obj));

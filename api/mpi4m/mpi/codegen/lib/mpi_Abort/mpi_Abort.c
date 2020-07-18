@@ -7,7 +7,7 @@ static void m2c_error(void)
   M2C_error("MMPI:MPI_Abort", "MPI_Abort was called");
 }
 
-int mpi_Abort(const struct0_T *comm, int errorcode)
+int mpi_Abort(const M2C_OpaqueType *comm, int errorcode)
 {
   int info;
   (void)comm;

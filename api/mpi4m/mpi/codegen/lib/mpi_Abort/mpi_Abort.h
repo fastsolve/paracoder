@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Abort_types.h"
 
-extern int mpi_Abort(const struct0_T *comm, int errorcode);
+extern int mpi_Abort(const M2C_OpaqueType *comm, int errorcode);
 extern void mpi_Abort_initialize(void);
 extern void mpi_Abort_terminate(void);
 

@@ -43,8 +43,8 @@ typedef struct emxArray_real_T emxArray_real_T;
 
 #endif
 
-#ifndef typedef_struct0_T
-#define typedef_struct0_T
+#ifndef typedef_CRS_Matrix
+#define typedef_CRS_Matrix
 
 typedef struct {
   emxArray_int32_T *row_ptr;
@@ -52,7 +52,7 @@ typedef struct {
   emxArray_real_T *val;
   int nrows;
   int ncols;
-} struct0_T;
+} CRS_Matrix;
 
 #endif
 #endif

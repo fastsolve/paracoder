@@ -8,7 +8,7 @@ static void m2c_error(void)
             "Number of columns of A must be equal to number of rows in B.");
 }
 
-void crs_prodAB(const struct0_T *A, const struct0_T *B, struct0_T *C)
+void crs_prodAB(const CRS_Matrix *A, const CRS_Matrix *B, CRS_Matrix *C)
 {
   emxArray_int32_T *buf_indx;
   int varargin_1;

@@ -84,8 +84,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
 }
 
 void mpi_Type_create_struct(int count, const emxArray_int32_T *blocklens, const
-  struct0_T *indices, const struct0_T *oldtypes, struct0_T *newtype, int *info,
-  boolean_T *toplevel)
+  M2C_OpaqueType *indices, const M2C_OpaqueType *oldtypes, M2C_OpaqueType
+  *newtype, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

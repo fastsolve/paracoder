@@ -53,9 +53,9 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Intercomm_create(const struct0_T *local_comm, int local_leader, const
-  struct0_T *peer_comm, int remote_leader, int tag, struct0_T *newcomm, int
-  *info, boolean_T *toplevel)
+void mpi_Intercomm_create(const M2C_OpaqueType *local_comm, int local_leader,
+  const M2C_OpaqueType *peer_comm, int remote_leader, int tag, M2C_OpaqueType
+  *newcomm, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

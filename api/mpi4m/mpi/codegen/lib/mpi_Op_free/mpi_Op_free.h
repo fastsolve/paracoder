@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Op_free_types.h"
 
-extern void mpi_Op_free(struct0_T *op, int *info, boolean_T *toplevel);
+extern void mpi_Op_free(M2C_OpaqueType *op, int *info, boolean_T *toplevel);
 extern void mpi_Op_free_initialize(void);
 extern void mpi_Op_free_terminate(void);
 

@@ -115,7 +115,7 @@ static void m2c_warn(void)
            "You are trying to use nested parallel regions. Solution may be incorrect.");
 }
 
-void crs_Axpy(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T *y,
+void crs_Axpy(const CRS_Matrix *A, const emxArray_real_T *x, emxArray_real_T *y,
               int nthreads)
 {
   int n;
@@ -149,8 +149,8 @@ void crs_Axpy_initialize(void)
 {
 }
 
-void crs_Axpy_ser1(const struct0_T *A, const emxArray_real_T *x, emxArray_real_T
-                   *b)
+void crs_Axpy_ser1(const CRS_Matrix *A, const emxArray_real_T *x,
+                   emxArray_real_T *b)
 {
   if ((b->size[0] < A->nrows) || (b->size[1] < x->size[1])) {
     m2c_error();

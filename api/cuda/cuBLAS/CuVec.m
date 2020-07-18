@@ -12,7 +12,7 @@ function output = CuVec(varargin) %#codegen
 %  CuVec(obj, type) converts obj into a CUDA pointer of the given type,
 %  where type is a constant string, such as 'double *'.
 %
-%  CuVec(obj, type, 'offset', k) returns a CUDA pointer but offset 
+%  CuVec(obj, type, 'offset', k) returns a CUDA pointer but offset
 %  by k elements.
 %
 % See also cuVecCreate, CuMat
@@ -23,14 +23,14 @@ narginchk(0, 4);
 
 if nargin==0
     % We assume 64-bit architecture for CUDA.
-    output = coder.typeof(struct('data', uint64(0), ...
-        'type', int32(0), 'dims', int32(0)));
+    output = coder.cstructname(struct('data', uint64(0), ...
+        'type', int32(0), 'dims', int32(0)), 'M2C_CuVec');
 elseif nargin==1 && isnumeric(varargin{1})
     output = struct('data', uint64(0), 'type', int32(0), 'dims', int32(0));
 elseif nargin==4 && ischar(varargin{4})
     output = struct('data', uint64(0), 'type', int32(varargin{2}), ...
         'dims', int32(varargin{3}));
-    
+
     obj = varargin{1};
     if ~isempty(obj)
         output.data = coder.ceval('*(uint64_T *)', coder.rref(obj));

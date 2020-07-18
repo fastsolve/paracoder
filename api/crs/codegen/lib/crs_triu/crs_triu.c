@@ -154,7 +154,7 @@ static void crs_sort(const emxArray_int32_T *row_ptr, emxArray_int32_T *col_ind,
   emxFree_real_T(&buf_val);
 }
 
-void crs_triu(const struct0_T *A, struct0_T *U)
+void crs_triu(const CRS_Matrix *A, CRS_Matrix *U)
 {
   int offset;
   int start;
@@ -167,7 +167,7 @@ void crs_triu(const struct0_T *A, struct0_T *U)
   int i2;
   int i3;
   emxArray_real_T *c_A;
-  emxCopyStruct_struct0_T(U, A);
+  emxCopyStruct_CRS_Matrix(U, A);
   crs_sort(U->row_ptr, U->col_ind, U->val);
   offset = 0;
   start = 1;
@@ -241,7 +241,7 @@ void crs_triu(const struct0_T *A, struct0_T *U)
   }
 }
 
-void crs_triu1(const struct0_T *A, int k, struct0_T *U)
+void crs_triu1(const CRS_Matrix *A, int k, CRS_Matrix *U)
 {
   int offset;
   int start;
@@ -254,7 +254,7 @@ void crs_triu1(const struct0_T *A, int k, struct0_T *U)
   int i2;
   int i3;
   emxArray_real_T *c_A;
-  emxCopyStruct_struct0_T(U, A);
+  emxCopyStruct_CRS_Matrix(U, A);
   crs_sort(U->row_ptr, U->col_ind, U->val);
   offset = 0;
   start = 1;

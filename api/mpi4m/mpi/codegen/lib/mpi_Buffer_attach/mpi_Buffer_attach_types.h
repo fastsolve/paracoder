@@ -22,15 +22,15 @@ typedef struct emxArray_char_T emxArray_char_T;
 
 #endif
 
-#ifndef typedef_struct0_T
-#define typedef_struct0_T
+#ifndef typedef_M2C_OpaquePtrType
+#define typedef_M2C_OpaquePtrType
 
 typedef struct {
   unsigned long data;
   emxArray_char_T *type;
   int nbytes;
   int offset;
-} struct0_T;
+} M2C_OpaquePtrType;
 
 #endif
 #endif

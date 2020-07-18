@@ -60,8 +60,8 @@ static void m2c_error(void)
 }
 
 void mpi_Type_indexed(int count, const emxArray_int32_T *blocklens, const
-                      emxArray_int32_T *indices, const struct0_T *oldtype,
-                      struct0_T *newtype, int *info, boolean_T *toplevel)
+                      emxArray_int32_T *indices, const M2C_OpaqueType *oldtype,
+                      M2C_OpaqueType *newtype, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

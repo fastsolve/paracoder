@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "mpi_Graph_neighbors_count_types.h"
 
-extern void mpi_Graph_neighbors_count(const struct0_T *comm, int rank, int
-  *nneighbors, int *info, boolean_T *toplevel);
+extern void mpi_Graph_neighbors_count(const M2C_OpaqueType *comm, int rank, int *
+  nneighbors, int *info, boolean_T *toplevel);
 extern void mpi_Graph_neighbors_count_initialize(void);
 extern void mpi_Graph_neighbors_count_terminate(void);
 

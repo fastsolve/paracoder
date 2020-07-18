@@ -20,43 +20,43 @@
 #include "lib2mex_helper.c"
 
 
-static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, const char *mname) {
+static void marshallin_const_M2C_OpaquePtrType(M2C_OpaquePtrType *pStruct, const mxArray *mx, const char *mname) {
     mxArray             *sub_mx;
 
     if (!mxIsStruct(mx))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaquePtrType:WrongType",
             "Input argument %s has incorrect data type; struct is expected.", mname);
     if (!mxGetField(mx, 0, "data"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaquePtrType:WrongType",
             "Input argument %s is missing the field data.", mname);
     if (!mxGetField(mx, 0, "type"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaquePtrType:WrongType",
             "Input argument %s is missing the field type.", mname);
     if (!mxGetField(mx, 0, "nbytes"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaquePtrType:WrongType",
             "Input argument %s is missing the field nbytes.", mname);
     if (!mxGetField(mx, 0, "offset"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaquePtrType:WrongType",
             "Input argument %s is missing the field offset.", mname);
     if (mxGetNumberOfFields(mx) > 4)
-        M2C_warn("marshallin_const_struct0_T:ExtraFields",
+        M2C_warn("marshallin_const_M2C_OpaquePtrType:ExtraFields",
             "Extra fields in %s and are ignored.", mname);
 
     sub_mx = mxGetField(mx, 0, "data");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxUINT64_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongInputType",
             "Input argument data has incorrect data type; uint64 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongSizeOfInputArg",
             "Argument data should be a scalar.");
     pStruct->data = *(uint64_T*)mxGetData(sub_mx);
 
     sub_mx = mxGetField(mx, 0, "type");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxCHAR_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongInputType",
             "Input argument type has incorrect data type; char is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[0] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongSizeOfInputArg",
             "Dimension 1 of type should be equal to 1.");
     pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
@@ -64,23 +64,23 @@ static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "nbytes");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongInputType",
             "Input argument nbytes has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongSizeOfInputArg",
             "Argument nbytes should be a scalar.");
     pStruct->nbytes = *(int32_T*)mxGetData(sub_mx);
 
     sub_mx = mxGetField(mx, 0, "offset");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongInputType",
             "Input argument offset has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaquePtrType:WrongSizeOfInputArg",
             "Argument offset should be a scalar.");
     pStruct->offset = *(int32_T*)mxGetData(sub_mx);
 }
-static void destroy_struct0_T(struct0_T *pStruct) {
+static void destroy_M2C_OpaquePtrType(M2C_OpaquePtrType *pStruct) {
 
     free_emxArray((emxArray__common*)(pStruct->type));
     mxFree(pStruct->type);
@@ -89,31 +89,31 @@ static void destroy_struct0_T(struct0_T *pStruct) {
 }
 
 
-static void marshallin_const_struct1_T(struct1_T *pStruct, const mxArray *mx, const char *mname) {
+static void marshallin_const_M2C_OpaqueType(M2C_OpaqueType *pStruct, const mxArray *mx, const char *mname) {
     mxArray             *sub_mx;
 
     if (!mxIsStruct(mx))
-        M2C_error("marshallin_const_struct1_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaqueType:WrongType",
             "Input argument %s has incorrect data type; struct is expected.", mname);
     if (!mxGetField(mx, 0, "data"))
-        M2C_error("marshallin_const_struct1_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaqueType:WrongType",
             "Input argument %s is missing the field data.", mname);
     if (!mxGetField(mx, 0, "type"))
-        M2C_error("marshallin_const_struct1_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaqueType:WrongType",
             "Input argument %s is missing the field type.", mname);
     if (!mxGetField(mx, 0, "nitems"))
-        M2C_error("marshallin_const_struct1_T:WrongType",
+        M2C_error("marshallin_const_M2C_OpaqueType:WrongType",
             "Input argument %s is missing the field nitems.", mname);
     if (mxGetNumberOfFields(mx) > 3)
-        M2C_warn("marshallin_const_struct1_T:ExtraFields",
+        M2C_warn("marshallin_const_M2C_OpaqueType:ExtraFields",
             "Extra fields in %s and are ignored.", mname);
 
     sub_mx = mxGetField(mx, 0, "data");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxUINT8_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongInputType",
             "Input argument data has incorrect data type; uint8 is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongSizeOfInputArg",
             "Dimension 2 of data should be equal to 1.");
     pStruct->data = (emxArray_uint8_T*)mxMalloc(sizeof(emxArray_uint8_T));
     init_emxArray((emxArray__common*)(pStruct->data), 1);
@@ -121,10 +121,10 @@ static void marshallin_const_struct1_T(struct1_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "type");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxCHAR_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongInputType",
             "Input argument type has incorrect data type; char is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[0] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongSizeOfInputArg",
             "Dimension 1 of type should be equal to 1.");
     pStruct->type = (emxArray_char_T*)mxMalloc(sizeof(emxArray_char_T));
     init_emxArray((emxArray__common*)(pStruct->type), 2);
@@ -132,14 +132,14 @@ static void marshallin_const_struct1_T(struct1_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "nitems");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongInputType",
             "Input argument nitems has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct1_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_M2C_OpaqueType:WrongSizeOfInputArg",
             "Argument nitems should be a scalar.");
     pStruct->nitems = *(int32_T*)mxGetData(sub_mx);
 }
-static void destroy_struct1_T(struct1_T *pStruct) {
+static void destroy_M2C_OpaqueType(M2C_OpaqueType *pStruct) {
 
     free_emxArray((emxArray__common*)(pStruct->data));
     mxFree(pStruct->data);
@@ -152,14 +152,14 @@ static void destroy_struct1_T(struct1_T *pStruct) {
 
 
 static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
-    struct0_T            sptr;
+    M2C_OpaquePtrType    sptr;
     int32_T              scount;
-    struct1_T            stype;
-    struct0_T            rptr;
+    M2C_OpaqueType       stype;
+    M2C_OpaquePtrType    rptr;
     int32_T              rcount;
-    struct1_T            rtype;
+    M2C_OpaqueType       rtype;
     int32_T              root;
-    struct1_T            comm;
+    M2C_OpaqueType       comm;
     int32_T             *info;
     boolean_T           *toplevel;
 
@@ -170,7 +170,7 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[0]) != 1)
         mexErrMsgIdAndTxt("mpi_Gather:WrongSizeOfInputArg",
             "Argument sptr should be a scalar.");
-    marshallin_const_struct0_T(&sptr, prhs[0], "sptr");
+    marshallin_const_M2C_OpaquePtrType(&sptr, prhs[0], "sptr");
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxINT32_CLASS)
         mexErrMsgIdAndTxt("mpi_Gather:WrongInputType",
@@ -186,7 +186,7 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[2]) != 1)
         mexErrMsgIdAndTxt("mpi_Gather:WrongSizeOfInputArg",
             "Argument stype should be a scalar.");
-    marshallin_const_struct1_T(&stype, prhs[2], "stype");
+    marshallin_const_M2C_OpaqueType(&stype, prhs[2], "stype");
 
     if (mxGetNumberOfElements(prhs[3]) && mxGetClassID(prhs[3]) != mxSTRUCT_CLASS)
         mexErrMsgIdAndTxt("mpi_Gather:WrongInputType",
@@ -194,7 +194,7 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[3]) != 1)
         mexErrMsgIdAndTxt("mpi_Gather:WrongSizeOfInputArg",
             "Argument rptr should be a scalar.");
-    marshallin_const_struct0_T(&rptr, prhs[3], "rptr");
+    marshallin_const_M2C_OpaquePtrType(&rptr, prhs[3], "rptr");
 
     if (mxGetNumberOfElements(prhs[4]) && mxGetClassID(prhs[4]) != mxINT32_CLASS)
         mexErrMsgIdAndTxt("mpi_Gather:WrongInputType",
@@ -210,7 +210,7 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[5]) != 1)
         mexErrMsgIdAndTxt("mpi_Gather:WrongSizeOfInputArg",
             "Argument rtype should be a scalar.");
-    marshallin_const_struct1_T(&rtype, prhs[5], "rtype");
+    marshallin_const_M2C_OpaqueType(&rtype, prhs[5], "rtype");
 
     if (mxGetNumberOfElements(prhs[6]) && mxGetClassID(prhs[6]) != mxINT32_CLASS)
         mexErrMsgIdAndTxt("mpi_Gather:WrongInputType",
@@ -226,7 +226,7 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[7]) != 1)
         mexErrMsgIdAndTxt("mpi_Gather:WrongSizeOfInputArg",
             "Argument comm should be a scalar.");
-    marshallin_const_struct1_T(&comm, prhs[7], "comm");
+    marshallin_const_M2C_OpaqueType(&comm, prhs[7], "comm");
 
     info = (int32_T*)mxMalloc(sizeof(int32_T));
 
@@ -236,14 +236,14 @@ static void __mpi_Gather_api(mxArray **plhs, const mxArray ** prhs) {
     mpi_Gather(&sptr, scount, &stype, &rptr, rcount, &rtype, root, &comm, info, toplevel);
 
     /* Deallocate input and marshall out function outputs */
-    destroy_struct0_T(&sptr);
+    destroy_M2C_OpaquePtrType(&sptr);
     /* Nothing to be done for scount */
-    destroy_struct1_T(&stype);
-    destroy_struct0_T(&rptr);
+    destroy_M2C_OpaqueType(&stype);
+    destroy_M2C_OpaquePtrType(&rptr);
     /* Nothing to be done for rcount */
-    destroy_struct1_T(&rtype);
+    destroy_M2C_OpaqueType(&rtype);
     /* Nothing to be done for root */
-    destroy_struct1_T(&comm);
+    destroy_M2C_OpaqueType(&comm);
     plhs[0] = move_scalar_to_mxArray(info, mxINT32_CLASS);
     plhs[1] = move_scalar_to_mxArray(toplevel, mxLOGICAL_CLASS);
 

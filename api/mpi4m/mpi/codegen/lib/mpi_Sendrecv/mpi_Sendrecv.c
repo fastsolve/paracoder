@@ -146,10 +146,11 @@ static int mpi_Type_size(const emxArray_uint8_T *datatype_data, const
   return size;
 }
 
-void mpi_Sendrecv(const struct0_T *sptr, int scount, const struct1_T *stype, int
-                  dst, int stag, const struct0_T *rptr, int rcount, const
-                  struct1_T *rtype, int src, int rtag, const struct1_T *comm,
-                  struct1_T *stat, int *info, boolean_T *toplevel)
+void mpi_Sendrecv(const M2C_OpaquePtrType *sptr, int scount, const
+                  M2C_OpaqueType *stype, int dst, int stag, const
+                  M2C_OpaquePtrType *rptr, int rcount, const M2C_OpaqueType
+                  *rtype, int src, int rtag, const M2C_OpaqueType *comm,
+                  M2C_OpaqueType *stat, int *info, boolean_T *toplevel)
 {
   const char * ptr;
   boolean_T p;

@@ -16,7 +16,7 @@ function prop = CudaDeviceProp(varargin) %#codegen
 coder.inline('always');
 
 if nargin==0
-    prop = coder.typeof(struct('name', coder.typeof(char(0),[1,256],[0,1]), ...
+    prop = coder.cstructname(struct('name', coder.typeof(char(0),[1,256],[0,1]), ...
         'multiProcessorCount', int32(0), ...
         'maxThreadsPerMultiProcessor', int32(0), ...
         'maxThreadsPerBlock', int32(0), ...
@@ -31,8 +31,8 @@ if nargin==0
         'computeMode', int32(0), ...
         'major', int32(0), ...
         'minor', int32(0), ...
-        'maxGridSize', coder.typeof(int32(0),[1,3]), ...        
-        'maxThreadsDim', coder.typeof(int32(0),[1,3]), ...        
+        'maxGridSize', coder.typeof(int32(0),[1,3]), ...
+        'maxThreadsDim', coder.typeof(int32(0),[1,3]), ...
         'isMultiGpuBoard', int32(0), ...
         'canMapHostMemory', int32(0), ...
         'managedMemory', int32(0), ...
@@ -50,17 +50,17 @@ if nargin==0
         'integrated', int32(0), ...
         'ECCEnabled', int32(0), ...
         'pciBusID', int32(0), ...
-        'tccDriver', int32(0)));
-    
+        'tccDriver', int32(0)), "M2C_CudaDeviceProp');
+
 elseif nargin==1
     % Convert from MATLAB struct to an opaque cudaDeviceProp object
     prop_obj = coder.opaque('struct cudaDeviceProp');
     t_prop = coder.opaque('struct cudaDeviceProp *');
     t_prop = coder.ceval(' ', coder.wref(prop_obj));
-    
+
     prop_in = varargin{1};
     coder.cstructname(prop_in, 'McudaDeviceProp');
-    
+
     m2c_set_cstruct_field(t_prop, 'multiProcessorCount', prop_in.multiProcessorCount);
     m2c_set_cstruct_field(t_prop, 'maxThreadsPerMultiProcessor', prop_in.maxThreadsPerMultiProcessor);
     m2c_set_cstruct_field(t_prop, 'maxThreadsPerBlock', prop_in.maxThreadsPerBlock);
@@ -93,7 +93,7 @@ elseif nargin==1
     m2c_set_cstruct_field(t_prop, 'ECCEnabled', prop_in.ECCEnabled);
     m2c_set_cstruct_field(t_prop, 'pciBusID', prop_in.pciBusID);
     m2c_set_cstruct_field(t_prop, 'tccDriver',  prop_in.tccDriver);
-    
+
     name = [prop_in.name char(0)];
     % Convert an opaque cudaDeviceProp object into a MATLAB struct
     coder.ceval('strcpy', m2c_get_cstruct_field(t_prop, 'name', 'char *', true), ...
@@ -109,7 +109,7 @@ elseif nargin==2
     prop_obj = varargin{1};
     t_prop = coder.opaque('struct cudaDeviceProp *');
     t_prop = coder.ceval(' ', coder.rref(prop_obj));
-    
+
     % Convert an opaque cudaDeviceProp object into a MATLAB struct
     name = char(zeros(1,256));
     coder.varsize('name', [1, 256], [0,1]);
@@ -123,7 +123,7 @@ elseif nargin==2
     maxGridSize = zeros(1,3,'int32');
     coder.ceval('memcpy', coder.wref(maxGridSize), ...
         m2c_get_cstruct_field(t_prop, 'maxGridSize', 'const int *', true), int32(12));
-    
+
     prop = struct(...
         'name', name(1:slen), ...
         'multiProcessorCount', int32(0), ...
@@ -159,10 +159,10 @@ elseif nargin==2
         'integrated', int32(0), ...
         'ECCEnabled', int32(0), ...
         'pciBusID', int32(0), ...
-        'tccDriver', int32(0));    
-    
+        'tccDriver', int32(0));
+
     prop.multiProcessorCount = m2c_get_cstruct_field(t_prop, 'multiProcessorCount', 'int32');
-    prop.maxThreadsPerMultiProcessor = m2c_get_cstruct_field(t_prop, 'maxThreadsPerMultiProcessor', 'int32');    
+    prop.maxThreadsPerMultiProcessor = m2c_get_cstruct_field(t_prop, 'maxThreadsPerMultiProcessor', 'int32');
     prop.maxThreadsPerBlock = m2c_get_cstruct_field(t_prop, 'maxThreadsPerBlock', 'int32');
     prop.warpSize = m2c_get_cstruct_field(t_prop, 'warpSize', 'int32');
     prop.concurrentKernels = m2c_get_cstruct_field(t_prop, 'concurrentKernels', 'int32');
@@ -194,7 +194,7 @@ elseif nargin==2
     prop.ECCEnabled = m2c_get_cstruct_field(t_prop, 'ECCEnabled', 'int32');
     prop.pciBusID = m2c_get_cstruct_field(t_prop, 'pciBusID', 'int32');
     prop.tccDriver = m2c_get_cstruct_field(t_prop, 'tccDriver', 'int32');
-    
+
     m2c_rref(prop_obj);
 else
     m2c_error('Undefined');

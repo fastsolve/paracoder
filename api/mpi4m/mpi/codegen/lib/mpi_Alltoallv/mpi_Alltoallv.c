@@ -94,11 +94,12 @@ static void m2c_warn(void)
            "Discarding the const modifier of an m2c_opaque_ptr.");
 }
 
-void mpi_Alltoallv(const struct0_T *sptr, const emxArray_int32_T *scounts, const
-                   emxArray_int32_T *sdisps, const struct1_T *stype, const
-                   struct0_T *rptr, const emxArray_int32_T *rcounts, const
-                   emxArray_int32_T *rdisps, const struct1_T *rtype, const
-                   struct1_T *comm, int *info, boolean_T *toplevel)
+void mpi_Alltoallv(const M2C_OpaquePtrType *sptr, const emxArray_int32_T
+                   *scounts, const emxArray_int32_T *sdisps, const
+                   M2C_OpaqueType *stype, const M2C_OpaquePtrType *rptr, const
+                   emxArray_int32_T *rcounts, const emxArray_int32_T *rdisps,
+                   const M2C_OpaqueType *rtype, const M2C_OpaqueType *comm, int *
+                   info, boolean_T *toplevel)
 {
   boolean_T p;
   const char * ptr;

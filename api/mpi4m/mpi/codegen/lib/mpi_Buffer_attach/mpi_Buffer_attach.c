@@ -39,8 +39,8 @@ static void m2c_warn(void)
            "Discarding the const modifier of an m2c_opaque_ptr.");
 }
 
-void mpi_Buffer_attach(const struct0_T *ptr, int size, int *info, boolean_T
-  *toplevel)
+void mpi_Buffer_attach(const M2C_OpaquePtrType *ptr, int size, int *info,
+  boolean_T *toplevel)
 {
   char * b_ptr;
   boolean_T p;

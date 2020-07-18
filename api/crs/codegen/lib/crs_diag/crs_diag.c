@@ -1,7 +1,7 @@
 #include "crs_diag.h"
 #include "m2c.h"
 
-void crs_diag(const struct0_T *A, emxArray_real_T *D)
+void crs_diag(const CRS_Matrix *A, emxArray_real_T *D)
 {
   int i;
   int loop_ub;
@@ -30,7 +30,7 @@ void crs_diag(const struct0_T *A, emxArray_real_T *D)
   }
 }
 
-void crs_diag1(const struct0_T *A, int k, emxArray_real_T *D)
+void crs_diag1(const CRS_Matrix *A, int k, emxArray_real_T *D)
 {
   int y;
   int i;

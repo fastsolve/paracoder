@@ -44,7 +44,7 @@ static void m2c_error(void)
             "Message size is larger than variable size.");
 }
 
-void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T
+void mpi_Startall(int count, const M2C_OpaqueType *reqs, int *info, boolean_T
                   *toplevel)
 {
   int n;

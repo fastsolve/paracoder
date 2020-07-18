@@ -59,8 +59,8 @@ static void m2c_error(void)
   M2C_error("mpi_Testall:OutOfBound", "MPI_Request_array is too small.");
 }
 
-void mpi_Testany(int count, struct0_T *reqs, int *idx, int *flag, struct0_T
-                 *stat, int *info, boolean_T *toplevel)
+void mpi_Testany(int count, M2C_OpaqueType *reqs, int *idx, int *flag,
+                 M2C_OpaqueType *stat, int *info, boolean_T *toplevel)
 {
   int sizepe;
   boolean_T p;

@@ -5,8 +5,9 @@
 #include "rtwtypes.h"
 #include "mpi_Group_incl_types.h"
 
-extern void mpi_Group_incl(const struct0_T *group, int n, const emxArray_int32_T
-  *ranks, struct0_T *newgroup, int *info, boolean_T *toplevel);
+extern void mpi_Group_incl(const M2C_OpaqueType *group, int n, const
+  emxArray_int32_T *ranks, M2C_OpaqueType *newgroup, int *info, boolean_T
+  *toplevel);
 extern void mpi_Group_incl_initialize(void);
 extern void mpi_Group_incl_terminate(void);
 

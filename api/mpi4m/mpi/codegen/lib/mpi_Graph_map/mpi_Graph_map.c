@@ -64,9 +64,9 @@ static void m2c_error(void)
   M2C_error("mpi_Graph_map:OutOfBound", "index array is too small.");
 }
 
-void mpi_Graph_map(const struct0_T *comm, int nnodes, const emxArray_int32_T
-                   *b_index, const emxArray_int32_T *edges, int *newrank, int
-                   *info, boolean_T *toplevel)
+void mpi_Graph_map(const M2C_OpaqueType *comm, int nnodes, const
+                   emxArray_int32_T *b_index, const emxArray_int32_T *edges, int
+                   *newrank, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

@@ -53,7 +53,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Graphdims_get(const struct0_T *comm, int *nnodes, int *nedges, int
+void mpi_Graphdims_get(const M2C_OpaqueType *comm, int *nnodes, int *nedges, int
   *info, boolean_T *toplevel)
 {
   boolean_T p;

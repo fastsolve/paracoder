@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "mpi_Comm_call_errhandler_types.h"
 
-extern void mpi_Comm_call_errhandler(const struct0_T *comm, int errorcode, int
-  *info, boolean_T *toplevel);
+extern void mpi_Comm_call_errhandler(const M2C_OpaqueType *comm, int errorcode,
+  int *info, boolean_T *toplevel);
 extern void mpi_Comm_call_errhandler_initialize(void);
 extern void mpi_Comm_call_errhandler_terminate(void);
 

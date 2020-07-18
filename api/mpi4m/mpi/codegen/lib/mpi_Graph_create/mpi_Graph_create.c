@@ -65,9 +65,10 @@ static void m2c_error(void)
   M2C_error("mpi_Graph_create:OutOfBound", "index array is too small.");
 }
 
-void mpi_Graph_create(const struct0_T *comm, int nnodes, const emxArray_int32_T *
-                      b_index, const emxArray_int32_T *edges, int reorder,
-                      struct0_T *newcomm, int *info, boolean_T *toplevel)
+void mpi_Graph_create(const M2C_OpaqueType *comm, int nnodes, const
+                      emxArray_int32_T *b_index, const emxArray_int32_T *edges,
+                      int reorder, M2C_OpaqueType *newcomm, int *info, boolean_T
+                      *toplevel)
 {
   int i;
   double y;

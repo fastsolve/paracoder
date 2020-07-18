@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "mpi_Comm_rank_types.h"
 
-extern void mpi_Comm_rank(const struct0_T *comm, int *rank, int *info, boolean_T
-  *toplevel);
+extern void mpi_Comm_rank(const M2C_OpaqueType *comm, int *rank, int *info,
+  boolean_T *toplevel);
 extern void mpi_Comm_rank_initialize(void);
 extern void mpi_Comm_rank_terminate(void);
 

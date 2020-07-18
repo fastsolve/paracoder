@@ -35,7 +35,8 @@ static void forwardsolve_trans(const emxArray_real_T *R, emxArray_real_T *bs,
   }
 }
 
-double condest_triu(const emxArray_real_T *R, int m, int maxiter, struct0_T *buf)
+double condest_triu(const emxArray_real_T *R, int m, int maxiter, CondestBuf
+                    *buf)
 {
   double kappa;
   int u0;
@@ -141,7 +142,7 @@ double condest_triu(const emxArray_real_T *R, int m, int maxiter, struct0_T *buf
 }
 
 void condest_triu_3args(const emxArray_real_T *R, int m, int maxiter, double
-  *kappa, struct0_T *buf)
+  *kappa, CondestBuf *buf)
 {
   int u1;
   int u0;

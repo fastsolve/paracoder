@@ -5,9 +5,10 @@
 #include "rtwtypes.h"
 #include "mpi_Allgather_types.h"
 
-extern void mpi_Allgather(const struct0_T *sptr, int scount, const struct1_T
-  *stype, const struct0_T *rptr, int rcount, const struct1_T *rtype, const
-  struct1_T *comm, int *info, boolean_T *toplevel);
+extern void mpi_Allgather(const M2C_OpaquePtrType *sptr, int scount, const
+  M2C_OpaqueType *stype, const M2C_OpaquePtrType *rptr, int rcount, const
+  M2C_OpaqueType *rtype, const M2C_OpaqueType *comm, int *info, boolean_T
+  *toplevel);
 extern void mpi_Allgather_initialize(void);
 extern void mpi_Allgather_terminate(void);
 

@@ -52,7 +52,7 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Comm_group(const struct0_T *comm, struct0_T *group, int *info,
+void mpi_Comm_group(const M2C_OpaqueType *comm, M2C_OpaqueType *group, int *info,
                     boolean_T *toplevel)
 {
   boolean_T p;

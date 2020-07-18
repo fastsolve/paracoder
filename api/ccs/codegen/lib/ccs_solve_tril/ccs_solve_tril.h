@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "ccs_solve_tril_types.h"
 
-extern void ccs_solve_tril(const struct0_T *L, emxArray_real_T *b);
+extern void ccs_solve_tril(const CCS_Matrix *L, emxArray_real_T *b);
 extern void ccs_solve_tril_initialize(void);
 extern void ccs_solve_tril_terminate(void);
 

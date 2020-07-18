@@ -51,7 +51,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-int mpi_get_status_field(const struct0_T *stat, const emxArray_char_T *field)
+int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
+  *field)
 {
   int output;
   boolean_T p;

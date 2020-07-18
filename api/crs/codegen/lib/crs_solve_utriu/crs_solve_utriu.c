@@ -1,6 +1,6 @@
 #include "crs_solve_utriu.h"
 
-void crs_solve_utriu(const struct0_T *U, emxArray_real_T *b)
+void crs_solve_utriu(const CRS_Matrix *U, emxArray_real_T *b)
 {
   int n;
   int i;
@@ -18,7 +18,7 @@ void crs_solve_utriu(const struct0_T *U, emxArray_real_T *b)
   }
 }
 
-void crs_solve_utriu_3args(const struct0_T *L, emxArray_real_T *b, int offset)
+void crs_solve_utriu_3args(const CRS_Matrix *L, emxArray_real_T *b, int offset)
 {
   int n;
   int i;

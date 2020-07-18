@@ -59,9 +59,9 @@ static void m2c_error(void)
   M2C_error("MPI_Group_translate_ranks:OutOfBound", "ranks1 array is too small.");
 }
 
-void mpi_Group_translate_ranks(const struct0_T *group1, int n, const
-  emxArray_int32_T *ranks1, const struct0_T *group2, emxArray_int32_T *ranks2,
-  int *info, boolean_T *toplevel)
+void mpi_Group_translate_ranks(const M2C_OpaqueType *group1, int n, const
+  emxArray_int32_T *ranks1, const M2C_OpaqueType *group2, emxArray_int32_T
+  *ranks2, int *info, boolean_T *toplevel)
 {
   int i;
   emxArray_int32_T *b_ranks1;

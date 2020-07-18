@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "mpi_Cart_map_types.h"
 
-extern void mpi_Cart_map(const struct0_T *comm, int ndims, const
+extern void mpi_Cart_map(const M2C_OpaqueType *comm, int ndims, const
   emxArray_int32_T *dims, const emxArray_int32_T *periods, int *newrank, int
   *info, boolean_T *toplevel);
 extern void mpi_Cart_map_initialize(void);

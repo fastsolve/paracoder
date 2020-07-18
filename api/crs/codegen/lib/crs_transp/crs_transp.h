@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "crs_transp_types.h"
 
-extern void crs_transp(const struct0_T *A, struct0_T *At);
+extern void crs_transp(const CRS_Matrix *A, CRS_Matrix *At);
 extern void crs_transp_initialize(void);
 extern void crs_transp_terminate(void);
 

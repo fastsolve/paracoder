@@ -6,9 +6,9 @@
 #include "condest_triu_types.h"
 
 extern double condest_triu(const emxArray_real_T *R, int m, int maxiter,
-  struct0_T *buf);
+  CondestBuf *buf);
 extern void condest_triu_3args(const emxArray_real_T *R, int m, int maxiter,
-  double *kappa, struct0_T *buf);
+  double *kappa, CondestBuf *buf);
 extern void condest_triu_initialize(void);
 extern void condest_triu_terminate(void);
 

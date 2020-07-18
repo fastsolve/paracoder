@@ -20,37 +20,37 @@
 #include "lib2mex_helper.c"
 
 
-static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, const char *mname) {
+static void marshallin_const_CRS_Matrix(CRS_Matrix *pStruct, const mxArray *mx, const char *mname) {
     mxArray             *sub_mx;
 
     if (!mxIsStruct(mx))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s has incorrect data type; struct is expected.", mname);
     if (!mxGetField(mx, 0, "row_ptr"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s is missing the field row_ptr.", mname);
     if (!mxGetField(mx, 0, "col_ind"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s is missing the field col_ind.", mname);
     if (!mxGetField(mx, 0, "val"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s is missing the field val.", mname);
     if (!mxGetField(mx, 0, "nrows"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s is missing the field nrows.", mname);
     if (!mxGetField(mx, 0, "ncols"))
-        M2C_error("marshallin_const_struct0_T:WrongType",
+        M2C_error("marshallin_const_CRS_Matrix:WrongType",
             "Input argument %s is missing the field ncols.", mname);
     if (mxGetNumberOfFields(mx) > 5)
-        M2C_warn("marshallin_const_struct0_T:ExtraFields",
+        M2C_warn("marshallin_const_CRS_Matrix:ExtraFields",
             "Extra fields in %s and are ignored.", mname);
 
     sub_mx = mxGetField(mx, 0, "row_ptr");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongInputType",
             "Input argument row_ptr has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongSizeOfInputArg",
             "Dimension 2 of row_ptr should be equal to 1.");
     pStruct->row_ptr = (emxArray_int32_T*)mxMalloc(sizeof(emxArray_int32_T));
     init_emxArray((emxArray__common*)(pStruct->row_ptr), 1);
@@ -58,10 +58,10 @@ static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "col_ind");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongInputType",
             "Input argument col_ind has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongSizeOfInputArg",
             "Dimension 2 of col_ind should be equal to 1.");
     pStruct->col_ind = (emxArray_int32_T*)mxMalloc(sizeof(emxArray_int32_T));
     init_emxArray((emxArray__common*)(pStruct->col_ind), 1);
@@ -69,10 +69,10 @@ static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "val");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxDOUBLE_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongInputType",
             "Input argument val has incorrect data type; double is expected.");
     if (mxGetNumberOfElements(sub_mx) && mxGetDimensions(sub_mx)[1] != 1) 
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongSizeOfInputArg",
             "Dimension 2 of val should be equal to 1.");
     pStruct->val = (emxArray_real_T*)mxMalloc(sizeof(emxArray_real_T));
     init_emxArray((emxArray__common*)(pStruct->val), 1);
@@ -80,23 +80,23 @@ static void marshallin_const_struct0_T(struct0_T *pStruct, const mxArray *mx, co
 
     sub_mx = mxGetField(mx, 0, "nrows");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongInputType",
             "Input argument nrows has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongSizeOfInputArg",
             "Argument nrows should be a scalar.");
     pStruct->nrows = *(int32_T*)mxGetData(sub_mx);
 
     sub_mx = mxGetField(mx, 0, "ncols");
     if (mxGetNumberOfElements(sub_mx) && mxGetClassID(sub_mx) != mxINT32_CLASS)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongInputType",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongInputType",
             "Input argument ncols has incorrect data type; int32 is expected.");
     if (mxGetNumberOfElements(sub_mx) != 1)
-        mexErrMsgIdAndTxt("marshallin_const_struct0_T:WrongSizeOfInputArg",
+        mexErrMsgIdAndTxt("marshallin_const_CRS_Matrix:WrongSizeOfInputArg",
             "Argument ncols should be a scalar.");
     pStruct->ncols = *(int32_T*)mxGetData(sub_mx);
 }
-static void destroy_struct0_T(struct0_T *pStruct) {
+static void destroy_CRS_Matrix(CRS_Matrix *pStruct) {
 
     free_emxArray((emxArray__common*)(pStruct->row_ptr));
     mxFree(pStruct->row_ptr);
@@ -112,7 +112,7 @@ static void destroy_struct0_T(struct0_T *pStruct) {
 
 
 static void __crs_prodAtAx_api(mxArray **plhs, const mxArray ** prhs) {
-    struct0_T            A;
+    CRS_Matrix           A;
     emxArray_real_T      x;
     emxArray_real_T      b;
     emxArray_real_T      Ax;
@@ -125,7 +125,7 @@ static void __crs_prodAtAx_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[0]) != 1)
         mexErrMsgIdAndTxt("crs_prodAtAx:WrongSizeOfInputArg",
             "Argument A should be a scalar.");
-    marshallin_const_struct0_T(&A, prhs[0], "A");
+    marshallin_const_CRS_Matrix(&A, prhs[0], "A");
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxDOUBLE_CLASS)
         mexErrMsgIdAndTxt("crs_prodAtAx:WrongInputType",
@@ -157,7 +157,7 @@ static void __crs_prodAtAx_api(mxArray **plhs, const mxArray ** prhs) {
     crs_prodAtAx(&A, &x, &b, &Ax, &nthreads);
 
     /* Deallocate input and marshall out function outputs */
-    destroy_struct0_T(&A);
+    destroy_CRS_Matrix(&A);
     free_emxArray((emxArray__common*)(&x));
     plhs[0] = move_emxArray_to_mxArray((emxArray__common*)(&b), mxDOUBLE_CLASS);
     mxFree(b.size);
@@ -168,7 +168,7 @@ static void __crs_prodAtAx_api(mxArray **plhs, const mxArray ** prhs) {
 }
 
 static void __crs_prodAtAx_ser_api(mxArray **plhs, const mxArray ** prhs) {
-    struct0_T            A;
+    CRS_Matrix           A;
     emxArray_real_T      x;
     emxArray_real_T      b;
 
@@ -179,7 +179,7 @@ static void __crs_prodAtAx_ser_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[0]) != 1)
         mexErrMsgIdAndTxt("crs_prodAtAx_ser:WrongSizeOfInputArg",
             "Argument A should be a scalar.");
-    marshallin_const_struct0_T(&A, prhs[0], "A");
+    marshallin_const_CRS_Matrix(&A, prhs[0], "A");
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxDOUBLE_CLASS)
         mexErrMsgIdAndTxt("crs_prodAtAx_ser:WrongInputType",
@@ -191,7 +191,7 @@ static void __crs_prodAtAx_ser_api(mxArray **plhs, const mxArray ** prhs) {
     crs_prodAtAx_ser(&A, &x, &b);
 
     /* Deallocate input and marshall out function outputs */
-    destroy_struct0_T(&A);
+    destroy_CRS_Matrix(&A);
     free_emxArray((emxArray__common*)(&x));
     plhs[0] = move_emxArray_to_mxArray((emxArray__common*)(&b), mxDOUBLE_CLASS);
     mxFree(b.size);
@@ -199,7 +199,7 @@ static void __crs_prodAtAx_ser_api(mxArray **plhs, const mxArray ** prhs) {
 }
 
 static void __crs_prodAtAx_ser1_api(mxArray **plhs, const mxArray ** prhs) {
-    struct0_T            A;
+    CRS_Matrix           A;
     emxArray_real_T      x;
     emxArray_real_T      b;
 
@@ -210,7 +210,7 @@ static void __crs_prodAtAx_ser1_api(mxArray **plhs, const mxArray ** prhs) {
     if (mxGetNumberOfElements(prhs[0]) != 1)
         mexErrMsgIdAndTxt("crs_prodAtAx_ser1:WrongSizeOfInputArg",
             "Argument A should be a scalar.");
-    marshallin_const_struct0_T(&A, prhs[0], "A");
+    marshallin_const_CRS_Matrix(&A, prhs[0], "A");
 
     if (mxGetNumberOfElements(prhs[1]) && mxGetClassID(prhs[1]) != mxDOUBLE_CLASS)
         mexErrMsgIdAndTxt("crs_prodAtAx_ser1:WrongInputType",
@@ -226,7 +226,7 @@ static void __crs_prodAtAx_ser1_api(mxArray **plhs, const mxArray ** prhs) {
     crs_prodAtAx_ser1(&A, &x, &b);
 
     /* Deallocate input and marshall out function outputs */
-    destroy_struct0_T(&A);
+    destroy_CRS_Matrix(&A);
     free_emxArray((emxArray__common*)(&x));
     plhs[0] = move_emxArray_to_mxArray((emxArray__common*)(&b), mxDOUBLE_CLASS);
     mxFree(b.size);

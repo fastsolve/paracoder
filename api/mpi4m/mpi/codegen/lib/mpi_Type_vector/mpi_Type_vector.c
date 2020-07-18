@@ -52,8 +52,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Type_vector(int count, int blocklen, int stride, const struct0_T
-                     *oldtype, struct0_T *newtype, int *info, boolean_T
+void mpi_Type_vector(int count, int blocklen, int stride, const M2C_OpaqueType
+                     *oldtype, M2C_OpaqueType *newtype, int *info, boolean_T
                      *toplevel)
 {
   boolean_T p;

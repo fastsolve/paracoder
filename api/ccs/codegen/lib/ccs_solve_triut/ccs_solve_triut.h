@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "ccs_solve_triut_types.h"
 
-extern void ccs_solve_triut(const struct0_T *U, emxArray_real_T *b);
+extern void ccs_solve_triut(const CCS_Matrix *U, emxArray_real_T *b);
 extern void ccs_solve_triut_initialize(void);
 extern void ccs_solve_triut_terminate(void);
 

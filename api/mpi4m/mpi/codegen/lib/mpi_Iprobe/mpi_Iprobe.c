@@ -52,8 +52,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Iprobe(int source, int tag, const struct0_T *comm, int *flag, struct0_T
-                *stat, int *info, boolean_T *toplevel)
+void mpi_Iprobe(int source, int tag, const M2C_OpaqueType *comm, int *flag,
+                M2C_OpaqueType *stat, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

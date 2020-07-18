@@ -64,8 +64,8 @@ static void m2c_error(void)
   M2C_error("mpi_Cart_map:OutOfBound", "dims array is too small.");
 }
 
-void mpi_Cart_map(const struct0_T *comm, int ndims, const emxArray_int32_T *dims,
-                  const emxArray_int32_T *periods, int *newrank, int *info,
+void mpi_Cart_map(const M2C_OpaqueType *comm, int ndims, const emxArray_int32_T *
+                  dims, const emxArray_int32_T *periods, int *newrank, int *info,
                   boolean_T *toplevel)
 {
   boolean_T p;

@@ -5,10 +5,10 @@
 #include "rtwtypes.h"
 #include "mpi_Gatherv_types.h"
 
-extern void mpi_Gatherv(const struct0_T *sptr, int scount, const struct1_T
-  *stype, const struct0_T *rptr, const emxArray_int32_T *rcounts, const
-  emxArray_int32_T *disps, const struct1_T *rtype, int root, const struct1_T
-  *comm, int *info, boolean_T *toplevel);
+extern void mpi_Gatherv(const M2C_OpaquePtrType *sptr, int scount, const
+  M2C_OpaqueType *stype, const M2C_OpaquePtrType *rptr, const emxArray_int32_T
+  *rcounts, const emxArray_int32_T *disps, const M2C_OpaqueType *rtype, int root,
+  const M2C_OpaqueType *comm, int *info, boolean_T *toplevel);
 extern void mpi_Gatherv_initialize(void);
 extern void mpi_Gatherv_terminate(void);
 

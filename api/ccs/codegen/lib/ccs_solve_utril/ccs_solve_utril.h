@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "ccs_solve_utril_types.h"
 
-extern void ccs_solve_utril(const struct0_T *L, emxArray_real_T *b);
-extern void ccs_solve_utril_3args(const struct0_T *L, emxArray_real_T *b, int
+extern void ccs_solve_utril(const CCS_Matrix *L, emxArray_real_T *b);
+extern void ccs_solve_utril_3args(const CCS_Matrix *L, emxArray_real_T *b, int
   offset);
 extern void ccs_solve_utril_initialize(void);
 extern void ccs_solve_utril_terminate(void);

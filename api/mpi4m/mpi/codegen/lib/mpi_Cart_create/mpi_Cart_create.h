@@ -5,9 +5,9 @@
 #include "rtwtypes.h"
 #include "mpi_Cart_create_types.h"
 
-extern void mpi_Cart_create(const struct0_T *comm, int ndims, const
+extern void mpi_Cart_create(const M2C_OpaqueType *comm, int ndims, const
   emxArray_int32_T *dims, const emxArray_int32_T *periods, int reorder,
-  struct0_T *newcomm, int *info, boolean_T *toplevel);
+  M2C_OpaqueType *newcomm, int *info, boolean_T *toplevel);
 extern void mpi_Cart_create_initialize(void);
 extern void mpi_Cart_create_terminate(void);
 

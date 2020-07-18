@@ -1,6 +1,6 @@
 #include "ccs_solve_trilt.h"
 
-void ccs_solve_trilt(const struct0_T *L, emxArray_real_T *b)
+void ccs_solve_trilt(const CCS_Matrix *L, emxArray_real_T *b)
 {
   int n;
   int j;

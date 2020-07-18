@@ -1,6 +1,6 @@
 #include "ccs_solve_tril.h"
 
-void ccs_solve_tril(const struct0_T *L, emxArray_real_T *b)
+void ccs_solve_tril(const CCS_Matrix *L, emxArray_real_T *b)
 {
   int i;
   int j;

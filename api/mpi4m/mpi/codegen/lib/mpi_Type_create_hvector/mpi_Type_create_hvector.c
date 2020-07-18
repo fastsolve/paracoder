@@ -81,8 +81,9 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Type_create_hvector(int count, int blocklen, const struct0_T *stride,
-  const struct0_T *oldtype, struct0_T *newtype, int *info, boolean_T *toplevel)
+void mpi_Type_create_hvector(int count, int blocklen, const M2C_OpaqueType
+  *stride, const M2C_OpaqueType *oldtype, M2C_OpaqueType *newtype, int *info,
+  boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

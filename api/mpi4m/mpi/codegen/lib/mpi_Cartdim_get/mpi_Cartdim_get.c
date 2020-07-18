@@ -52,8 +52,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Cartdim_get(const struct0_T *comm, int *ndims, int *info, boolean_T
-                     *toplevel)
+void mpi_Cartdim_get(const M2C_OpaqueType *comm, int *ndims, int *info,
+                     boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

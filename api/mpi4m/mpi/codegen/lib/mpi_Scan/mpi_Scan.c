@@ -120,9 +120,9 @@ static void m2c_warn(void)
            "Discarding the const modifier of an m2c_opaque_ptr.");
 }
 
-void mpi_Scan(const struct0_T *sptr, const struct0_T *rptr, int count, const
-              struct1_T *datatype, const struct1_T *op, const struct1_T *comm,
-              int *info, boolean_T *toplevel)
+void mpi_Scan(const M2C_OpaquePtrType *sptr, const M2C_OpaquePtrType *rptr, int
+              count, const M2C_OpaqueType *datatype, const M2C_OpaqueType *op,
+              const M2C_OpaqueType *comm, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

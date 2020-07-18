@@ -22,6 +22,18 @@ typedef struct emxArray_char_T emxArray_char_T;
 
 #endif
 
+#ifndef typedef_M2C_OpaquePtrType
+#define typedef_M2C_OpaquePtrType
+
+typedef struct {
+  unsigned long data;
+  emxArray_char_T *type;
+  int nbytes;
+  int offset;
+} M2C_OpaquePtrType;
+
+#endif
+
 #ifndef struct_emxArray_uint8_T
 #define struct_emxArray_uint8_T
 
@@ -43,26 +55,14 @@ typedef struct emxArray_uint8_T emxArray_uint8_T;
 
 #endif
 
-#ifndef typedef_struct0_T
-#define typedef_struct0_T
-
-typedef struct {
-  unsigned long data;
-  emxArray_char_T *type;
-  int nbytes;
-  int offset;
-} struct0_T;
-
-#endif
-
-#ifndef typedef_struct1_T
-#define typedef_struct1_T
+#ifndef typedef_M2C_OpaqueType
+#define typedef_M2C_OpaqueType
 
 typedef struct {
   emxArray_uint8_T *data;
   emxArray_char_T *type;
   int nitems;
-} struct1_T;
+} M2C_OpaqueType;
 
 #endif
 #endif

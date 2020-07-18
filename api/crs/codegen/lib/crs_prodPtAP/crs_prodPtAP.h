@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "crs_prodPtAP_types.h"
 
-extern void crs_prodPtAP(const struct0_T *A, const struct0_T *P, struct0_T *B);
+extern void crs_prodPtAP(const CRS_Matrix *A, const CRS_Matrix *P, CRS_Matrix *B);
 extern void crs_prodPtAP_initialize(void);
 extern void crs_prodPtAP_terminate(void);
 

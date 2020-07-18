@@ -6,8 +6,8 @@
 #include "mpi_Type_create_hindexed_types.h"
 
 extern void mpi_Type_create_hindexed(int count, const emxArray_int32_T
-  *blocklens, const struct0_T *indices, const struct0_T *oldtype, struct0_T
-  *newtype, int *info, boolean_T *toplevel);
+  *blocklens, const M2C_OpaqueType *indices, const M2C_OpaqueType *oldtype,
+  M2C_OpaqueType *newtype, int *info, boolean_T *toplevel);
 extern void mpi_Type_create_hindexed_initialize(void);
 extern void mpi_Type_create_hindexed_terminate(void);
 

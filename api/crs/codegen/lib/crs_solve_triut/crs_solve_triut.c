@@ -1,6 +1,6 @@
 #include "crs_solve_triut.h"
 
-void crs_solve_triut(const struct0_T *A, emxArray_real_T *b)
+void crs_solve_triut(const CRS_Matrix *A, emxArray_real_T *b)
 {
   int i;
   int b_i;

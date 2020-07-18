@@ -93,8 +93,9 @@ static void m2c_warn(void)
            "Discarding the const modifier of an m2c_opaque_ptr.");
 }
 
-void mpi_Bcast(const struct0_T *ptr, int count, const struct1_T *datatype, int
-               root, const struct1_T *comm, int *info, boolean_T *toplevel)
+void mpi_Bcast(const M2C_OpaquePtrType *ptr, int count, const M2C_OpaqueType
+               *datatype, int root, const M2C_OpaqueType *comm, int *info,
+               boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

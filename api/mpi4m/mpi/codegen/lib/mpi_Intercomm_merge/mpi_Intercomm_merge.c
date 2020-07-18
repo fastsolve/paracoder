@@ -53,8 +53,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Intercomm_merge(const struct0_T *intercomm, int high, struct0_T
-  *newcomm, int *info, boolean_T *toplevel)
+void mpi_Intercomm_merge(const M2C_OpaqueType *intercomm, int high,
+  M2C_OpaqueType *newcomm, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

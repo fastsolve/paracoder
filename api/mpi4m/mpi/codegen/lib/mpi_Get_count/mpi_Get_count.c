@@ -80,8 +80,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Get_count(const struct0_T *stat, const struct0_T *datatype, int *count,
-                   int *info, boolean_T *toplevel)
+void mpi_Get_count(const M2C_OpaqueType *stat, const M2C_OpaqueType *datatype,
+                   int *count, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int resultlen;

@@ -267,7 +267,7 @@ static void m2c_error(void)
             "Number of columns of A must be equal to number of rows in B.");
 }
 
-void crs_prodPtAP(const struct0_T *A, const struct0_T *P, struct0_T *B)
+void crs_prodPtAP(const CRS_Matrix *A, const CRS_Matrix *P, CRS_Matrix *B)
 {
   emxArray_int32_T *C_row_ptr;
   emxArray_int32_T *C_col_ind;

@@ -5,8 +5,8 @@
 #include "rtwtypes.h"
 #include "mpi_Startall_types.h"
 
-extern void mpi_Startall(int count, const struct0_T *reqs, int *info, boolean_T *
-  toplevel);
+extern void mpi_Startall(int count, const M2C_OpaqueType *reqs, int *info,
+  boolean_T *toplevel);
 extern void mpi_Startall_initialize(void);
 extern void mpi_Startall_terminate(void);
 

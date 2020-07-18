@@ -53,8 +53,8 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Group_difference(const struct0_T *group1, const struct0_T *group2,
-  struct0_T *newgroup, int *info, boolean_T *toplevel)
+void mpi_Group_difference(const M2C_OpaqueType *group1, const M2C_OpaqueType
+  *group2, M2C_OpaqueType *newgroup, int *info, boolean_T *toplevel)
 {
   boolean_T p;
   int sizepe;

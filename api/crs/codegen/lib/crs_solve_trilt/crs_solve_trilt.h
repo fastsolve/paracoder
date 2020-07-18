@@ -5,7 +5,7 @@
 #include "rtwtypes.h"
 #include "crs_solve_trilt_types.h"
 
-extern void crs_solve_trilt(const struct0_T *A, emxArray_real_T *b);
+extern void crs_solve_trilt(const CRS_Matrix *A, emxArray_real_T *b);
 extern void crs_solve_trilt_initialize(void);
 extern void crs_solve_trilt_terminate(void);
 
