@@ -664,7 +664,8 @@ for i=1:length(names)
     end
 end
 
-m2c_opts.cppflags = {['-I' m2croot '/include']};
+rel_m2croot = relativepath(m2croot);
+m2c_opts.cppflags = {['-I' rel_m2croot '/include']};
 m2c_opts.m2cpath={'-I ./codegen'};
 
 func_index = 0;
@@ -916,7 +917,7 @@ while i<=last_index
                     % Set default path for Ubuntu
                     m2c_opts.petscDir = {'/usr/lib/petsc'};
                 elseif length(varargin) >1
-                    error('m2c:petsc_dir', ...
+                    warning('m2c:petsc_dir', ...
                         ['Root directory of PETSc must be given after the ' ...
                         '-petsc flag or be specified by environment variable PETSC_DIR.\n']);
                 else
@@ -927,7 +928,7 @@ while i<=last_index
 
             petscvariables = [m2c_opts.petscDir{1} '/lib/petsc/conf/petscvariables'];
             if ~exist(petscvariables, 'file')
-                error('m2c:petsc_dir', ...
+                warning('m2c:petsc_dir', ...
                     ['Could not locate file lib/petsc/conf/petscvariables ' ...
                     'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
             end
@@ -935,13 +936,13 @@ while i<=last_index
             if ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.so'], 'file') && ...
                     ~exist([m2c_opts.petscDir{1} '/lib/libpetsc_real.so'], 'file') && ...
                     ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.dylib'], 'file')
-                error('m2c:petsc', ...
+                warning('m2c:petsc', ...
                     'PETSc must be built as a shared library in order to be used in MATLAB.\n');
             end
 
             [PCC, CXX, INC, CFLAGS, CXXFLAGS, LIBEXT] = obtain_petscCC(petscvariables);
             if isempty(PCC)
-                error('m2c:petsc_dir', ...
+                warning('m2c:petsc_dir', ...
                     ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
                     'under the given petsc directory %s.\n'], m2c_opts.petscDir{1});
             end
@@ -1110,7 +1111,7 @@ if m2c_opts.optimLevel<0
 end
 
 if ~m2c_opts.debugInfo
-    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/No_debug']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/No_debug']];
 end
 
 if ~isempty(m2c_opts.valgrind) && ~m2c_opts.withCuda
@@ -1131,7 +1132,7 @@ end
 if m2c_opts.withCuda
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_CUDA=1'];
     if m2c_opts.withNvcc
-        m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/cuda']];
+        m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/cuda']];
     end
 
     if ~m2c_opts.withNvcc && (m2c_opts.withPetsc || m2c_opts.withMPI)
@@ -1170,7 +1171,7 @@ if m2c_opts.optimLevel && isempty(m2c_opts.gdb) && isempty(m2c_opts.ddd)
     m2c_opts.cppflags = [m2c_opts.cppflags '-DNDEBUG'];
 end
 if m2c_opts.withOMP
-    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/omp']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/omp']];
 end
 if m2c_opts.withMPI
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_MPI=1'];
