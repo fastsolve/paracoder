@@ -14,7 +14,6 @@ for j=1:length(funcs)
         if ~isnewer([dir '/' funcs{j} '.' mexext], [dir '/' funcs{j} '.m'])
             mmex([dir '/' funcs{j} '.c'], '-output', ...
                 [dir '/' funcs{j} '.' mexext]);
-            delete([funcs{j} '.o'])
         end
     elseif ~isnewer([dir '/' funcs{j} '.' mexext], [dir '/' funcs{j} '.m'])
         mex([dir '/' funcs{j} '.c'], '-output', ...
