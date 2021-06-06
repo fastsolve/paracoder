@@ -912,6 +912,9 @@ while i<=last_index
                     m2c_opts.petscDir = {[getenv('PETSC_DIR') '/' getenv('PETSC_ARCH')]};
                 elseif ~isempty(getenv('PETSC_DIR'))
                     m2c_opts.petscDir = {getenv('PETSC_DIR')};
+                elseif exist('/usr/lib/petsc', 'dir')
+                    % Set default path for Ubuntu
+                    m2c_opts.petscDir = {'/usr/lib/petsc'};
                 elseif length(varargin) >1
                     error('m2c:petsc_dir', ...
                         ['Root directory of PETSc must be given after the ' ...
@@ -930,12 +933,13 @@ while i<=last_index
             end
 
             if ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.so'], 'file') && ...
+                    ~exist([m2c_opts.petscDir{1} '/lib/libpetsc_real.so'], 'file') && ...
                     ~exist([m2c_opts.petscDir{1} '/lib/libpetsc.dylib'], 'file')
                 error('m2c:petsc', ...
                     'PETSc must be built as a shared library in order to be used in MATLAB.\n');
             end
 
-            [PCC, CXX, INC, CFLAGS, CXXFLAGS] = obtain_petscCC(petscvariables);
+            [PCC, CXX, INC, CFLAGS, CXXFLAGS, LIBEXT] = obtain_petscCC(petscvariables);
             if isempty(PCC)
                 error('m2c:petsc_dir', ...
                     ['Could find the definition of PCC in lib/petsc/conf/petscvariables ' ...
@@ -947,9 +951,9 @@ while i<=last_index
             m2c_opts.petscCFLAGS = {CFLAGS};
             m2c_opts.petscCXXFLAGS = {CXXFLAGS};
 
-            mpetscInc = [fileparts(which('startup_mpetsc.m')), '/include'];
+            mpetscInc = [fileparts(which('load_petsc.m')), '/include'];
             m2c_opts.petscInc = {[INC ' -I' mpetscInc]};
-            m2c_opts.petscLibs = {dylibdir([m2c_opts.petscDir{1}  '/lib']), '-lpetsc'};
+            m2c_opts.petscLibs = {dylibdir([m2c_opts.petscDir{1}  '/lib']), ['-lpetsc' LIBEXT]};
             m2c_opts.withPetsc = true;
         case '-blas'
             if i<last_index && varargin{i+1}(1) == '{'
@@ -1181,7 +1185,7 @@ clear(command);
 if exist(command, 'file'); run(command); end
 end
 
-function [PCC, CXX, INC, CFLAGS, CXXFLAGS, LIBS] = obtain_petscCC(filename)
+function [PCC, CXX, INC, CFLAGS, CXXFLAGS, LIBEXT] = obtain_petscCC(filename)
 % Obtian the PCC and CXX commands from the petscvariables file
 str = readFile(filename);
 pat = '\nPCC\s*=\s*([^\n]+)\n';
@@ -1242,12 +1246,12 @@ if nargout>4
 end
 
 if nargout>5
-    LIBS = '';
-    pat = 'PETSC_EXTERNAL_LIB_BASIC\s*=\s*([^\n]+)\n';
+    LIBEXT = '';
+    pat = 'PETSC_LIB_EXT\s*=\s*([^\n]+)\n';
     def = regexp(str, pat, 'match', 'once');
 
     if ~isempty(def)
-        LIBS = strtrim(regexprep(def, pat, '$1'));
+        LIBEXT = strtrim(regexprep(def, pat, '$1'));
     end
 end
 end
