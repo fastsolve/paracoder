@@ -664,8 +664,8 @@ for i=1:length(names)
     end
 end
 
-rel_m2croot = relativepath(m2croot);
-m2c_opts.cppflags = {['-I' rel_m2croot '/include']};
+% m2croot = relativepath(m2croot);
+m2c_opts.cppflags = {['-I' m2croot '/include']};
 m2c_opts.m2cpath={'-I ./codegen'};
 
 func_index = 0;
@@ -1111,7 +1111,7 @@ if m2c_opts.optimLevel<0
 end
 
 if ~m2c_opts.debugInfo
-    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/No_debug']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/No_debug']];
 end
 
 if ~isempty(m2c_opts.valgrind) && ~m2c_opts.withCuda
@@ -1132,7 +1132,7 @@ end
 if m2c_opts.withCuda
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_CUDA=1'];
     if m2c_opts.withNvcc
-        m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/cuda']];
+        m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/cuda']];
     end
 
     if ~m2c_opts.withNvcc && (m2c_opts.withPetsc || m2c_opts.withMPI)
@@ -1171,7 +1171,7 @@ if m2c_opts.optimLevel && isempty(m2c_opts.gdb) && isempty(m2c_opts.ddd)
     m2c_opts.cppflags = [m2c_opts.cppflags '-DNDEBUG'];
 end
 if m2c_opts.withOMP
-    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' rel_m2croot '/opts/omp']];
+    m2c_opts.m2cpath = [m2c_opts.m2cpath ['-I ' m2croot '/opts/omp']];
 end
 if m2c_opts.withMPI
     m2c_opts.cppflags = [m2c_opts.cppflags '-DM2C_MPI=1'];
