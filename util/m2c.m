@@ -518,6 +518,8 @@ if regen_c
     writeREADME(func, cpath, m2c_opts.useCpp, has_emxutil, m2c_opts.genExe, m2c_opts.withNvcc);
 
     if exist([cpath 'rtwtypes.h'], 'file'); delete([cpath 'rtwtypes.h']); end
+    if exist([cpath 'defines.txt'], 'file'); delete([cpath 'defines.txt']); end
+    if exist([cpath '.gitignore'], 'file'); delete([cpath '.gitignore']); end
     if exist([cpath 'interface'], 'dir'); rmdir([cpath 'interface'], 's'); end
     if ~has_emxutil && exist([cpath func '_emxutil.h'], 'file')
         delete([cpath func '_emxutil.c*']);
