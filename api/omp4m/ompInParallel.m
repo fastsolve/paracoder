@@ -7,6 +7,6 @@ if ~strcmp(coder.target,'rtw'); return; end
 coder.inline('always');
 coder.allowpcode('plain')
 
-momp_require_header
+coder.cinclude('omp.h');
 
 n = coder.ceval('omp_in_parallel');

@@ -6,7 +6,7 @@ function n = ompGetMaxActiveLevels %#codegen
 coder.inline('always');
 coder.allowpcode('plain')
 
-momp_require_header
+coder.cinclude('omp.h');
 
 n = int32(1);
 

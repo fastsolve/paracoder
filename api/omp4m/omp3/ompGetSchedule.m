@@ -7,7 +7,7 @@ function [kind, modifier] = ompGetSchedule %#codegen
 coder.inline('always');
 coder.allowpcode('plain')
 
-momp_require_header
+coder.cinclude('omp.h');
 
 kind = coder.opaque('omp_sched_t');
 modifier = int32(0);

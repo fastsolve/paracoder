@@ -13,6 +13,6 @@ if ~strcmp(coder.target,'rtw'); return; end
 coder.inline('always');
 coder.allowpcode('plain')
 
-momp_require_header
+coder.cinclude('omp.h');
 
 coder.ceval('omp_set_dynamic', dynamic);

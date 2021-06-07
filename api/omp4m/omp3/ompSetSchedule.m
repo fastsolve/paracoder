@@ -11,7 +11,7 @@ function ompSetSchedule(kind, modifier) %#codegen
 coder.inline('always');
 coder.allowpcode('plain')
 
-momp_require_header
+coder.cinclude('omp.h');
 
 if ~strcmp(coder.target,'rtw'); return; end
 

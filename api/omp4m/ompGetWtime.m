@@ -20,7 +20,7 @@ if ~strcmp(coder.target,'rtw');
     return; 
 end
 
-momp_require_header
+coder.cinclude('omp.h');
 coder.inline('always');
 coder.allowpcode('plain')
 
