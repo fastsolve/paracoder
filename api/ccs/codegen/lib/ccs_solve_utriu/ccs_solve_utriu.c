@@ -1,13 +1,14 @@
 #include "ccs_solve_utriu.h"
+#include "ccs_solve_utriu_types.h"
 
 void ccs_solve_utriu(const CCS_Matrix *U, emxArray_real_T *b)
 {
-  int n;
-  int j;
   int i;
   int i1;
-  int k;
   int i2;
+  int j;
+  int k;
+  int n;
   n = U->col_ptr->size[0] - 1;
   for (j = n; j >= 1; j--) {
     i = U->col_ptr->data[j - 1];
@@ -21,12 +22,12 @@ void ccs_solve_utriu(const CCS_Matrix *U, emxArray_real_T *b)
 
 void ccs_solve_utriu_3args(const CCS_Matrix *U, emxArray_real_T *b, int offset)
 {
-  int n;
-  int j;
   int i;
   int i1;
-  int k;
   int i2;
+  int j;
+  int k;
+  int n;
   n = U->col_ptr->size[0] - 1;
   for (j = n; j >= 1; j--) {
     i = U->col_ptr->data[j - 1];

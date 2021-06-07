@@ -1,13 +1,14 @@
 #include "crs_solve_triut.h"
+#include "crs_solve_triut_types.h"
 
 void crs_solve_triut(const CRS_Matrix *A, emxArray_real_T *b)
 {
-  int i;
   int b_i;
+  int i;
   int i1;
   int i2;
-  int k;
   int i3;
+  int k;
   i = A->row_ptr->size[0];
   for (b_i = 0; b_i <= i - 2; b_i++) {
     b->data[b_i] /= A->val->data[A->row_ptr->data[b_i] - 1];

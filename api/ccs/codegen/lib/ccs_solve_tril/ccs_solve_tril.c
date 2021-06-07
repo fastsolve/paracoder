@@ -1,13 +1,14 @@
 #include "ccs_solve_tril.h"
+#include "ccs_solve_tril_types.h"
 
 void ccs_solve_tril(const CCS_Matrix *L, emxArray_real_T *b)
 {
   int i;
-  int j;
   int i1;
   int i2;
-  int k;
   int i3;
+  int j;
+  int k;
   i = L->col_ptr->size[0];
   for (j = 0; j <= i - 2; j++) {
     b->data[j] /= L->val->data[L->col_ptr->data[j] - 1];

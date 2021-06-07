@@ -1,10 +1,12 @@
 #include "mpi_get_status_field.h"
+#include "mpi_get_status_field_types.h"
 #include "m2c.h"
 #include "mpi.h"
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
-static MPI_Status m2c_castdata(const emxArray_uint8_T *data);
+
 static void m2c_error(const emxArray_char_T *varargin_3);
+
 static void b_m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
@@ -15,19 +17,13 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
   emxEnsureCapacity_char_T(b_varargin_3, i);
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  loop_ub = varargin_3->size[1];
   for (i = 0; i < loop_ub; i++) {
     b_varargin_3->data[i] = varargin_3->data[i];
   }
-
   M2C_error("mpi_get_status_field:UnknownField", "Unknown field name %s\n",
             &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
-}
-
-static MPI_Status m2c_castdata(const emxArray_uint8_T *data)
-{
-  return *(MPI_Status*)(&data->data[0]);
 }
 
 static void m2c_error(const emxArray_char_T *varargin_3)
@@ -40,47 +36,41 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
   emxEnsureCapacity_char_T(b_varargin_3, i);
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  loop_ub = varargin_3->size[1];
   for (i = 0; i < loop_ub; i++) {
     b_varargin_3->data[i] = varargin_3->data[i];
   }
-
   M2C_error("m2c_opaque_obj:WrongInput",
             "Incorrect data type %s. Expected MPI_Status.\n",
             &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
 }
 
-int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
-  *field)
+int mpi_get_status_field(const M2C_OpaqueType *stat,
+                         const emxArray_char_T *field)
 {
-  int output;
-  boolean_T p;
+  static const char cv[10] = {'M', 'P', 'I', '_', 'S', 't', 'a', 't', 'u', 's'};
+  static const char cv2[10] = {'M', 'P', 'I', '_', 'S',
+                               'O', 'U', 'R', 'C', 'E'};
+  static const char cv6[9] = {'M', 'P', 'I', '_', 'E', 'R', 'R', 'O', 'R'};
+  static const char cv4[7] = {'M', 'P', 'I', '_', 'T', 'A', 'G'};
+  static const char cv1[6] = {'s', 'o', 'u', 'r', 'c', 'e'};
+  static const char cv5[5] = {'e', 'r', 'r', 'o', 'r'};
+  static const char cv3[3] = {'t', 'a', 'g'};
+  const MPI_Status *stat_ptr;
+  MPI_Status t_stat;
+  emxArray_char_T *b_stat;
+  int exitg2;
+  int i;
   int k;
+  int output;
   boolean_T b_p;
   boolean_T exitg1;
-  emxArray_char_T *b_stat;
-  int i;
-  static const char cv[10] = { 'M', 'P', 'I', '_', 'S', 't', 'a', 't', 'u', 's'
-  };
-
-  MPI_Status t_stat;
-  const MPI_Status * stat_ptr;
-  int exitg2;
-  static const char cv1[6] = { 's', 'o', 'u', 'r', 'c', 'e' };
-
-  static const char cv2[10] = { 'M', 'P', 'I', '_', 'S', 'O', 'U', 'R', 'C', 'E'
-  };
-
-  static const char cv3[3] = { 't', 'a', 'g' };
-
-  static const char cv4[7] = { 'M', 'P', 'I', '_', 'T', 'A', 'G' };
-
-  static const char cv5[5] = { 'e', 'r', 'r', 'o', 'r' };
-
-  static const char cv6[9] = { 'M', 'P', 'I', '_', 'E', 'R', 'R', 'O', 'R' };
-
-  p = (stat->type->size[1] == 10);
+  boolean_T p;
+  p = false;
+  if (stat->type->size[1] == 10) {
+    p = true;
+  }
   if (p && (stat->type->size[1] != 0)) {
     k = 0;
     exitg1 = false;
@@ -93,7 +83,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
       }
     }
   }
-
   b_p = (int)p;
   emxInit_char_T(&b_stat, 2);
   if (!b_p) {
@@ -105,12 +94,10 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
     for (i = 0; i < k; i++) {
       b_stat->data[i] = stat->type->data[i];
     }
-
     b_stat->data[stat->type->size[1]] = '\x00';
     m2c_error(b_stat);
   }
-
-  t_stat = m2c_castdata(stat->data);
+  t_stat = *(MPI_Status *)(&stat->data->data[0]);
   stat_ptr = (&t_stat);
   b_p = false;
   if (field->size[1] == 6) {
@@ -129,7 +116,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
       }
     } while (exitg2 == 0);
   }
-
   if (b_p) {
     output = stat_ptr->MPI_SOURCE;
   } else {
@@ -150,7 +136,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
         }
       } while (exitg2 == 0);
     }
-
     if (b_p) {
       output = stat_ptr->MPI_SOURCE;
     } else {
@@ -171,7 +156,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
           }
         } while (exitg2 == 0);
       }
-
       if (b_p) {
         output = stat_ptr->MPI_TAG;
       } else {
@@ -192,7 +176,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
             }
           } while (exitg2 == 0);
         }
-
         if (b_p) {
           output = stat_ptr->MPI_TAG;
         } else {
@@ -213,7 +196,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
               }
             } while (exitg2 == 0);
           }
-
           if (b_p) {
             output = stat_ptr->MPI_ERROR;
           } else {
@@ -234,7 +216,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
                 }
               } while (exitg2 == 0);
             }
-
             if (b_p) {
               output = stat_ptr->MPI_ERROR;
             } else {
@@ -246,7 +227,6 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
               for (i = 0; i < k; i++) {
                 b_stat->data[i] = field->data[i];
               }
-
               b_stat->data[field->size[1]] = '\x00';
               b_m2c_error(b_stat);
               output = -1;
@@ -256,9 +236,7 @@ int mpi_get_status_field(const M2C_OpaqueType *stat, const emxArray_char_T
       }
     }
   }
-
   emxFree_char_T(&b_stat);
-
   return output;
 }
 

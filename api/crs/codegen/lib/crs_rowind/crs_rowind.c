@@ -1,14 +1,15 @@
 #include "crs_rowind.h"
 #include "m2c.h"
+#include "crs_rowind_types.h"
 
 void crs_rowind(const emxArray_int32_T *rowptr, const emxArray_int32_T *js,
                 emxArray_int32_T *is)
 {
-  int i;
-  int nrows;
   int b_i;
+  int i;
   int i1;
   int j;
+  int nrows;
   i = is->size[0];
   is->size[0] = js->size[0];
   emxEnsureCapacity_int32_T(is, i);

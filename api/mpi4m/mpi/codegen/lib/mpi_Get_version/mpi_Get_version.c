@@ -1,9 +1,11 @@
 #include "mpi_Get_version.h"
+#include "mpi_Get_version_types.h"
 #include "m2c.h"
 #include "mpi.h"
 #include <string.h>
 
 static void m2c_error(const emxArray_char_T *varargin_3);
+
 static void m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
@@ -14,32 +16,32 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
   emxEnsureCapacity_char_T(b_varargin_3, i);
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  loop_ub = varargin_3->size[1];
   for (i = 0; i < loop_ub; i++) {
     b_varargin_3->data[i] = varargin_3->data[i];
   }
-
-  M2C_error("MPI:RuntimeError", "MPI_Get_version failed with error message %s\n",
+  M2C_error("MPI:RuntimeError",
+            "MPI_Get_version failed with error message %s\n",
             &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Get_version(int *version, int *subversion, int *info, boolean_T
-                     *toplevel)
+void mpi_Get_version(int *version, int *subversion, int *info,
+                     boolean_T *toplevel)
 {
-  unsigned char msg0[1024];
+  char *ptr;
   emxArray_char_T *b_msg0;
-  char * ptr;
+  int i;
   int resultlen;
   short unnamed_idx_1;
-  int i;
+  unsigned char msg0[1024];
   *subversion = 0;
   *info = MPI_Get_version(version, subversion);
   *toplevel = true;
   if (*info != 0) {
     memset(&msg0[0], 0, 1024U * sizeof(unsigned char));
     emxInit_char_T(&b_msg0, 2);
-    ptr = (char *)(msg0);
+    ptr = (char *)(&msg0[0]);
     resultlen = 0;
     MPI_Error_string(*info, ptr, &resultlen);
     if (1 > resultlen) {
@@ -47,7 +49,6 @@ void mpi_Get_version(int *version, int *subversion, int *info, boolean_T
     } else {
       unnamed_idx_1 = (short)resultlen;
     }
-
     i = b_msg0->size[0] * b_msg0->size[1];
     b_msg0->size[0] = 1;
     b_msg0->size[1] = unnamed_idx_1;
@@ -56,7 +57,6 @@ void mpi_Get_version(int *version, int *subversion, int *info, boolean_T
     for (i = 0; i < resultlen; i++) {
       b_msg0->data[i] = (signed char)msg0[i];
     }
-
     m2c_error(b_msg0);
     emxFree_char_T(&b_msg0);
   }

@@ -1,13 +1,14 @@
 #include "ccs_solve_triu.h"
+#include "ccs_solve_triu_types.h"
 
 void ccs_solve_triu(const CCS_Matrix *U, emxArray_real_T *b)
 {
-  int n;
-  int j;
   int i;
   int i1;
-  int k;
   int i2;
+  int j;
+  int k;
+  int n;
   n = U->col_ptr->size[0] - 1;
   for (j = n; j >= 1; j--) {
     b->data[j - 1] /= U->val->data[U->col_ptr->data[j] - 2];

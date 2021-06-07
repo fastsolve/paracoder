@@ -1,13 +1,14 @@
 #include "crs_solve_trilt.h"
+#include "crs_solve_trilt_types.h"
 
 void crs_solve_trilt(const CRS_Matrix *A, emxArray_real_T *b)
 {
-  int n;
-  int i;
   int b_i;
+  int i;
   int i1;
-  int k;
   int i2;
+  int k;
+  int n;
   n = A->row_ptr->size[0] - 1;
   for (i = n; i >= 1; i--) {
     b->data[i - 1] /= A->val->data[A->row_ptr->data[i] - 2];

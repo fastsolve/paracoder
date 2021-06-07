@@ -1,12 +1,13 @@
 #include "ccs_solve_triut.h"
+#include "ccs_solve_triut_types.h"
 
 void ccs_solve_triut(const CCS_Matrix *U, emxArray_real_T *b)
 {
-  int n;
-  int j;
   int i;
   int i1;
+  int j;
   int k;
+  int n;
   n = U->col_ptr->size[0];
   for (j = 0; j <= n - 2; j++) {
     i = U->col_ptr->data[j];
@@ -14,7 +15,6 @@ void ccs_solve_triut(const CCS_Matrix *U, emxArray_real_T *b)
     for (k = i; k <= i1; k++) {
       b->data[j] -= U->val->data[k - 1] * b->data[U->row_ind->data[k - 1] - 1];
     }
-
     b->data[j] /= U->val->data[i1];
   }
 }

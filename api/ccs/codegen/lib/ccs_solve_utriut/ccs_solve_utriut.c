@@ -1,13 +1,14 @@
 #include "ccs_solve_utriut.h"
+#include "ccs_solve_utriut_types.h"
 
 void ccs_solve_utril_3args(const CCS_Matrix *L, emxArray_real_T *b, int offset)
 {
-  int n;
-  int j;
   int i;
   int i1;
-  int k;
   int i2;
+  int j;
+  int k;
+  int n;
   n = L->col_ptr->size[0];
   for (j = 0; j <= n - 2; j++) {
     i = L->col_ptr->data[j];
@@ -21,11 +22,11 @@ void ccs_solve_utril_3args(const CCS_Matrix *L, emxArray_real_T *b, int offset)
 
 void ccs_solve_utriut(const CCS_Matrix *U, emxArray_real_T *b)
 {
-  int n;
-  int j;
   int i;
   int i1;
+  int j;
   int k;
+  int n;
   n = U->col_ptr->size[0];
   for (j = 0; j <= n - 2; j++) {
     i = U->col_ptr->data[j];

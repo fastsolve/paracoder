@@ -1,11 +1,13 @@
 #include "mpi_Probe.h"
+#include "mpi_Probe_types.h"
 #include "m2c.h"
 #include "mpi.h"
 #include <string.h>
 
 static void b_m2c_error(const emxArray_char_T *varargin_3);
-static MPI_Comm m2c_castdata(const emxArray_uint8_T *data);
+
 static void m2c_error(const emxArray_char_T *varargin_3);
+
 static void b_m2c_error(const emxArray_char_T *varargin_3)
 {
   emxArray_char_T *b_varargin_3;
@@ -16,19 +18,13 @@ static void b_m2c_error(const emxArray_char_T *varargin_3)
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
   emxEnsureCapacity_char_T(b_varargin_3, i);
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  loop_ub = varargin_3->size[1];
   for (i = 0; i < loop_ub; i++) {
     b_varargin_3->data[i] = varargin_3->data[i];
   }
-
   M2C_error("MPI:RuntimeError", "MPI_Probe failed with error message %s\n",
             &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
-}
-
-static MPI_Comm m2c_castdata(const emxArray_uint8_T *data)
-{
-  return *(MPI_Comm*)(&data->data[0]);
 }
 
 static void m2c_error(const emxArray_char_T *varargin_3)
@@ -41,38 +37,37 @@ static void m2c_error(const emxArray_char_T *varargin_3)
   b_varargin_3->size[0] = 1;
   b_varargin_3->size[1] = varargin_3->size[1];
   emxEnsureCapacity_char_T(b_varargin_3, i);
-  loop_ub = varargin_3->size[0] * varargin_3->size[1];
+  loop_ub = varargin_3->size[1];
   for (i = 0; i < loop_ub; i++) {
     b_varargin_3->data[i] = varargin_3->data[i];
   }
-
   M2C_error("m2c_opaque_obj:WrongInput",
-            "Incorrect data type %s. Expected MPI_Comm.\n", &b_varargin_3->data
-            [0]);
+            "Incorrect data type %s. Expected MPI_Comm.\n",
+            &b_varargin_3->data[0]);
   emxFree_char_T(&b_varargin_3);
 }
 
-void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm, M2C_OpaqueType
-               *stat, int *info, boolean_T *toplevel)
+void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm,
+               M2C_OpaqueType *stat, int *info, boolean_T *toplevel)
 {
-  boolean_T p;
-  int sizepe;
-  boolean_T b_p;
-  boolean_T exitg1;
-  emxArray_char_T *b_comm;
-  int i;
-  static const char cv[8] = { 'M', 'P', 'I', '_', 'C', 'o', 'm', 'm' };
-
-  emxArray_uint8_T *data0;
+  static const char cv1[10] = {'M', 'P', 'I', '_', 'S',
+                               't', 'a', 't', 'u', 's'};
+  static const char cv[8] = {'M', 'P', 'I', '_', 'C', 'o', 'm', 'm'};
   MPI_Comm c_comm;
   MPI_Status arg;
-  static const char t0_type[10] = { 'M', 'P', 'I', '_', 'S', 't', 'a', 't', 'u',
-    's' };
-
-  char * ptr;
-  unsigned char msg0[1024];
+  char *ptr;
+  emxArray_char_T *b_comm;
+  int i;
+  int sizepe;
   short unnamed_idx_1;
-  p = (comm->type->size[1] == 8);
+  unsigned char msg0[1024];
+  boolean_T b_p;
+  boolean_T exitg1;
+  boolean_T p;
+  p = false;
+  if (comm->type->size[1] == 8) {
+    p = true;
+  }
   if (p && (comm->type->size[1] != 0)) {
     sizepe = 0;
     exitg1 = false;
@@ -85,7 +80,6 @@ void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm, M2C_OpaqueType
       }
     }
   }
-
   b_p = (int)p;
   emxInit_char_T(&b_comm, 2);
   if (!b_p) {
@@ -97,44 +91,31 @@ void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm, M2C_OpaqueType
     for (i = 0; i < sizepe; i++) {
       b_comm->data[i] = comm->type->data[i];
     }
-
     b_comm->data[comm->type->size[1]] = '\x00';
     m2c_error(b_comm);
   }
-
-  emxInit_uint8_T(&data0, 1);
-  c_comm = m2c_castdata(comm->data);
+  c_comm = *(MPI_Comm *)(&comm->data->data[0]);
   *info = MPI_Probe(source, tag, c_comm, &arg);
   sizepe = sizeof(MPI_Status);
-  i = data0->size[0];
-  data0->size[0] = sizepe;
-  emxEnsureCapacity_uint8_T(data0, i);
   i = stat->data->size[0];
   stat->data->size[0] = sizepe;
   emxEnsureCapacity_uint8_T(stat->data, i);
-  for (i = 0; i < sizepe; i++) {
-    stat->data->data[i] = data0->data[i];
-  }
-
-  emxFree_uint8_T(&data0);
   i = stat->type->size[0] * stat->type->size[1];
   stat->type->size[0] = 1;
   stat->type->size[1] = 10;
   emxEnsureCapacity_char_T(stat->type, i);
   for (i = 0; i < 10; i++) {
-    stat->type->data[i] = t0_type[i];
+    stat->type->data[i] = cv1[i];
   }
-
   stat->nitems = 1;
   ptr = (char *)(&arg);
   for (i = 0; i < sizepe; i++) {
     stat->data->data[i] = *(ptr);
     ptr = ptr + 1;
   }
-
   if (*info != 0) {
     memset(&msg0[0], 0, 1024U * sizeof(unsigned char));
-    ptr = (char *)(msg0);
+    ptr = (char *)(&msg0[0]);
     sizepe = 0;
     MPI_Error_string(*info, ptr, &sizepe);
     if (1 > sizepe) {
@@ -142,7 +123,6 @@ void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm, M2C_OpaqueType
     } else {
       unnamed_idx_1 = (short)sizepe;
     }
-
     i = b_comm->size[0] * b_comm->size[1];
     b_comm->size[0] = 1;
     b_comm->size[1] = unnamed_idx_1;
@@ -151,10 +131,8 @@ void mpi_Probe(int source, int tag, const M2C_OpaqueType *comm, M2C_OpaqueType
     for (i = 0; i < sizepe; i++) {
       b_comm->data[i] = (signed char)msg0[i];
     }
-
     b_m2c_error(b_comm);
   }
-
   emxFree_char_T(&b_comm);
   *toplevel = true;
 }
