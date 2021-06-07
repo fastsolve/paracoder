@@ -99,7 +99,7 @@
  * claimed, and the software is hereby placed in the public domain.
  *******************************************************************************
  */
- 
+
 /*
 % $JRev: R5e V:060 Sum:guO38R7tmtEO Date:04-Jun-2016 22:24:10 $
 % $License: BSD (use/copy/change/redistribute on own risk, mention the author) $
@@ -256,7 +256,7 @@ void MD5_Init(MD5_CTX *ctx)
   ctx->b  = 0xefcdab89;
   ctx->c  = 0x98badcfe;
   ctx->d  = 0x10325476;
-  
+
   ctx->lo = 0;
   ctx->hi = 0;
 }
@@ -396,13 +396,13 @@ void MD5_Update(MD5_CTX *ctx, uchar_T *data, mwSize size)
     size -= free;
     MD5_Body(ctx, ctx->buffer, 64);
   }
-  
+
   // Process the rest of the data in 64 byte blocks:
   if (size >= 64) {
     data  = MD5_Body(ctx, data, size & ~(mwSize)0x3f);
     size &= 0x3f;
   }
-  
+
   // Copy remaining bytes to the buffer:
   memcpy(ctx->buffer, data, size);
 }
@@ -421,9 +421,9 @@ void MD5_Final(uchar_T *result, MD5_CTX *ctx)
     used = 0;
     free = 64;
   }
-  
+
   memset(&ctx->buffer[used], 0, free - 8);
-  
+
   // Encode number of bits:
   ctx->lo       <<= 3;
   ctx->buffer[56] = ctx->lo;
@@ -436,7 +436,7 @@ void MD5_Final(uchar_T *result, MD5_CTX *ctx)
   ctx->buffer[63] = ctx->hi >> 24;
 
   MD5_Body(ctx, ctx->buffer, 64);
-  
+
   // Copy hash to the output:
   result[0]  = ctx->a;
   result[1]  = ctx->a >> 8;
@@ -454,7 +454,7 @@ void MD5_Final(uchar_T *result, MD5_CTX *ctx)
   result[13] = ctx->d >> 8;
   result[14] = ctx->d >> 16;
   result[15] = ctx->d >> 24;
-  
+
   // Clean up sensitive data:
   memset(ctx, 0, sizeof(*ctx));
 }
@@ -473,11 +473,11 @@ void ProcessChar(mxChar *array, mwSize inputLen, uchar_T digest[16])
   MD5_CTX context;
   mwSize  Chunk;
   uchar_T *bufferP, *bufferEnd = buffer + BUFFER_LEN, *arrayP;
-  
+
   arrayP = (uchar_T *) array;  // uchar_T *, not mxChar *!
-  
+
   MD5_Init(&context);
-  
+
   // Copy chunks of input data - only the first byte of each mxChar:
   Chunk = inputLen / BUFFER_LEN;
   while (Chunk--) {
@@ -486,10 +486,10 @@ void ProcessChar(mxChar *array, mwSize inputLen, uchar_T digest[16])
         *bufferP++ = *arrayP;
         arrayP    += 2;
      }
-     
+
      MD5_Update(&context, buffer, (mwSize) BUFFER_LEN);
   }
-  
+
   // Last chunk:
   Chunk = inputLen % BUFFER_LEN;
   if (Chunk != 0) {
@@ -499,10 +499,10 @@ void ProcessChar(mxChar *array, mwSize inputLen, uchar_T digest[16])
         *bufferP++ = *arrayP;
         arrayP    += 2;
      }
-     
+
      MD5_Update(&context, buffer, Chunk);
   }
-  
+
   MD5_Final(digest, &context);
 }
 
@@ -517,7 +517,7 @@ void ProcessArray(const mxArray *V, uchar_T digest[16])
   MD5_CTX context;
 
   RecursionCount = 0;  // Reset global recursion counter
-  
+
   MD5_Init(&context);
   ArrayCore(&context, V);
   MD5_Final(digest, &context);
@@ -534,7 +534,7 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
   // Sparse arrays, function handles, java- and user-defined classes are
   // forwarded to the M-function GetMD5_helper, where the user can defined how
   // the data is converted to a byte stream.
-  
+
   uchar_T      *dataReal, *dataImag;
   mxClassID    ClassID;
   const mwSize *Dim, nullDim[2] = {0,0};
@@ -544,7 +544,7 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
   int          nField, iField, ok;
   mxArray      *Arg[1];
   const char   *FieldName, *ClassName;
-          
+
   // Get header information of the array:
   if (V != NULL) {
      nDim      = mxGetNumberOfDimensions(V);
@@ -555,7 +555,7 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
      Dim       = mxGetDimensions(V);
      dataReal  = (uchar_T *) mxGetData(V);
      dataImag  = (uchar_T *) mxGetImagData(V);
-     
+
   } else {  // NULL pointer is equivalent to [0 x 0] double matrix:
      nDim      = 2;
      nElem     = 0;
@@ -566,12 +566,12 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
      dataReal  = (uchar_T *) NULL;
      dataImag  = (uchar_T *) NULL;
   }
-  
+
   // Consider class as name, not as ClassID, because the later might change with
   // the Matlab version:
   Len = strlen(ClassName);
   MD5_Update(context, (uchar_T *) ClassName, Len * sizeof(char));
-  
+
   // Encode dimensions as [nDim, Dim]:
   // Convert values to int64_T to get the same hash under 32 and 64 bit systems:
   lenHeader = 1 + nDim;
@@ -582,12 +582,12 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
   }
   MD5_Update(context, (uchar_T *) header, lenHeader * sizeof(int64_T));
   mxFree(header);
-  
+
   // Forward sparse arrays to M-helper function:
   if (mxIsSparse(V)) {
      ClassID = mxUNKNOWN_CLASS;
   }
-  
+
   // Include the contents of the array:
   switch (ClassID) {
      case mxLOGICAL_CLASS:   // Elementary array: ------------------------------
@@ -607,33 +607,33 @@ void ArrayCore(MD5_CTX *context, const mxArray *V)
            MD5_Update(context, dataImag, nElem * ElemSize);
         }
         break;
-        
+
      case mxCELL_CLASS:    // Cell array - recursion: --------------------------
         for (iElem = 0; iElem < nElem; iElem++) {
            ArrayCore(context, mxGetCell(V, iElem));
         }
         break;
-        
+
      case mxSTRUCT_CLASS:  // Struct array: Fieldnames + recursion: ------------
         StructCore(context, V, nElem);
         break;
-        
+
      default:  // mxFUNCTION_CLASS, mxVOID_CLASS, mxUNKNOWN_CLASS: -------------
         // Treat deep recursion as an error:
         if (++RecursionCount > MAX_RECURSION) {
            ERROR("DeepRecursion", "Cannot serialize recursive data type.\n"
                  "Try:  GetMD5(getByteStreamFromArray(Data))");
         }
-                
+
         // Call the M-helper function to be more flexible:
-        ok = mexCallMATLAB(1, Arg, 1, (mxArray*)&V, "GetMD5_helper");
+        ok = mexCallMATLAB(1, Arg, 1, (mxArray**)&V, "GetMD5_helper");
         if (ok != 0) {
            ERROR("HelperFailed", "Calling GetMD5_helper failed.");
         }
-        
+
         // Get hash for array replied by the helper:
         ArrayCore(context, Arg[0]);
-        
+
         // Clean up:
         if (Arg[0] != NULL) {
            mxDestroyArray(Arg[0]);
@@ -650,7 +650,7 @@ void StructCore(MD5_CTX *context, const mxArray *V, mwSize nElem)
   mwSize     iElem;
   size_t     FieldNameLen;
   StringRec  *FieldList;
-          
+
   // Create list of field names and a handle array, which points to this list.
   // Then sorting the handles allows to get the sorting index:
   nField    = mxGetNumberOfFields(V);
@@ -659,11 +659,11 @@ void StructCore(MD5_CTX *context, const mxArray *V, mwSize nElem)
      FieldList[iField].string = mxGetFieldNameByNumber(V, iField);
      FieldList[iField].index  = iField;
   }
-  
+
   // Sort the strings:
   // (Sorting must not be stable, because the fieldnames are unique)
   qsort(FieldList, nField, sizeof(StringRec), CompareStringRec);
-  
+
   // Loop over fields:
   for (iField = 0; iField < nField; iField++) {
      // Encode field name:
@@ -671,13 +671,13 @@ void StructCore(MD5_CTX *context, const mxArray *V, mwSize nElem)
      FieldIndex   = FieldList[iField].index;
      FieldNameLen = STRING_LENGTH(FieldName, 63);
      MD5_Update(context, (uchar_T *) FieldName, FieldNameLen);
-     
+
      // Loop over struct array:
      for (iElem = 0; iElem < nElem; iElem++) {
         ArrayCore(context, mxGetFieldByNumber(V, iElem, FieldIndex));
      }
   }
-  
+
   // Release memory:
   mxFree(FieldList);
 }
@@ -697,7 +697,7 @@ void ProcessBin(uchar_T *array, mwSize inputLen, uchar_T digest[16])
   // single([0,0]) reply the same hash. This works for numeric, char and logical
   // arrays only, neitehr cells nor structs.
   MD5_CTX context;
-  
+
   MD5_Init(&context);
   MD5_Update(&context, array, inputLen);
   MD5_Final(digest, &context);
@@ -709,12 +709,12 @@ void ProcessFile(char *filename, uchar_T digest[16])
   FILE    *FID;
   MD5_CTX context;
   mwSize  len;
-  
+
   // Open the file in binary mode:
   if ((FID = fopen(filename, "rb")) == NULL) {
      ERROR3("MissFile", "Cannot open file: [%s]", filename);
   }
-  
+
   MD5_Init(&context);
   while ((len = fread(buffer, 1, BUFFER_LEN, FID)) != 0) {
      MD5_Update(&context, buffer, len);
@@ -729,9 +729,9 @@ void ToHex(const uchar_T digest[16], char *output, int LowerCase)
 {
   char *outputEnd, *Fmt;
   const uchar_T *s = digest;
-  
+
   Fmt = LowerCase ? "%02x" : "%02X";
-  
+
   for (outputEnd = output + 32; output < outputEnd; output += 2) {
      sprintf(output, Fmt, *(s++));
   }
@@ -748,7 +748,7 @@ void ToBase64(const uchar_T In[16], char *Out)
    int   i;
    char  *p;
    const uchar_T *s;
-   
+
    p = Out;
    s = In;
    for (i = 0; i < 5; i++) {
@@ -758,7 +758,7 @@ void ToBase64(const uchar_T In[16], char *Out)
       *p++ = B64[s[2] & 0x3F];
       s   += 3;
    }
-   
+
    *p++ = B64[(*s >> 2) & 0x3F];
    *p++ = B64[((*s & 0x3) << 4)];
    *p   = '\0';
@@ -771,13 +771,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // - Define default values of optional arguments.
   // - Forward input data to different calculators according to the input type.
   // - Convert digest to output format.
-  
+
   char     *FileName, outString[33];
   uchar_T  digest[16], *digestP, OutType = 'h';
   double   *outP, *outEnd;
   Method_t Method = BINARY_m;
   mwSize   nByte;
-  
+
   // Check number of inputs and outputs: ---------------------------------------
   if (nrhs == 0 || nrhs > 3) {
      ERROR("BadNInput", "1 to 3 inputs required.");
@@ -785,18 +785,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   if (nlhs > 1) {
      ERROR("BadNOutput", "Too many output arguments.");
   }
-  
+
   // Check type of inputs:
   if (mxIsChar(prhs[0])) {
      Method = ASCII_m;  // Default for CHAR arrays
   }
-  
+
   // Evaluate 1st character of 2nd input:
   if (nrhs >= 2 && mxGetNumberOfElements(prhs[1]) > 0) {
      if (mxIsChar(prhs[1]) == 0) {
         ERROR("BadTypeInput2", "2nd input [Method] must be a string.");
      }
-     
+
      switch (*(uchar_T *) mxGetData(prhs[1])) {
         case '8':
            if (!mxIsChar(prhs[0])) {
@@ -813,16 +813,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         default:   ERROR("BadInput2", "Mode not recognized.");
      }
   }
-  
+
   // Output type - default: hex:
   if (nrhs == 3 && !mxIsEmpty(prhs[2])) {
      if (mxIsChar(prhs[2]) == 0) {
         ERROR("BadTypeInput3", "3rd input must be a string.");
      }
-     
+
      OutType = *(uchar_T *) mxGetData(prhs[2]);  // Just 1st character
   }
-  
+
   // Calculate check sum: ------------------------------------------------------
   switch (Method) {
      case FILE_m:    // Input is a file name:
@@ -832,16 +832,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ProcessFile(FileName, digest);
         mxFree(FileName);
         break;
-  
+
      case ARRAY_m:   // Type, dimensions and contents of the array:
         ProcessArray(prhs[0], digest);
         break;
-     
+
      case ASCII_m:   // Consider ASCII part of 16-bit mxChar only:
         ProcessChar((mxChar *) mxGetData(prhs[0]),
                     mxGetNumberOfElements(prhs[0]), digest);
         break;
-     
+
      case BINARY_m:  // Contents of the variable:
         if (!(mxIsNumeric(prhs[0]) || mxIsChar(prhs[0]) || mxIsLogical(prhs[0]))
              || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0])) {
@@ -851,11 +851,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         nByte = mxGetNumberOfElements(prhs[0]) * mxGetElementSize(prhs[0]);
         ProcessBin((uchar_T *) mxGetData(prhs[0]), nByte, digest);
         break;
-     
+
      default:
         ERROR("BadSwitch", "Programming error: Unknown switch case?!");
   }
-  
+
   // Create output: ------------------------------------------------------------
   switch (OutType) {
      case 'H':
@@ -863,7 +863,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ToHex(digest, outString, OutType == 'h');
         plhs[0] = mxCreateString(outString);
         break;
-        
+
      case 'D':
      case 'd':  // DOUBLE with integer values:
         plhs[0] = mxCreateDoubleMatrix(1, 16, mxREAL);
@@ -873,22 +873,22 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            *outP = (double) *digestP++;
         }
         break;
-        
+
      case 'B':
      case 'b':  // Base64:
         ToBase64(digest, outString);            // Locally implemented
         plhs[0] = mxCreateString(outString);
         break;
-        
+
      case 'U':
      case 'u':  // UINT8:
         plhs[0] = mxCreateNumericMatrix(1, 16, mxUINT8_CLASS, mxREAL);
         memcpy(mxGetData(plhs[0]), digest, 16 * sizeof(uchar_T));
         break;
-        
+
      default:
         ERROR("BadOutputType", "Unknown output type.");
   }
-  
+
   return;
 }
