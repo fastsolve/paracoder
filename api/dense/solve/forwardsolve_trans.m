@@ -13,17 +13,17 @@ for kk=1:int32(size(bs,2))
     % Skip zeros in bs
     cstart = cend+1;
     for ii=1:cend
-        if (bs(ii)~=0)
+        if (bs(ii, kk)~=0)
             cstart = ii;
             break;
         end
     end
-    
+
     for jj=cstart:1:cend
         for ii=cstart:jj-1
             bs(jj,kk) = bs(jj,kk) - R(ii,jj) * bs(ii,kk);
         end
-        
+
         assert(R(jj,jj)~=0);
         bs(jj,kk) = bs(jj,kk) / R(jj,jj);
     end
