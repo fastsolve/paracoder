@@ -71,6 +71,9 @@ end
 
 if has_emxutil
     [emxC_str, emxH_str] = remove_stdemx_funcs(emxC_str, emxH_str, ctypes_str);
+
+    emxC_str = strrep(emxC_str, ['#include "' func '_types.h"'], ...
+            ['#include "' func '_types.h"' newline '#include "m2c.h"']);
 end
 [cfile_str, hfile_str] = remove_stdemx_funcs(cfile_str, hfile_str, ctypes_str);
 
@@ -285,7 +288,6 @@ for i = 1:length(tokens)
     cfile_str = regexprep(cfile_str, ['emxFree_', tokens{i}{1}, '\d+\('], ...
         ['emxFree_', tokens{i}{1}, '\(']);
 end
-
 
 end
 
