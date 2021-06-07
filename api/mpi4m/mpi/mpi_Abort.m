@@ -21,7 +21,7 @@ function info = mpi_Abort(comm, errorcode)
 %#codegen -args {MPI_Comm, int32(0)}
 
 info = int32(0);
-if coder.ismatlabthread
+if coder.target('MATLAB')
     m2c_error('MMPI:MPI_Abort', 'MPI_Abort was called');
 else
     info = coder.ceval('MPI_Abort', MPI_Comm(comm), int32(errorcode));

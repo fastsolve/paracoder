@@ -42,7 +42,7 @@ function [info, toplevel] = mpi_Alltoallw(sptr, scounts, sdisps, stypes, ...
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if isequal(sptr.data,rptr.data)
         m2c_error('mpi_Alltoallw:NoInPlace','MPI_Alltoallw does not support in-place communication.');
     end

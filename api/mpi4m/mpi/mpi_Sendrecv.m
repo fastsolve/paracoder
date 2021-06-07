@@ -37,7 +37,7 @@ function [stat, info, toplevel] = mpi_Sendrecv(sptr, scount, stype, dst, stag, .
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if (sptr.nbytes-sptr.offset < scount*mpi_Type_size(stype) || ...
             rptr.nbytes-rptr.offset < rcount*mpi_Type_size(rtype))
         m2c_error('mpi_Sendrecv:OutOfBound','Message size is larger than variable size.');

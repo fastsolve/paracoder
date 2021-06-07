@@ -36,7 +36,7 @@ function [info, toplevel] = mpi_Scatterv(sptr, scounts, disps, stype, rptr, rcou
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if (rptr.nbytes-rptr.offset < rcount*mpi_Type_size(rtype))
         m2c_error('mpi_Scatterv:OutOfBound','Message size is larger than variable size.');
     end

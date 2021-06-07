@@ -30,7 +30,7 @@ function [info, toplevel] = mpi_Alltoall(sptr, scount, stype, rptr, rcount, rtyp
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     nprocs = mpi_Comm_size(comm);
     if (sptr.nbytes-sptr.offset < scount*nprocs *mpi_Type_size(stype) || ...
             rptr.nbytes-rptr.offset < rcount*nprocs *mpi_Type_size(rtype))

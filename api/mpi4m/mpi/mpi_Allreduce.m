@@ -26,7 +26,7 @@ function [info, toplevel] = mpi_Allreduce(sptr, rptr, count, datatype, op, comm)
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if (sptr.nbytes && sptr.nbytes-sptr.offset < count*mpi_Type_size(datatype) || ...
             rptr.nbytes && rptr.nbytes-rptr.offset < count*mpi_Type_size(datatype))
         m2c_error('mpi_Allreduce:OutOfBound','Message size is larger than variable size.');

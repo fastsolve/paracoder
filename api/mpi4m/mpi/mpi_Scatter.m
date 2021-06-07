@@ -31,7 +31,7 @@ function [info, toplevel] = mpi_Scatter(sptr, scount, stype, rptr, rcount, rtype
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if mpi_Comm_rank(comm)==root && ...
             sptr.nbytes-sptr.offset < scount*mpi_Type_size(stype)
         m2c_error('mpi_Scatter:OutOfBound','Message is larger than send buffer size.');

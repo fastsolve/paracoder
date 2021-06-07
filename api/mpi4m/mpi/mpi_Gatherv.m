@@ -33,7 +33,7 @@ function [info, toplevel] = mpi_Gatherv(sptr, scount, stype, rptr, rcounts, disp
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     if (sptr.nbytes-sptr.offset < scount*mpi_Type_size(stype))
         m2c_error('mpi_Gatherv:OutOfBound','Message size is larger than variable size.');
     end

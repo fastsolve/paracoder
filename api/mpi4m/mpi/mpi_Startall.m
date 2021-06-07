@@ -22,7 +22,7 @@ function [info, toplevel] = mpi_Startall(count, reqs)
 % This function should not be inlined, because of the handling of arrays.
 coder.inline('never');
 
-if isstruct(reqs) && coder.ismatlabthread
+if isstruct(reqs) && coder.target('MATLAB')
     if length(reqs.data) < count*mpi_get_sizeof('MPI_Request')
         m2c_error('mpi_Startall:OutOfBound','Message size is larger than variable size.');
     end

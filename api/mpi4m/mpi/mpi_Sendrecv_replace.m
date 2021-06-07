@@ -32,7 +32,7 @@ function [stat, info, toplevel] = mpi_Sendrecv_replace (ptr, count, datatype, ds
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(ptr) && coder.ismatlabthread
+if isstruct(ptr) && coder.target('MATLAB')
     if (ptr.nbytes-ptr.offset < count*mpi_Type_size(datatype))
         m2c_error('mpi_Sendrecv_replace:OutOfBound','Message size is larger than variable size.');
     end

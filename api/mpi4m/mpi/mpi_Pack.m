@@ -28,7 +28,7 @@ function [position,info, toplevel] = mpi_Pack(inbuf, incount, datatype, outbuf, 
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(inbuf) && coder.ismatlabthread
+if isstruct(inbuf) && coder.target('MATLAB')
     if (inbuf.nbytes-inbuf.offset < incount*mpi_Type_size(datatype))
         m2c_error('mpi_Send:OutOfBound','Input buffer is too small.');
     end

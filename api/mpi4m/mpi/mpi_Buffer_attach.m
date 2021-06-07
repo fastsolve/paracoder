@@ -20,7 +20,7 @@ function [info, toplevel] = mpi_Buffer_attach (ptr, size)
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(ptr) && coder.ismatlabthread
+if isstruct(ptr) && coder.target('MATLAB')
     if (ptr.nbytes-ptr.offset < size)
         m2c_error('mpi_Buffer_attach:OutOfBound','Message size is larger than variable size.');
     end

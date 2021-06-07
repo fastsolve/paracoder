@@ -30,7 +30,7 @@ function [idx, stat, reqs, info, toplevel] = mpi_Waitany(count, reqs)
 % This function should not be inlined, because of the handling of arrays.
 coder.inline('never');
 
-if isstruct(reqs) && coder.ismatlabthread
+if isstruct(reqs) && coder.target('MATLAB')
     if length(reqs.data) < count*mpi_get_sizeof('MPI_Request')
         m2c_error('mpi_Waitany:OutOfBound', 'MPI_Request_array is too small.');
     end

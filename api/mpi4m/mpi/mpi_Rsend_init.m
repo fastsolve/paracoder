@@ -27,7 +27,7 @@ function [req, info, toplevel] = mpi_Rsend_init(ptr, count, datatype, dest, tag,
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(ptr) && coder.ismatlabthread
+if isstruct(ptr) && coder.target('MATLAB')
     if (ptr.nbytes-ptr.offset < count*mpi_Type_size(datatype))
         m2c_error('mpi_Rsend_init:OutOfBound','Message size is larger than variable size.');
     end

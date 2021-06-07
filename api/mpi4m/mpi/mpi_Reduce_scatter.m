@@ -30,7 +30,7 @@ function [info, toplevel] = mpi_Reduce_scatter(sptr, rptr, rcounts, datatype, op
 
 info = int32(0); %#ok<NASGU>
 
-if isstruct(sptr) && coder.ismatlabthread
+if isstruct(sptr) && coder.target('MATLAB')
     count = sum(rcounts(:)); sizepe=mpi_Type_size(datatype);
     if (sptr.nbytes-sptr.offset < count*sizepe)
         m2c_error('mpi_Reduce_scatter:OutOfBound','Send buffer is too small.');
