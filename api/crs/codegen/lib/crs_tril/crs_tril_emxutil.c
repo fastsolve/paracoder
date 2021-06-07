@@ -1,5 +1,6 @@
 #include "crs_tril_emxutil.h"
 #include "crs_tril_types.h"
+#include "m2c.h"
 #include <stdlib.h>
 #include <string.h>
 
