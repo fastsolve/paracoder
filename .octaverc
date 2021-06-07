@@ -4,3 +4,4 @@ verstr = version;
 
 % Set path for M2C
 load_m2c
+warning('off', 'Octave:data-file-in-path')
