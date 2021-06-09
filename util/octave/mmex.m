@@ -136,8 +136,8 @@ while i<=nargin
         defs.CXXOPTIMFLAGS = [defs.CXXOPTIMFLAGS ' -O2']; %#ok<*AGROW>
     elseif varargin{i}(1)~='-' && ~isempty(strfind(varargin{i}, '='))
         index = strfind(varargin{i}, '=');
-        var = varargin{i}(1:index-1);
-        val = varargin{i}(index+1:end);
+        var = varargin{i}(1:index(1)-1);
+        val = varargin{i}(index(1)+1:end);
 
         if ~isempty(val) && val(1) == '''' && (length(val)==1 || val(end) ~= '''')
             % Append additional args
@@ -192,9 +192,15 @@ macros = '';
 
 if ~isempty(defs.CC)
     macros = ['export CC=''' strtrim(defs.CC) '''; '];
+elseif contains(getenv('OCTAVE_HOME'), 'conda') && ...
+    exist([getenv('OCTAVE_HOME') '/bin/x86_64-conda-linux-gnu-cc'], 'file')
+    setenv('CC', [getenv('OCTAVE_HOME') '/bin/x86_64-conda-linux-gnu-cc']);
 end
 if ~isempty(defs.CXX)
     macros = [macros 'export CXX=''' strtrim(defs.CXX) '''; '];
+elseif contains(getenv('OCTAVE_HOME'), 'conda') && ...
+    exist([getenv('OCTAVE_HOME') '/bin/x86_64-conda-linux-gnu-c++'], 'file')
+    setenv('CXX', [getenv('OCTAVE_HOME') '/bin/x86_64-conda-linux-gnu-c++']);
 end
 if ~isempty(defs.CPPFLAGS)
     macros = [macros 'export CPPFLAGS=''' strtrim(defs.CPPFLAGS) '''; '];

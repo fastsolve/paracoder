@@ -35,6 +35,7 @@ Thumbs.db
 octave-core
 **/*.eps
 *.swp
+*.swo
 
 #Code generation
 **/codegen/mex
