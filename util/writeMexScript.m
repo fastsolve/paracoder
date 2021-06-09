@@ -67,8 +67,8 @@ elseif isempty(m2c_opts.cc) && ismac && m2c_opts.withOMP
 elseif ~isempty(m2c_opts.cc)
     CC = sprintf('%s ', m2c_opts.cc{:});
 elseif isoctave && contains(getenv('OCTAVE_HOME'), 'conda') && ...
-    exists([getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-cc'], 'file')
-    CC = ['CC=''''' getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-cc' ''''' CXX=''''' getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-cxx' ''''''];
+    exist([getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-cc'], 'file')
+    CC = ['CC=''''' getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-cc' ''''' CXX=''''' getenv('OCTAVE_HOME'), '/bin/x86_64-conda-linux-gnu-c++' ''''''];
 end
 
 if m2c_opts.withOMP
