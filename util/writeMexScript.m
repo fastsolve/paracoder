@@ -103,8 +103,8 @@ mexflags = [mexflags ' ' CPPFLAGS];
 
 if ~isempty(m2c_opts.cflags)
     % Overwrite all the CFLAGS flags
-    mexflags = [mexflags ' CFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ...
-        ''''' CXXFLAGS=''''' sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
+    mexflags = [mexflags ' CFLAGS=''''' CFLAGS sprintf(' %s ', m2c_opts.cflags{:}) ...
+        ''''' CXXFLAGS=''''' CXXFLAGS sprintf(' %s ', m2c_opts.cflags{:}) ''''''];
 elseif ~isempty(CFLAGS)
     mexflags = [mexflags ' CFLAGS=''''' CFLAGS ''''' CXXFLAGS=''''' CXXFLAGS ''''''];
 end
@@ -125,7 +125,7 @@ end
 mexflags = [mexflags ' COPTIMFLAGS=''''' COPTFLAGS ''''' CXXOPTIMFLAGS=''''' COPTFLAGS ''''''];
 
 if ~isempty(m2c_opts.ldflags)
-    mexflags = [mexflags ' LDFLAGS=''''' sprintf(' %s ', m2c_opts.ldflags{:}) ''''''];
+    mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS sprintf(' %s ', m2c_opts.ldflags{:}) ''''''];
 elseif ~isempty(LDFLAGS)
     mexflags = [mexflags ' LDFLAGS=''''' LDFLAGS ''''''];
 end

@@ -62,9 +62,9 @@ elseif ~isempty(m2c_opts.gcov)
 end
 
 if ~isempty(m2c_opts.cflags)
-    % Overwrite CFLAGS
-    CFLAGS = sprintf(' %s ', m2c_opts.cflags{:});
-    CXXFLAGS = sprintf(' %s ', m2c_opts.cflags{:});
+    % Append CFLAGS and CXXFLAGS
+    CFLAGS = [CFLAGS sprintf(' %s ', m2c_opts.cflags{:})];
+    CXXFLAGS = [CXXFLAGS sprintf(' %s ', m2c_opts.cflags{:})];
 end
 if ~isempty(m2c_opts.cppflags)
     CPPFLAGS = sprintf(' %s ', m2c_opts.cppflags{:});

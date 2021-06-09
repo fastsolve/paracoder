@@ -135,13 +135,10 @@ function m2c(varargin)
 %           Specify flags for the C compiler for building the mex file or
 %           standalone executable. The argument list is a cell array of
 %           character strings. E.g., -cflags {'-O3', '-DNDEBUG'}. Each
-%           string can be a MATLAB expression. It overwrites the default
-%           flags set by -O?, -g, -gprof, -gcov and any supported external
-%           libraries.
+%           string can be a MATLAB expression. It is appended to the flags.
 %     -ldflags {'flag1', 'flag2', ...}
 %           Specify flags for the linker when building the mex file or
-%           standalone executable. It overwrites the default flags set by
-%           any supported external libraries, so you must use with caution.
+%           standalone executable. It is appended to the flags.
 %     -mexflags {'flag1', 'flag2', ...}
 %           Specify flags for the mex command. It overwrites the flags
 %           assigned by -O?, -cc -cflags options. The argument list is a
