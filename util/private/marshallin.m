@@ -82,7 +82,7 @@ for i=1:length(vars)
                 getMatlabClass(var.basetype) ' is expected.");']);
 
             str_mx = sprintf('%s    %s', str_mx, ....
-                strrep(errchk, [char(10) '    '], [char(10) '        ']));
+                strrep(errchk, [newline '    '], [newline '        ']));
         end
     end
 
@@ -135,7 +135,7 @@ for i=1:length(vars)
                         ['                "Dimension ' num2str(k) ' of ' var.mname ...
                         ' should be equal to 1.");']);
                     str_mx = sprintf('%s    %s', str_mx, ....
-                        strrep(errchk, [char(10) '    '], [char(10) '        ']));
+                        strrep(errchk, [newline '    '], [newline '        ']));
                 end
             elseif ~var.vardim(k)
                 if k>2
@@ -163,7 +163,7 @@ for i=1:length(vars)
                         ['                "Dimension ' num2str(k) ' of ' var.mname ...
                         ' should be equal to ' num2str(var.size(k)) '.");']);
                     str_mx = sprintf('%s    %s', str_mx, ....
-                        strrep(errchk, [char(10) '    '], [char(10) '        ']));
+                        strrep(errchk, [newline '    '], [newline '        ']));
                 end
             elseif isfinite(var.size(k))
                 if k>2
@@ -192,7 +192,7 @@ for i=1:length(vars)
                         ' should be no greater than ' num2str(var.size(k)) '.");']);
 
                     str_mx = sprintf('%s    %s', str_mx, ....
-                        strrep(errchk, [char(10) '    '], [char(10) '        ']));
+                        strrep(errchk, [newline '    '], [newline '        ']));
                 end
             end
         end
@@ -302,7 +302,7 @@ for i=1:length(vars)
             end
 
             if ~iscuda
-                if var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield);
+                if var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield)
                     % Case 3. emxArray split into _data and _size arguments
                     sizefield = vars(var.sizefield).cname;
                 else
@@ -373,7 +373,7 @@ for i=1:length(vars)
                     hasAlias = true;
                 end
             elseif ~writeonly_var
-                if var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield);
+                if var.isemx && ~isempty(var.sizefield) && isnumeric(var.sizefield)
                     % Case 3. emxArray split into _data and _size arguments
                     sizefield = ['&' vars(var.sizefield).cname];
                 else
