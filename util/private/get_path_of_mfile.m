@@ -5,9 +5,9 @@ function [mpath, func, mfile] = get_path_of_mfile(mfile)
 
 if ~isempty(mpath)
     mpath = [mpath '/'];
-    if exist([mpath func '.p'], 'file');
+    if exist([mpath func '.p'], 'file')
         mfile = [mpath func '.p'];
-    elseif exist([mpath func '.m'], 'file');
+    elseif exist([mpath func '.m'], 'file')
         mfile = [mpath func '.m'];
     else
         error('m2c:FileNotFound', 'Could not locate function %s', func);
@@ -20,7 +20,7 @@ else
     mfile = which ([func '.p']);
     if isempty(mfile); mfile = which ([func '.m']); end
     
-    if isempty(mfile);
+    if isempty(mfile)
         error('m2c:FileNotFound', 'Could not locate file %s', mfile);
     end
     mpath = [fileparts(mfile) '/'];

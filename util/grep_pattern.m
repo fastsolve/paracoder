@@ -18,7 +18,7 @@ if ispc
 else
     k = regexp(filepat, '/');
 end
-if ~isempty(k);
+if ~isempty(k)
     fpath = filepat(1:k(end));
 else
     fpath = '';

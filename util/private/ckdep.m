@@ -25,7 +25,7 @@ if isoctave
     % In octave, cannot check dependence
     OK=a1.datenum>=a2.datenum;
     return;
-elseif a1.datenum<a2.datenum;
+elseif a1.datenum<a2.datenum
     OK=false;
     return;
 end

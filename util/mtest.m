@@ -204,7 +204,7 @@ if (isempty (body__))
     return;
 else
     %% add a dummy comment block to the end for ease of indexing
-    if (body__ (length(body__)) == sprintf('\n'))
+    if (body__ (length(body__)) == sprintf('\n')) %#ok<*SPRINTFN>
         body__ = sprintf ('\n%s%%', body__);
     else
         body__ = sprintf ('\n%s\n%%', body__);
@@ -267,7 +267,7 @@ for i__ = 1:length(blockidx__)-1
                 demo_idx__ = [1, length(demo_code__)+1];
             else
                 demo_code__ = strcat(demo_code__, code__);
-                demo_idx__ = [demo_idx__, length(demo_code__)+1];
+                demo_idx__ = [demo_idx__, length(demo_code__)+1]; %#ok<*AGROW>
             end
 
         elseif (rundemo__ && isdemo__)
@@ -284,7 +284,7 @@ for i__ = 1:length(blockidx__)-1
             catch
                 delete test_run_demo.m;
                 success__ = 0;
-                msg__ = sprintf ('%sdemo failed\n%s',  signal_fail__, lasterr);
+                msg__ = sprintf ('%sdemo failed\n%s',  signal_fail__, lasterr); %#ok<*LERR>
             end
         end
         code__ = ''; % code already processed
@@ -463,7 +463,7 @@ for i__ = 1:length(blockidx__)-1
         catch err
             % delete test_run_temp.m;
             if (strcmp (type__, 'xtest'))
-                msg__ = sprintf ('%sknown failure\n%s', signal_fail__, lasterr);
+                msg__ = sprintf ('%sknown failure\n%s', signal_fail__, lasterr); %#ok<*NASGU>
                 xfail__ = xfail__ + 1;
             else
                 msg__ = sprintf ('%stest failed\n%s', signal_fail__, lasterr);
@@ -512,7 +512,7 @@ eval (clear__, '');
 
 if (nargout == 0)
     if (xfail__)
-        fprintf ('PASSES %d out of %d tests (%d expected failures)\n', successes__, tests__, xfail__);
+        fprintf ('PASSES %d out of %d tests (%d expected failures)\n', successes__, tests__, xfail__); %#ok<*UNRCH>
     else
         fprintf ('PASSES %d out of %d tests\n', successes__, tests__);
     end
