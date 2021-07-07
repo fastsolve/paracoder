@@ -260,6 +260,9 @@ if m2c_opts.withNvcc
     end
 end
 
+% Resolve spaces in pathname
+mexflags = regexprep(mexflags, '-I''([^'']+)''', '-I''''$1''''');
+
 if isoctave && ~m2c_opts.genMatlab
     filestr = sprintf('%s\n', filestr, ...
         ['    build_cmd = ''mmex ' mexflags ' ' ...
