@@ -13,14 +13,7 @@ files = regexp(lines, '[\w\\\/]+\.m', 'match');
 
 for j=1:length(files)
     file = files{j};
-    try
-        m2c('-mex', '-omp', '-O', varargin{:}, file);
-    catch ME
-        if any(strcmp(varargin, '-force'))
-            cd(curpath);
-            rethrow(ME);
-        end
-    end
+    m2c('-mex', '-omp', '-O', varargin{:}, file);
 end
 
 cd(curpath);

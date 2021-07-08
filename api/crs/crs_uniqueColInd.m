@@ -1,4 +1,4 @@
-function [row_ptr, col_ind, val] = crs_unique(row_ptr, col_ind, val)
+function [row_ptr, col_ind, val] = crs_uniqueColInd(row_ptr, col_ind, val)
 % Make column indices unique within each row. Values with duplicae entries
 %  are added together.
 
@@ -8,17 +8,24 @@ function [row_ptr, col_ind, val] = crs_unique(row_ptr, col_ind, val)
 assert(nargin==nargout && nargin>=2);
 
 if nargin==2
-    col_ind = crs_sort(row_ptr, col_ind);
+    col_ind = crs_sortColInd(row_ptr, col_ind);
 else
-    [col_ind, val] = crs_sort(row_ptr, col_ind, val);
+    [col_ind, val] = crs_sortColInd(row_ptr, col_ind, val);
 end
 
 offset = int32(0);
 start = int32(1);
 
 for i=1:int32(length(row_ptr))-1
+	% This test terminates the for loop if the last few rows are empty
+	if start==row_ptr(end)
+		for j=i:int32(length(row_ptr))
+			row_ptr(j)=start-offset;
+		end
+		break;
+	end
     if offset
-        col_ind(start-offset) = col_ind(start);
+        col_ind( start-offset) = col_ind( start);
         if nargin>2; val(start-offset) = val(start); end
     end
     for j=start+1 : row_ptr(i+1)-1
@@ -26,7 +33,7 @@ for i=1:int32(length(row_ptr))-1
             if nargin>2; val(j-1-offset) = val(j-1-offset) + val(j); end
             offset = offset+1;
         elseif offset
-            col_ind(j-offset) = col_ind(j);
+            col_ind( j-offset) = col_ind( j);
             if nargin>2; val(j-offset) = val(j); end
         end
     end
@@ -37,6 +44,6 @@ end
 
 if offset
     newlen = int32(length(col_ind))-offset;
-    col_ind = sub_colvec(col_ind, 1, newlen);
-    if nargin>2; val = sub_colvec(val, 1, newlen); end
+    col_ind = sub_colvec( col_ind, 1, newlen);
+    if nargin>2; val = sub_colvec( val, 1, newlen); end
 end
